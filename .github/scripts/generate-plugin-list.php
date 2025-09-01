@@ -68,7 +68,7 @@ foreach ($pluginDirs as $pluginDir) {
             array_map('trim', explode(',', $iniData['require'])) : [],
         'require_php' => isset($iniData['require_php']) ?
             array_map('trim', explode(',', $iniData['require_php'])) : [],
-        'download_url' => "https://github.com/$repoOwner/$repoName/archive/refs/heads/main.zip",
+        'download_url' => "https://github.com/{$repoOwner}/{$repoName}/raw/main/plugins/{$pluginName}/{$pluginName}.zip",
         'health' => 5,
         'last_updated' => $lastUpdated,
         'compatibility' => checkCompatibility(
