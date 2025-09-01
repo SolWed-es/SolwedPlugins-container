@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view>
+    <columns>
+        <group name="data" numcolumns="12" valign="top" title="Whatsapp" icon="fab fa-whatsapp">
+            <column name="name" display="none" order="0">
+                <widget type="text" fieldname="name" readonly="true" required="true" />
+             </column>
+            <column name="prefijo" order="110" title="Prefijo" numcolumns="2">
+                <widget type="number" fieldname="prefijo" icon="fas fa-globe"/>
+            </column>
+        </group>
+        <group name="datadoc" numcolumns="12" valign="top" title="Encabezado y Pie de mensajes" icon="fas fa-file-signature">
+            <column name="inicio" order="100" title="Texto de Inicio" description="Texto de inicio" numcolumns="6">
+                <widget type="textarea" fieldname="inicio" />
+            </column>
+            <column name="fin" order="110" title="Texto Final" description="Texto final del mensaje" numcolumns="6">
+                <widget type="textarea" fieldname="fin" />
+            </column>
+        </group>
+        <group name="templates" numcolumns="12" valign="top" title="Plantillas WhatsApp" icon="fab fa-whatsapp">
+            <column name="msgpresupuesto" order="10" title="Mensaje para Presupuesto" description="Plantilla para Presupuesto">
+                <widget type="textarea" fieldname="msgpresupuesto" />
+            </column>
+            <column name="msgpedido" order="20" title="Mensaje para Pedido" description="Plantilla para Pedido">
+                <widget type="textarea" fieldname="msgpedido" />
+            </column>
+            <column name="msgalbaran" order="30" title="Mensaje para Albarán" description="Plantilla para Albarán">
+                <widget type="textarea" fieldname="msgalbaran" />
+            </column>
+            <column name="msgfactura" order="40" title="Mensaje para Factura" description="Plantilla para Factura">
+                <widget type="textarea" fieldname="msgfactura" />
+            </column>
+        </group>
+        <group name="textoayuda" numcolumns="12" valign="top" title="Ayuda sobre Plantillas" icon="fas fa-info-circle">
+            <column name="textoayuda" order="50" title="Parámetros disponibles" numcolumns="12">
+                <widget type="textarea" fieldname="textoayuda" readonly="true" />
+            </column>
+        </group>
+    </columns>
+</view>
