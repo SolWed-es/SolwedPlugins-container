@@ -1,9 +1,9 @@
 {
     "metadata": {
-        "generated": "2025-09-01 13:52:15",
+        "generated": "2025-09-01 15:00:48",
         "repo": "https://github.com/SolWed-es/SolwedPlugins-container",
         "plugin_count": 3,
-        "workflow_run": "17379654836"
+        "workflow_run": "17381235345"
     },
     "plugins": [
         {
@@ -16,7 +16,7 @@
                 "CRM"
             ],
             "require_php": [],
-            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/archive/refs/heads/main.zip",
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/plugins/IeCRMFormularioElementor/IeCRMFormularioElementor.zip",
             "health": 5,
             "last_updated": "2025-09-01",
             "compatibility": {
@@ -35,7 +35,7 @@
             "min_php": 7.3,
             "require": [],
             "require_php": [],
-            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/archive/refs/heads/main.zip",
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/plugins/IeWhatsapp/IeWhatsapp.zip",
             "health": 5,
             "last_updated": "2025-09-01",
             "compatibility": {
@@ -54,7 +54,7 @@
             "min_php": 7.3,
             "require": [],
             "require_php": [],
-            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/archive/refs/heads/main.zip",
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/plugins/SolwedTheme/SolwedTheme.zip",
             "health": 5,
             "last_updated": "2025-09-01",
             "compatibility": {
