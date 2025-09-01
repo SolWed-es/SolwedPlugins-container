@@ -1,0 +1,18 @@
+.bg-dark-solwed {
+    background-color: #333d3e !important;
+}
+
+.btn-warning {
+    background-color: #f2e400 !important;
+}
+
+.sidebar-link.active {
+    color: #f2e400 !important;
+}
+
+.sidebar-nav ul .sidebar-item .sidebar-link {
+    padding: 4px 10px !important;
+}
+#main-wrapper > div > div > div.container > div:nth-child(5) > div.bg-warning{
+	display:none;
+}
