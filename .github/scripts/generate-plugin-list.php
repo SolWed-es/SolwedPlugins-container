@@ -130,15 +130,15 @@ function createPluginZip(string $sourcePath, string $pluginName, string $zipPath
         if (!$file->isDir()) {
             // Get real and relative path for current file
             $filePath = $file->getRealPath();
-            $relativePath = substr($filePath, strlen(dirname($sourcePath)) + 1);
 
-            // Ensure the path starts with the plugin name
-            if (!str_starts_with($relativePath, $pluginName . '/')) {
-                $relativePath = $pluginName . '/' . substr($relativePath, strlen($pluginName) + 1);
-            }
+            // Calculate relative path from the plugin source directory
+            $relativePath = substr($filePath, strlen($sourcePath) + 1);
+
+            // Create the final path with plugin name as root
+            $finalPath = $pluginName . '/' . $relativePath;
 
             // Add current file to archive
-            $zip->addFile($filePath, $relativePath);
+            $zip->addFile($filePath, $finalPath);
         }
     }
 
