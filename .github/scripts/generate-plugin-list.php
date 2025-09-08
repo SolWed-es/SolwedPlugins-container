@@ -33,7 +33,7 @@ if (empty($pluginDirs)) {
     echo "No plugin directories found in $pluginsPath/\n";
     file_put_contents($outputFile, json_encode([
         'metadata' => [
-            'generated' => date('Y-m-d H:i:s'),
+            'generated' => date('d-m-Y H:i:s'),
             'repo' => "https://github.com/$repoOwner/$repoName",
             'plugin_count' => 0,
             'warning' => 'No plugins found'
@@ -60,7 +60,7 @@ foreach ($pluginDirs as $pluginDir) {
     }
 
     // Get last commit date for this plugin
-    $lastUpdated = shell_exec("git log -1 --format=%cd --date=short $pluginDir 2>/dev/null") ?? date('Y-m-d');
+    $lastUpdated = shell_exec("git log -1 --format=%cd --date=short $pluginDir 2>/dev/null") ?? date('d-m-Y');
     $lastUpdated = trim($lastUpdated);
 
     // Create ZIP file for the plugin
@@ -96,7 +96,7 @@ foreach ($pluginDirs as $pluginDir) {
 // Generate the JSON file
 $jsonData = [
     'metadata' => [
-        'generated' => date('Y-m-d H:i:s'),
+        'generated' => date('d-m-Y H:i:s'),
         'repo' => "https://github.com/$repoOwner/$repoName",
         'plugin_count' => count($plugins),
         'workflow_run' => getenv('GITHUB_RUN_ID') ?: 'manual'

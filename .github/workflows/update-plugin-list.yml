@@ -1,12 +1,12 @@
 name: Update Plugin List
 on:
   push:
-    branches: [main, master]
+    branches: [main]
     paths:
       - "plugins/**"
       - ".github/scripts/generate-plugin-list.php"
   pull_request:
-    branches: [main, master]
+    branches: [main]
     paths:
       - "plugins/**"
   workflow_dispatch: # Allows manual triggering
