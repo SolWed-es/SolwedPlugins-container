@@ -30,21 +30,25 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: "8.1"
-          tools: composer
+          # Install zip extension which is needed for creating ZIP files
+          extensions: zip
 
-      - name: Generate plugin list
+      - name: Create zip directory
+        run: mkdir -p zip
+
+      - name: Generate plugin list and create ZIP files
         run: php .github/scripts/generate-plugin-list.php
 
-      - name: Check if plugin-list.json changed
+      - name: Check for changes
         id: check-changes
         run: |
-          git add plugin-list.json
+          git add plugin-list.json zip/
           if git diff --staged --quiet; then
             echo "changes=false" >> $GITHUB_OUTPUT
-            echo "No changes to plugin-list.json"
+            echo "No changes detected"
           else
             echo "changes=true" >> $GITHUB_OUTPUT
-            echo "Changes detected in plugin-list.json"
+            echo "Changes detected in plugin-list.json and/or zip files"
           fi
 
       - name: Commit and push changes
@@ -52,5 +56,5 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git commit -m "🤖 Auto-update plugin list [skip ci]"
+          git commit -m "🤖 Auto-update plugin list and ZIP files [skip ci]"
           git push

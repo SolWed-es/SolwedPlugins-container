@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Script to generate plugin-list.json from GitHub repository structure
+ * Script to generate plugin-list.json and create ZIP files for each plugin
  */
 
 // Get repository info from environment
@@ -15,9 +15,15 @@ if ($githubRepository) {
 }
 
 $pluginsPath = 'plugins';
+$zipPath = 'zip';
 $outputFile = 'plugin-list.json';
 
 echo "Generating plugin list for: $repoOwner/$repoName\n";
+
+// Create zip directory if it doesn't exist
+if (!file_exists($zipPath)) {
+    mkdir($zipPath, 0755, true);
+}
 
 // Get all plugin directories
 $pluginDirs = glob($pluginsPath . '/*', GLOB_ONLYDIR);
@@ -57,6 +63,17 @@ foreach ($pluginDirs as $pluginDir) {
     $lastUpdated = shell_exec("git log -1 --format=%cd --date=short $pluginDir 2>/dev/null") ?? date('Y-m-d');
     $lastUpdated = trim($lastUpdated);
 
+    // Create ZIP file for the plugin
+    $zipFileName = "$pluginName.zip";
+    $zipFilepath = "$zipPath/$zipFileName";
+
+    if ($this->createPluginZip($pluginDir, $zipFilepath)) {
+        echo "Created ZIP for: $pluginName\n";
+    } else {
+        echo "Failed to create ZIP for: $pluginName\n";
+        continue;
+    }
+
     // Extract plugin information
     $plugin = [
         'name' => $iniData['name'] ?? $pluginName,
@@ -68,13 +85,8 @@ foreach ($pluginDirs as $pluginDir) {
             array_map('trim', explode(',', $iniData['require'])) : [],
         'require_php' => isset($iniData['require_php']) ?
             array_map('trim', explode(',', $iniData['require_php'])) : [],
-        'download_url' => "https://github.com/{$repoOwner}/{$repoName}/raw/main/plugins/{$pluginName}/{$pluginName}.zip",
-        'health' => 5,
-        'last_updated' => $lastUpdated,
-        'compatibility' => checkCompatibility(
-            floatval($iniData['min_version'] ?? '0.0'),
-            floatval($iniData['min_php'] ?? '7.3')
-        )
+        'download_url' => "https://github.com/$repoOwner/$repoName/raw/main/$zipPath/$zipFileName",
+        'last_updated' => $lastUpdated
     ];
 
     $plugins[] = $plugin;
@@ -96,32 +108,35 @@ file_put_contents($outputFile, json_encode($jsonData, JSON_PRETTY_PRINT | JSON_U
 echo "Generated $outputFile with " . count($plugins) . " plugins\n";
 
 /**
- * Check plugin compatibility with current FacturaScripts versions
+ * Create ZIP file for a plugin directory
  */
-function checkCompatibility($minVersion, $minPhp): array
+function createPluginZip(string $sourcePath, string $zipPath): bool
 {
-    // Simulate current versions for compatibility scoring
-    $currentFsVersion = 2023.06;
-    $currentPhpVersion = PHP_VERSION;
+    // Initialize archive object
+    $zip = new ZipArchive();
 
-    $fsCompatible = $minVersion <= $currentFsVersion;
-    $phpCompatible = version_compare($currentPhpVersion, $minPhp, '>=');
-
-    $score = 5; // Default score
-
-    if (!$fsCompatible) {
-        $score -= 2;
+    if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+        return false;
     }
 
-    if (!$phpCompatible) {
-        $score -= 2;
+    // Create recursive directory iterator
+    $files = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($sourcePath),
+        RecursiveIteratorIterator::LEAVES_ONLY
+    );
+
+    foreach ($files as $name => $file) {
+        // Skip directories (they would be added automatically)
+        if (!$file->isDir()) {
+            // Get real and relative path for current file
+            $filePath = $file->getRealPath();
+            $relativePath = substr($filePath, strlen($sourcePath) + 1);
+
+            // Add current file to archive
+            $zip->addFile($filePath, $relativePath);
+        }
     }
 
-    return [
-        'fs_version' => $fsCompatible,
-        'php_version' => $phpCompatible,
-        'score' => max(1, $score), // Minimum score of 1
-        'current_fs_version' => $currentFsVersion,
-        'current_php_version' => $currentPhpVersion
-    ];
+    // Zip archive will be created only after closing object
+    return $zip->close();
 }
