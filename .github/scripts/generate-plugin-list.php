@@ -33,7 +33,7 @@ if (empty($pluginDirs)) {
     echo "No plugin directories found in $pluginsPath/\n";
     file_put_contents($outputFile, json_encode([
         'metadata' => [
-            'generated' => date('d-m-Y H:i:s'),
+            'generated' => date('Y-m-d H:i:s'),
             'repo' => "https://github.com/$repoOwner/$repoName",
             'plugin_count' => 0,
             'warning' => 'No plugins found'
@@ -60,14 +60,14 @@ foreach ($pluginDirs as $pluginDir) {
     }
 
     // Get last commit date for this plugin
-    $lastUpdated = shell_exec("git log -1 --format=%cd --date=short $pluginDir 2>/dev/null") ?? date('d-m-Y');
+    $lastUpdated = shell_exec("git log -1 --format=%cd --date=short $pluginDir 2>/dev/null") ?? date('Y-m-d');
     $lastUpdated = trim($lastUpdated);
 
     // Create ZIP file for the plugin
     $zipFileName = "$pluginName.zip";
     $zipFilepath = "$zipPath/$zipFileName";
 
-    if (createPluginZip($pluginDir, $zipFilepath)) {
+    if (createPluginZip($pluginDir, $pluginName, $zipFilepath)) {
         echo "Created ZIP for: $pluginName\n";
     } else {
         echo "Failed to create ZIP for: $pluginName\n";
@@ -80,7 +80,7 @@ foreach ($pluginDirs as $pluginDir) {
         'description' => $iniData['description'] ?? 'No description available',
         'version' => floatval($iniData['version'] ?? '0.0'),
         'min_version' => floatval($iniData['min_version'] ?? '0.0'),
-        'min_php' => floatval($iniData['min_php'] ?? '0.0'),
+        'min_php' => floatval($iniData['min_php'] ?? '7.3'),
         'require' => isset($iniData['require']) ?
             array_map('trim', explode(',', $iniData['require'])) : [],
         'require_php' => isset($iniData['require_php']) ?
@@ -96,7 +96,7 @@ foreach ($pluginDirs as $pluginDir) {
 // Generate the JSON file
 $jsonData = [
     'metadata' => [
-        'generated' => date('d-m-Y H:i:s'),
+        'generated' => date('Y-m-d H:i:s'),
         'repo' => "https://github.com/$repoOwner/$repoName",
         'plugin_count' => count($plugins),
         'workflow_run' => getenv('GITHUB_RUN_ID') ?: 'manual'
@@ -110,7 +110,7 @@ echo "Generated $outputFile with " . count($plugins) . " plugins\n";
 /**
  * Create ZIP file for a plugin directory
  */
-function createPluginZip(string $sourcePath, string $zipPath): bool
+function createPluginZip(string $sourcePath, string $pluginName, string $zipPath): bool
 {
     // Initialize archive object
     $zip = new ZipArchive();
@@ -130,7 +130,12 @@ function createPluginZip(string $sourcePath, string $zipPath): bool
         if (!$file->isDir()) {
             // Get real and relative path for current file
             $filePath = $file->getRealPath();
-            $relativePath = substr($filePath, strlen($sourcePath) + 1);
+            $relativePath = substr($filePath, strlen(dirname($sourcePath)) + 1);
+
+            // Ensure the path starts with the plugin name
+            if (!str_starts_with($relativePath, $pluginName . '/')) {
+                $relativePath = $pluginName . '/' . substr($relativePath, strlen($pluginName) + 1);
+            }
 
             // Add current file to archive
             $zip->addFile($filePath, $relativePath);

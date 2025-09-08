@@ -33,25 +33,8 @@ jobs:
           # Install zip extension which is needed for creating ZIP files
           extensions: zip
 
-      - name: Create plugin ZIP files
-        run: |
-          cd plugins
-          for plugin_dir in */; do
-            plugin_name=$(basename "$plugin_dir")
-            echo "Creating ZIP for $plugin_name"
-            # Create a temporary directory with the plugin name
-            mkdir -p "../temp/$plugin_name"
-            # Copy all plugin files to the temporary directory
-            cp -r "$plugin_dir"* "../temp/$plugin_name/"
-            # Create ZIP from the temporary directory
-            cd "../temp"
-            zip -r "../zip/$plugin_name.zip" "$plugin_name"
-            cd ../plugins
-            # Clean up temporary directory
-            rm -rf "../temp/$plugin_name"
-          done
-          # Clean up temporary directory
-          rm -rf ../temp
+      - name: Create zip directory
+        run: mkdir -p zip
 
       - name: Generate plugin list and create ZIP files
         run: php .github/scripts/generate-plugin-list.php
