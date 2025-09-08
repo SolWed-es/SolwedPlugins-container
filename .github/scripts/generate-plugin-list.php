@@ -128,12 +128,15 @@ function createPluginZip(string $sourcePath, string $pluginName, string $zipPath
     foreach ($files as $name => $file) {
         // Skip directories (they would be added automatically)
         if (!$file->isDir()) {
-            // Get real and relative path for current file
+            // Get real path for current file to add to the archive
             $filePath = $file->getRealPath();
 
-            // Calculate relative path from the plugin source directory
-            $relativePath = substr($filePath, strlen($sourcePath) + 1);
+            // To get the correct relative path inside the zip, we use the pathname relative to the script's CWD.
+            // The original code used getRealPath(), which is absolute and caused incorrect nesting.
+            $relativePath = substr($file->getPathname(), strlen($sourcePath) + 1);
 
+            // It's good practice to normalize directory separators for ZIP files.
+            $relativePath = str_replace(DIRECTORY_SEPARATOR, '/', $relativePath);
             // Create the final path with plugin name as root
             $finalPath = $pluginName . '/' . $relativePath;
 

@@ -33,9 +33,6 @@ jobs:
           # Install zip extension which is needed for creating ZIP files
           extensions: zip
 
-      - name: Create zip directory
-        run: mkdir -p zip
-
       - name: Generate plugin list and create ZIP files
         run: php .github/scripts/generate-plugin-list.php
 
