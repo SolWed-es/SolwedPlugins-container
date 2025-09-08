@@ -1,9 +1,9 @@
 {
     "metadata": {
-        "generated": "08-09-2025 08:23:41",
+        "generated": "08-09-2025 16:43:48",
         "repo": "https://github.com/SolWed-es/SolwedPlugins-container",
         "plugin_count": 3,
-        "workflow_run": "17544501508"
+        "workflow_run": "17557910392"
     },
     "plugins": [
         {
@@ -22,13 +22,13 @@
         {
             "name": "IeWhatsapp",
             "description": "Bot\u00f3n env\u00edo Whatsapp en paginas de ventas",
-            "version": 2.4,
+            "version": 2.5,
             "min_version": 2024,
             "min_php": 7.3,
             "require": [],
             "require_php": [],
             "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/IeWhatsapp.zip",
-            "last_updated": "2025-09-01"
+            "last_updated": "2025-09-08"
         },
         {
             "name": "SolwedTheme",
