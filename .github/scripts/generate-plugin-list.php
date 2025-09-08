@@ -67,7 +67,7 @@ foreach ($pluginDirs as $pluginDir) {
     $zipFileName = "$pluginName.zip";
     $zipFilepath = "$zipPath/$zipFileName";
 
-    if ($this->createPluginZip($pluginDir, $zipFilepath)) {
+    if (createPluginZip($pluginDir, $zipFilepath)) {
         echo "Created ZIP for: $pluginName\n";
     } else {
         echo "Failed to create ZIP for: $pluginName\n";
