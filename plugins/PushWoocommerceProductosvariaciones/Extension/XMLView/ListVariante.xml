@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view>
+    <columns>
+        <column name="woo_variation_id" display="none" order="1000">
+            <widget type="text" fieldname="woo_variation_id"/>
+        </column>
+        <column name="woo_sku" order="1010">
+            <widget type="text" fieldname="woo_sku"/>
+        </column>
+        <column name="woo_regular_price" display="right" order="1020">
+            <widget type="money" fieldname="woo_regular_price"/>
+        </column>
+        <column name="woo_sale_price" display="right" order="1030">
+            <widget type="money" fieldname="woo_sale_price"/>
+        </column>
+        <column name="woo_manage_stock" order="1040">
+            <widget type="checkbox" fieldname="woo_manage_stock"/>
+        </column>
+        <column name="woo_stock_quantity" display="right" order="1050">
+            <widget type="number" fieldname="woo_stock_quantity"/>
+        </column>
+        <column name="woo_synced" order="1060">
+            <widget type="boolean" fieldname="woo_variation_id" truevalue="notnull" falsevalue="null" 
+                    trueicon="fas fa-check-circle text-success" falseicon="fas fa-times-circle text-warning"
+                    truetitle="Sincronizado" falsetitle="No sincronizado"/>
+        </column>
+        <column name="woo_last_update" order="1070">
+            <widget type="datetime" fieldname="woo_last_update"/>
+        </column>
+    </columns>
+    <rows>
+        <row type="status">
+            <option color="success" fieldname="woo_variation_id" title="Sincronizado">notnull</option>
+            <option color="warning" fieldname="woo_variation_id" title="No sincronizado">null</option>
+        </row>
+    </rows>
+</view>
