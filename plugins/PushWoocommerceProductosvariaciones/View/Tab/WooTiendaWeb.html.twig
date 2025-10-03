@@ -101,67 +101,325 @@
         callAPI('sync-from-wc', {}, 'Datos sincronizados desde WooCommerce', true);
     }
 
+    let selectedCategories = [];
+
+    // Initialize selected categories from current product data
+    function initializeSelectedCategories() {
+        try {
+            const categoriesData = '{{ fsc.model.woo_categories ? fsc.model.woo_categories|raw : "[]" }}';
+            const parsed = JSON.parse(categoriesData);
+
+            if (Array.isArray(parsed)) {
+                // Map category IDs to full category objects with names
+                selectedCategories = parsed.map(cat => {
+                    const categoryId = cat.id || cat;
+                    const fullCategory = wooCategories.find(wc => wc.id == categoryId);
+
+                    if (fullCategory) {
+                        return { id: fullCategory.id, name: fullCategory.name };
+                    }
+
+                    // Fallback if category not found in current list
+                    return { id: categoryId, name: cat.name || 'Categoría ' + categoryId };
+                }).filter(c => c !== null);
+            } else {
+                selectedCategories = [];
+            }
+        } catch (e) {
+            console.error('Error initializing categories:', e);
+            selectedCategories = [];
+        }
+    }
+
+    // Open category manager modal
+    function openCategoryManager() {
+        document.getElementById('categoryManagerModal').style.display = 'block';
+        document.getElementById('categories-loading').style.display = 'block';
+        document.getElementById('categories-container').style.display = 'none';
+        document.getElementById('categories-error').style.display = 'none';
+        loadWooCommerceCategories();
+    }
+
+    // Close category manager modal
+    function closeCategoryManager() {
+        document.getElementById('categoryManagerModal').style.display = 'none';
+        document.getElementById('category-search').value = '';
+    }
+
+    // Load categories from WooCommerce API
     function loadWooCommerceCategories() {
-        callAPI('get-wc-categories').then(result => {
+        callAPI('get-wc-categories', {}).then(result => {
             if (result && result.categories) {
                 wooCategories = result.categories;
-                populateCategorySelect();
+                initializeSelectedCategories(); // Initialize AFTER categories are loaded
+                buildCategoryTree();
+                populateParentCategorySelect();
+                document.getElementById('categories-loading').style.display = 'none';
+                document.getElementById('categories-container').style.display = 'block';
+            } else {
+                document.getElementById('categories-loading').style.display = 'none';
+                document.getElementById('categories-error').style.display = 'block';
             }
         });
     }
 
-    function populateCategorySelect() {
-        const select = document.getElementById('woo_categories');
-        if (!select) return;
+    // Build hierarchical category tree
+    function buildCategoryTree() {
+        const tree = document.getElementById('categories-tree');
+        tree.innerHTML = '';
 
-        select.innerHTML = '<option value="">Seleccionar categorías...</option>';
-        const currentCategories = getSelectedCategoryIds();
+        const categoryMap = {};
+        const rootCategories = [];
 
-        wooCategories.forEach(category => {
-            const option = document.createElement('option');
-            option.value = category.id;
-            option.textContent = `${category.name} (${category.count || 0})`;
-            option.selected = currentCategories.includes(category.id);
-            select.appendChild(option);
+        wooCategories.forEach(cat => {
+            categoryMap[cat.id] = { ...cat, children: [] };
+        });
+
+        wooCategories.forEach(cat => {
+            if (cat.parent === 0 || !cat.parent) {
+                rootCategories.push(categoryMap[cat.id]);
+            } else if (categoryMap[cat.parent]) {
+                categoryMap[cat.parent].children.push(categoryMap[cat.id]);
+            }
+        });
+
+        rootCategories.forEach(cat => renderCategory(cat, tree, 0));
+        updateSelectedCount();
+    }
+
+    // Render individual category with children
+    function renderCategory(category, container, level) {
+        const div = document.createElement('div');
+        div.className = 'category-item';
+        div.style.paddingLeft = (level * 20) + 'px';
+        div.dataset.categoryId = category.id;
+        div.dataset.categoryName = category.name;
+
+        const isSelected = selectedCategories.some(c => c.id == category.id);
+
+        div.innerHTML = `
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px; margin: 2px 0; border-radius: 4px; background: ${level > 0 ? '#f8f9fa' : 'white'};">
+                <label class="category-checkbox" style="cursor: pointer; flex: 1; margin: 0;">
+                    <input type="checkbox" value="${category.id}" ${isSelected ? 'checked' : ''} onchange="toggleCategorySelection(${category.id}, '${category.name.replace(/'/g, "\\'")}', this.checked)">
+                    <span style="margin-left: 8px;">
+                        ${level > 0 ? '<i class="fas fa-level-up-alt fa-rotate-90 text-muted mr-1"></i>' : '<i class="fas fa-folder text-warning mr-1"></i>'}
+                        <strong>${category.name}</strong>
+                        <span class="text-muted"> (${category.count || 0} productos)</span>
+                    </span>
+                </label>
+                <button type="button" class="btn btn-sm btn-danger" onclick="deleteCategory(${category.id}, '${category.name.replace(/'/g, "\\'")}', ${category.count || 0})" title="Eliminar categoría">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `;
+
+        container.appendChild(div);
+
+        if (category.children && category.children.length > 0) {
+            category.children.forEach(child => renderCategory(child, container, level + 1));
+        }
+    }
+
+    // Toggle category selection
+    function toggleCategorySelection(categoryId, categoryName, checked) {
+        if (checked) {
+            // Add current category if not already selected
+            if (!selectedCategories.some(c => c.id == categoryId)) {
+                selectedCategories.push({ id: categoryId, name: categoryName });
+            }
+
+            // Auto-select all parent categories
+            let parentId = wooCategories.find(c => c.id == categoryId)?.parent;
+            while (parentId && parentId > 0) {
+                const parentCategory = wooCategories.find(c => c.id == parentId);
+                if (parentCategory && !selectedCategories.some(c => c.id == parentId)) {
+                    selectedCategories.push({ id: parentId, name: parentCategory.name });
+                }
+                parentId = parentCategory?.parent;
+            }
+        } else {
+            // Uncheck current category
+            selectedCategories = selectedCategories.filter(c => c.id != categoryId);
+
+            // Auto-uncheck all child categories
+            const childrenToUncheck = getChildCategoryIds(categoryId);
+            childrenToUncheck.forEach(childId => {
+                selectedCategories = selectedCategories.filter(c => c.id != childId);
+            });
+        }
+        // Re-render the tree to reflect all state changes
+        buildCategoryTree();
+    }
+
+    // Helper function to get all child category IDs recursively
+    function getChildCategoryIds(parentId) {
+        const children = [];
+        wooCategories.forEach(cat => {
+            if (cat.parent == parentId) {
+                children.push(cat.id);
+                // Recursively get children of this category
+                children.push(...getChildCategoryIds(cat.id));
+            }
+        });
+        return children;
+    }
+
+    // Update selected count display
+    function updateSelectedCount() {
+        const count = selectedCategories.length;
+        document.getElementById('selected-count').textContent = `${count} categoría${count !== 1 ? 's' : ''} seleccionada${count !== 1 ? 's' : ''}`;
+    }
+
+    // Filter categories by search
+    function filterCategories() {
+        const searchTerm = document.getElementById('category-search').value.toLowerCase();
+        const items = document.querySelectorAll('.category-item');
+
+        items.forEach(item => {
+            const name = item.dataset.categoryName.toLowerCase();
+            item.style.display = name.includes(searchTerm) ? 'block' : 'none';
         });
     }
 
-    function getSelectedCategoryIds() {
-        try {
-            const categoriesData = '{{ fsc.model.woo_categories ?? "[]" }}';
-            return JSON.parse(categoriesData).map(cat => cat.id);
-        } catch (e) {
-            return [];
+    // Save selected categories
+    function saveSelectedCategories() {
+        const display = document.getElementById('selected-categories-display');
+        if (selectedCategories.length > 0) {
+            display.innerHTML = selectedCategories.map(cat => `
+                <span class="badge badge-info mr-2 mb-2" style="font-size: 0.95em;">
+                    ${cat.name}
+                    <i class="fas fa-check-circle ml-1"></i>
+                </span>
+            `).join('');
+        } else {
+            display.innerHTML = '<span class="text-muted">Sin categorías asignadas</span>';
         }
+
+        const form = document.getElementById('wooCommerceForm');
+        form.querySelectorAll('input[name="woo_categories[]"]').forEach(input => input.remove());
+
+        selectedCategories.forEach(cat => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'woo_categories[]';
+            input.value = cat.id;
+            form.appendChild(input);
+        });
+
+        closeCategoryManager();
+        alert(`${selectedCategories.length} categoría(s) asignada(s) al producto`);
     }
 
+    // Populate parent category select for creating new categories - with hierarchy
+    function populateParentCategorySelect() {
+        const select = document.getElementById('newCategoryParent');
+        if (!select) return;
+
+        select.innerHTML = '<option value="0">-- Sin categoría padre (Categoría principal) --</option>';
+
+        // Build category map
+        const categoryMap = {};
+        wooCategories.forEach(cat => {
+            categoryMap[cat.id] = { ...cat, children: [] };
+        });
+
+        // Organize into hierarchy
+        const rootCategories = [];
+        wooCategories.forEach(cat => {
+            if (cat.parent === 0 || !cat.parent) {
+                rootCategories.push(categoryMap[cat.id]);
+            } else if (categoryMap[cat.parent]) {
+                categoryMap[cat.parent].children.push(categoryMap[cat.id]);
+            }
+        });
+
+        // Render categories hierarchically
+        function addCategoryOption(category, level = 0) {
+            const option = document.createElement('option');
+            option.value = category.id;
+            const indent = '\u00A0\u00A0'.repeat(level); // Non-breaking spaces for indentation
+            option.textContent = indent + (level > 0 ? '↳ ' : '') + category.name;
+            select.appendChild(option);
+
+            // Add children recursively
+            if (category.children && category.children.length > 0) {
+                category.children.forEach(child => addCategoryOption(child, level + 1));
+            }
+        }
+
+        rootCategories.forEach(cat => addCategoryOption(cat, 0));
+    }
+
+    // Show create category modal
     function showCreateCategoryModal() {
         document.getElementById('createCategoryModal').style.display = 'block';
+        populateParentCategorySelect();
     }
 
+    // Hide create category modal
     function hideCreateCategoryModal() {
         document.getElementById('createCategoryModal').style.display = 'none';
         document.getElementById('newCategoryName').value = '';
+        document.getElementById('newCategoryParent').value = '0';
     }
 
+    // Create new category
     function createNewCategory() {
         const categoryName = document.getElementById('newCategoryName').value.trim();
+        const parentId = document.getElementById('newCategoryParent').value;
+
         if (!categoryName) {
-            alert('Ingresa un nombre para la categoría');
+            alert('El nombre de la categoría es obligatorio');
             return;
         }
-        
-        callAPI('create-wc-category', { category_name: categoryName }).then(result => {
+
+        const data = {
+            category_name: categoryName,
+            parent_id: parseInt(parentId) || 0
+        };
+
+        callAPI('create-wc-category', data).then(result => {
             if (result && result.category) {
-                wooCategories.push({
-                    id: result.category.id,
-                    name: result.category.name,
-                    count: 0
-                });
-                
-                populateCategorySelect();
+                loadWooCommerceCategories();
                 hideCreateCategoryModal();
-                alert('Categoría creada exitosamente');
+                alert(`Categoría "${categoryName}" creada exitosamente`);
+            }
+        });
+    }
+
+    // Delete category
+    function deleteCategory(categoryId, categoryName, productCount) {
+        // Check if category has products
+        if (productCount > 0) {
+            if (!confirm(`La categoría "${categoryName}" tiene ${productCount} producto(s) asignado(s).\n\n¿Está seguro de que desea eliminarla? Los productos no se eliminarán, solo se desasignarán de esta categoría.`)) {
+                return;
+            }
+        } else {
+            if (!confirm(`¿Está seguro de que desea eliminar la categoría "${categoryName}"?`)) {
+                return;
+            }
+        }
+
+        // Check if category has children
+        const hasChildren = wooCategories.some(cat => cat.parent == categoryId);
+        if (hasChildren) {
+            alert(`No se puede eliminar la categoría "${categoryName}" porque tiene subcategorías.\n\nPor favor, elimine primero las subcategorías.`);
+            return;
+        }
+
+        const data = {
+            category_id: categoryId,
+            force: true
+        };
+
+        callAPI('delete-wc-category', data).then(result => {
+            if (result && result.success) {
+                // Remove from selected categories if present
+                selectedCategories = selectedCategories.filter(c => c.id != categoryId);
+
+                // Reload categories
+                loadWooCommerceCategories();
+                alert(`Categoría "${categoryName}" eliminada exitosamente`);
             }
         });
     }
@@ -232,7 +490,7 @@
     // Initialize on DOM ready
     document.addEventListener('DOMContentLoaded', function() {
         if (document.getElementById('wooCommerceForm')) {
-            loadWooCommerceCategories();
+            // Categories are now loaded on-demand when opening the category manager
             toggleStockManagement();
             
             const manageStockCheckbox = document.getElementById('woo_manage_stock');
@@ -709,23 +967,34 @@
                                     <div class="row">
                                         <div class="col-md-8">
                                             <div class="form-group">
-                                                <label for="woo_categories">Categorías del Producto</label>
-                                                <select class="form-control" id="woo_categories" name="woo_categories[]"
-                                                        multiple size="5">
-                                                    <option value="">Cargando categorías...</option>
-                                                </select>
-                                                <div class="field-help">Mantén Ctrl presionado para seleccionar
-                                                    múltiples categorías
+                                                <label>Categorías Asignadas</label>
+                                                <div id="selected-categories-display" class="border rounded p-3 bg-light" style="min-height: 80px;">
+                                                    {% if fsc.model.woo_categories %}
+                                                        {% set categories = json_decode(fsc.model.woo_categories) %}
+                                                        {% if categories is iterable %}
+                                                            {% for category in categories %}
+                                                                <span class="badge badge-info mr-2 mb-2" style="font-size: 0.95em;">
+                                                                    {{ category.name ?? 'Categoría ID ' ~ category.id }}
+                                                                    <i class="fas fa-check-circle ml-1"></i>
+                                                                </span>
+                                                            {% endfor %}
+                                                        {% else %}
+                                                            <span class="text-muted">Sin categorías asignadas</span>
+                                                        {% endif %}
+                                                    {% else %}
+                                                        <span class="text-muted">Sin categorías asignadas</span>
+                                                    {% endif %}
                                                 </div>
+                                                <input type="hidden" id="woo_categories_hidden" name="woo_categories[]" value="">
                                             </div>
                                         </div>
                                         <div class="col-md-4">
                                             <div class="form-group">
                                                 <label>&nbsp;</label>
                                                 <div>
-                                                    <button type="button" class="btn btn-outline-secondary btn-block"
-                                                            onclick="showCreateCategoryModal()">
-                                                        <i class="fas fa-plus"></i> Nueva Categoría
+                                                    <button type="button" class="btn btn-primary btn-block mb-2"
+                                                            onclick="openCategoryManager()">
+                                                        <i class="fas fa-folder-open"></i> Gestionar Categorías
                                                     </button>
                                                 </div>
                                             </div>
@@ -866,12 +1135,12 @@
                                 </div>
 
                                 <div class="row mb-4">
-                                    <div class="col-md-3">
+                                    {# <div class="col-md-3">
                                         <strong>Precio:</strong> {{ fsc.model.precio ?? '0' }} €
                                     </div>
                                     <div class="col-md-3">
                                         <strong>Stock:</strong> {{ fsc.model.stockfis ?? '0' }}
-                                    </div>
+                                    </div> #}
                                     <div class="col-md-3">
                                         <span class="badge badge-secondary">No sincronizado</span>
                                     </div>
@@ -994,18 +1263,95 @@
         </div>
     </div>
 
+    {# Category Manager Modal #}
+    <div id="categoryManagerModal" class="modal">
+        <div class="modal-content" style="max-width: 900px; max-height: 80vh; overflow-y: auto;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4><i class="fas fa-folder-tree"></i> Gestionar Categorías</h4>
+                <button type="button" class="btn btn-sm btn-secondary" onclick="closeCategoryManager()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-8">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="fas fa-search"></i></span>
+                        </div>
+                        <input type="text" class="form-control" id="category-search"
+                               placeholder="Buscar categorías..." onkeyup="filterCategories()">
+                    </div>
+                </div>
+                <div class="col-md-4 text-right">
+                    <button type="button" class="btn btn-success" onclick="showCreateCategoryModal()">
+                        <i class="fas fa-plus"></i> Nueva Categoría
+                    </button>
+                </div>
+            </div>
+
+            <div id="categories-loading" class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="sr-only">Cargando...</span>
+                </div>
+                <p class="mt-2 text-muted">Cargando categorías desde WooCommerce...</p>
+            </div>
+
+            <div id="categories-container" style="display: none;">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Selecciona las categorías</strong> que deseas asignar al producto.
+                    Las subcategorías se muestran indentadas debajo de sus categorías padre.
+                </div>
+
+                <div id="categories-tree" class="border rounded p-3" style="max-height: 400px; overflow-y: auto;">
+                    <!-- Categories will be loaded here dynamically -->
+                </div>
+
+                <div class="mt-3 text-right">
+                    <span id="selected-count" class="mr-3 text-muted">0 categorías seleccionadas</span>
+                    <button type="button" class="btn btn-secondary mr-2" onclick="closeCategoryManager()">
+                        Cancelar
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="saveSelectedCategories()">
+                        <i class="fas fa-save"></i> Guardar Selección
+                    </button>
+                </div>
+            </div>
+
+            <div id="categories-error" style="display: none;" class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span id="categories-error-message">Error al cargar categorías</span>
+            </div>
+        </div>
+    </div>
+
     {# Create Category Modal #}
     <div id="createCategoryModal" class="modal">
         <div class="modal-content">
             <h4><i class="fas fa-plus-circle"></i> Crear Nueva Categoría</h4>
+
             <div class="form-group">
-                <label for="newCategoryName">Nombre de la Categoría:</label>
+                <label for="newCategoryName">Nombre de la Categoría <span class="text-danger">*</span></label>
                 <input type="text" class="form-control" id="newCategoryName"
-                       placeholder="Ingresa el nombre de la categoría">
-                <div class="field-help mt-2">La categoría se creará como categoría principal (sin padre)</div>
+                       placeholder="Ej: Electrónica, Ropa, etc.">
             </div>
-            <div class="text-right mt-3">
-                <button type="button" class="btn btn-secondary mr-2" onclick="hideCreateCategoryModal()">Cancelar
+
+            <div class="form-group">
+                <label for="newCategoryParent">Categoría Padre (Opcional)</label>
+                <select class="form-control" id="newCategoryParent">
+                    <option value="0">-- Sin categoría padre (Categoría principal) --</option>
+                    <!-- Will be populated dynamically -->
+                </select>
+                <div class="field-help mt-2">
+                    <i class="fas fa-info-circle"></i>
+                    Selecciona una categoría padre para crear una subcategoría
+                </div>
+            </div>
+
+            <div class="text-right mt-4">
+                <button type="button" class="btn btn-secondary mr-2" onclick="hideCreateCategoryModal()">
+                    <i class="fas fa-times"></i> Cancelar
                 </button>
                 <button type="button" class="btn btn-primary" onclick="createNewCategory()">
                     <i class="fas fa-plus"></i> Crear Categoría

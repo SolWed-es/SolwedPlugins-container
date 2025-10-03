@@ -47,6 +47,10 @@ class EditProducto
                     $this->handleCreateWooCommerceCategory();
                     return false;
 
+                case 'delete-wc-category':
+                    $this->handleDeleteWooCommerceCategory();
+                    return false;
+
                 case 'sync-from-wc':
                     $this->handleSyncFromWooCommerce();
                     return false;
@@ -260,6 +264,8 @@ class EditProducto
 
             try {
                 $categoryName = $this->request->request->get('category_name');
+                $parentId = (int) $this->request->request->get('parent_id', 0);
+                $description = $this->request->request->get('description', '');
 
                 if (empty($categoryName)) {
                     error_log("EditProducto::handleCreateWooCommerceCategory - Category name is empty");
@@ -289,10 +295,11 @@ class EditProducto
                     return;
                 }
 
-                $category = $categoryService->createCategory($categoryName);
+                // Create category with parent and description support
+                $category = $categoryService->createCategory($categoryName, $description, null, $parentId);
 
                 if ($category) {
-                    error_log("EditProducto::handleCreateWooCommerceCategory - Category created successfully");
+                    error_log("EditProducto::handleCreateWooCommerceCategory - Category created successfully with ID: {$category->id}");
 
                     echo json_encode([
                         'success' => true,
@@ -315,6 +322,65 @@ class EditProducto
                 echo json_encode([
                     'success' => false,
                     'messages' => [['message' => 'Error interno del servidor']]
+                ]);
+            }
+        };
+    }
+
+    /**
+     * Handle deleting WooCommerce category
+     */
+    protected function handleDeleteWooCommerceCategory()
+    {
+        return function () {
+            error_log("EditProducto::handleDeleteWooCommerceCategory - Deleting category");
+
+            $this->setTemplate(false);
+            header('Content-Type: application/json');
+
+            try {
+                $categoryId = (int) $this->request->request->get('category_id');
+                $force = $this->request->request->get('force', false) === 'true' || $this->request->request->get('force', false) === true;
+
+                if (empty($categoryId)) {
+                    error_log("EditProducto::handleDeleteWooCommerceCategory - Category ID is empty");
+
+                    http_response_code(400);
+                    echo json_encode([
+                        'success' => false,
+                        'messages' => [['message' => 'ID de categoría requerido']]
+                    ]);
+                    return;
+                }
+
+                $categoryService = new WooCategoryService();
+
+                // Delete category
+                $result = $categoryService->deleteCategory($categoryId, $force);
+
+                if ($result) {
+                    error_log("EditProducto::handleDeleteWooCommerceCategory - Category deleted successfully: {$categoryId}");
+
+                    echo json_encode([
+                        'success' => true,
+                        'messages' => [['message' => 'Categoría eliminada exitosamente']]
+                    ]);
+                } else {
+                    error_log("EditProducto::handleDeleteWooCommerceCategory - Failed to delete category: {$categoryId}");
+
+                    http_response_code(500);
+                    echo json_encode([
+                        'success' => false,
+                        'messages' => [['message' => 'Error al eliminar la categoría']]
+                    ]);
+                }
+            } catch (\Exception $e) {
+                error_log("EditProducto::handleDeleteWooCommerceCategory - Exception: " . $e->getMessage());
+
+                http_response_code(500);
+                echo json_encode([
+                    'success' => false,
+                    'messages' => [['message' => 'Error interno del servidor: ' . $e->getMessage()]]
                 ]);
             }
         };

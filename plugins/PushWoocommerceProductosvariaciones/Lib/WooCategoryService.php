@@ -64,11 +64,12 @@ class WooCategoryService
      * @param string $name Category name
      * @param string|null $description Category description (optional)
      * @param string|null $slug Category slug (optional, will be auto-generated)
+     * @param int $parentId Parent category ID (0 for root category)
      * @return object|false Created category object or false on error
      */
-    public function createCategory(string $name, ?string $description = null, ?string $slug = null)
+    public function createCategory(string $name, ?string $description = null, ?string $slug = null, int $parentId = 0)
     {
-        error_log("WooCategoryService::createCategory - Creating category: {$name}");
+        error_log("WooCategoryService::createCategory - Creating category: {$name} (parent ID: {$parentId})");
 
         if (empty($name)) {
             error_log("WooCategoryService::createCategory - Error: Category name is empty");
@@ -86,6 +87,12 @@ class WooCategoryService
 
             if (!empty($slug)) {
                 $categoryData['slug'] = trim($slug);
+            }
+
+            // Add parent category if specified
+            if ($parentId > 0) {
+                $categoryData['parent'] = $parentId;
+                error_log("WooCategoryService::createCategory - Setting parent category ID: {$parentId}");
             }
 
             error_log("WooCategoryService::createCategory - Sending data to WooCommerce API: " . json_encode($categoryData));
@@ -235,7 +242,7 @@ class WooCategoryService
     }
 
     /**
-     * Get categories formatted for select dropdown
+     * Get categories formatted for select dropdown with hierarchy support
      *
      * @return array
      */
@@ -257,7 +264,9 @@ class WooCategoryService
                 'id' => $category->id,
                 'name' => $category->name,
                 'slug' => $category->slug ?? '',
-                'count' => $category->count ?? 0
+                'parent' => $category->parent ?? 0,
+                'count' => $category->count ?? 0,
+                'description' => $category->description ?? ''
             ];
         }
 
