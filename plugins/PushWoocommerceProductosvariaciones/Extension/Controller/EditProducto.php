@@ -39,6 +39,11 @@ class EditProducto
                     $this->handleUpdateWooCommerceProduct();
                     return false;
 
+                case 'save-woo-categories':
+                case 'save-wc-categories':
+                    $this->handleSaveWooCommerceCategories();
+                    return false;
+
                 case 'get-wc-categories':
                     $this->handleGetWooCommerceCategories();
                     return false;
@@ -842,6 +847,110 @@ class EditProducto
                     'message' => 'Error interno del servidor'
                 ]);
             }
+        };
+    }
+    /**
+     * Handle saving WooCommerce categories directly via PUT request
+     */
+    protected function handleSaveWooCommerceCategories()
+    {
+        return function () {
+            error_log("=== START handleSaveWooCommerceCategories ===");
+            error_log("EditProducto::handleSaveWooCommerceCategories - Saving categories directly to WooCommerce");
+
+            $this->setTemplate(false);
+            header('Content-Type: application/json');
+
+            try {
+                // Log all request data
+                error_log("Request method: " . $this->request->getMethod());
+                error_log("Request data: " . print_r($this->request->request->all(), true));
+
+                // Get product ID from request
+                $fsId = $this->request->request->get('fs_id');
+                error_log("Received fs_id: " . var_export($fsId, true));
+
+                if (empty($fsId)) {
+                    error_log("ERROR: Missing product ID in request");
+                    http_response_code(400);
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'ID de producto faltante'
+                    ]);
+                    return;
+                }
+                $fsProductId = (int)$fsId;
+                error_log("Parsed fsProductId: " . $fsProductId);
+
+                // Get categories from request (sent as categories[] from FormData)
+                $categoryIds = $this->request->request->get('categories', []);
+                error_log("Received categories (raw): " . print_r($categoryIds, true));
+                error_log("Categories type: " . gettype($categoryIds));
+                error_log("Categories count: " . (is_array($categoryIds) ? count($categoryIds) : 'not an array'));
+
+                if (!is_array($categoryIds)) {
+                    error_log("ERROR: Categories is not an array");
+                    http_response_code(400);
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'Formato de categorías inválido'
+                    ]);
+                    return;
+                }
+
+                // Convert to integers
+                $categoryIds = array_map('intval', $categoryIds);
+                error_log("Categories after intval conversion: " . print_r($categoryIds, true));
+
+                // Load FacturaScripts product
+                error_log("Loading FacturaScripts product with ID: " . $fsProductId);
+                $productService = new WooProductService();
+                $fsProduct = new Producto();
+
+                if (!$fsProduct->loadFromCode($fsProductId)) {
+                    error_log("ERROR: FacturaScripts product not found with ID: " . $fsProductId);
+                    http_response_code(400);
+                    echo json_encode(['success' => false, 'message' => 'Producto de FacturaScripts no encontrado.']);
+                    return;
+                }
+
+                error_log("FacturaScripts product loaded successfully");
+                error_log("Product name: " . $fsProduct->descripcion);
+                error_log("Product woo_id: " . var_export($fsProduct->woo_id, true));
+
+                if (empty($fsProduct->woo_id)) {
+                    error_log("ERROR: Product does not have a WooCommerce ID");
+                    http_response_code(400);
+                    echo json_encode(['success' => false, 'message' => 'Producto de WooCommerce no encontrado para el ID de FacturaScripts proporcionado.']);
+                    return;
+                }
+
+                error_log("Calling WooProductService::updateProductCategories with woo_id: " . $fsProduct->woo_id . " and categories: " . print_r($categoryIds, true));
+
+                $result = $productService->updateProductCategories($fsProduct->woo_id, $categoryIds);
+
+                error_log("WooProductService::updateProductCategories returned: " . var_export($result, true));
+                error_log("Result type: " . gettype($result));
+
+                if ($result) {
+                    error_log("SUCCESS: Categories updated successfully");
+                    echo json_encode(['success' => true, 'message' => 'Categorías actualizadas exitosamente en WooCommerce.']);
+                } else {
+                    error_log("ERROR: updateProductCategories returned false");
+                    http_response_code(400);
+                    echo json_encode(['success' => false, 'message' => 'Error al actualizar las categorías en WooCommerce.']);
+                }
+            } catch (\Exception $e) {
+                error_log("EXCEPTION in handleSaveWooCommerceCategories: " . $e->getMessage());
+                error_log("Exception trace: " . $e->getTraceAsString());
+                http_response_code(500);
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Error interno del servidor: ' . $e->getMessage()
+                ]);
+            }
+
+            error_log("=== END handleSaveWooCommerceCategories ===");
         };
     }
 }

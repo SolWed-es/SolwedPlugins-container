@@ -10,27 +10,68 @@
 
     // Helper function for API calls
     async function callAPI(action, data = {}, successMessage, redirect = false) {
+        console.log('=== START callAPI ===');
+        console.log('Action:', action);
+        console.log('Data:', data);
+        console.log('Success message:', successMessage);
+        console.log('Redirect:', redirect);
+
         animateSpinner('add');
-        
+
         const formData = new FormData();
         formData.append('action', action);
         formData.append('fs_id', "{{ fsc.model.idproducto }}");
-        
+
+        console.log('FormData initial entries:');
+        console.log('  action:', action);
+        console.log('  fs_id:', "{{ fsc.model.idproducto }}");
+
         // Add additional data
         for (const key in data) {
-            formData.append(key, data[key]);
+            const value = data[key];
+            console.log(`Processing data key: ${key}, value:`, value, 'type:', typeof value);
+
+            // Handle arrays by appending each value with the key
+            if (Array.isArray(value)) {
+                console.log(`  ${key} is an array with ${value.length} items`);
+                value.forEach((item, index) => {
+                    console.log(`    Appending ${key}[]: ${item} (index ${index})`);
+                    formData.append(key + '[]', item);
+                });
+            } else {
+                console.log(`  ${key} is not an array, appending as-is`);
+                formData.append(key, value);
+            }
+        }
+
+        // Log all FormData entries
+        console.log('Final FormData entries:');
+        for (let pair of formData.entries()) {
+            console.log(`  ${pair[0]}: ${pair[1]}`);
         }
 
         try {
+            console.log('Sending fetch request to:', '{{ fsc.url() }}');
             const response = await fetch('{{ fsc.url() }}', { method: 'POST', body: formData });
+
+            console.log('Response received:');
+            console.log('  Status:', response.status);
+            console.log('  Status text:', response.statusText);
+            console.log('  OK:', response.ok);
+
             animateSpinner('remove', true);
+
             const result = await response.json();
-            
+            console.log('Response JSON:', result);
+
             if (response.ok && result.success) {
+                console.log('SUCCESS: API call succeeded');
                 if (successMessage) alert(successMessage);
                 if (redirect) setTimeout(() => window.location.href = productUrl, 1500);
+                console.log('=== END callAPI (SUCCESS) ===');
                 return result;
             } else {
+                console.log('FAILURE: API call failed');
                 let errorMessages = '';
                 if (result.messages && Array.isArray(result.messages)) {
                     errorMessages = result.messages.map(msg => msg.message).join('\n');
@@ -41,12 +82,16 @@
                 } else {
                     errorMessages = 'Error desconocido';
                 }
+                console.log('Error messages:', errorMessages);
                 alert('Error: ' + errorMessages);
+                console.log('=== END callAPI (FAILURE) ===');
             }
         } catch (error) {
+            console.log('EXCEPTION in callAPI:', error);
             alert('Error de conexión');
             console.error('API call error:', error);
             animateSpinner('remove', false);
+            console.log('=== END callAPI (EXCEPTION) ===');
         }
         return null;
     }
@@ -91,8 +136,22 @@
     function updateWooCommerceProduct() {
         const form = document.getElementById('wooCommerceForm');
         const formData = new FormData(form);
-        const data = Object.fromEntries(formData.entries());
-        
+
+        // Convert FormData to object, but handle arrays properly
+        const data = {};
+        for (const [key, value] of formData.entries()) {
+            // Handle array fields (like woo_categories[])
+            if (key.endsWith('[]')) {
+                const arrayKey = key.slice(0, -2); // Remove the '[]' suffix
+                if (!data[arrayKey]) {
+                    data[arrayKey] = [];
+                }
+                data[arrayKey].push(value);
+            } else {
+                data[key] = value;
+            }
+        }
+
         callAPI('update-wc-product', data, 'Producto actualizado exitosamente en WooCommerce');
         return false;
     }
@@ -282,7 +341,20 @@
     }
 
     // Save selected categories
-    function saveSelectedCategories() {
+    // Save selected categories
+    async function saveSelectedCategories() {
+        console.log('=== START saveSelectedCategories ===');
+        console.log('Selected categories:', selectedCategories);
+
+        const categoryIds = selectedCategories.map(cat => cat.id);
+        console.log('Category IDs to save:', categoryIds);
+        console.log('Category IDs count:', categoryIds.length);
+        console.log('Category IDs type:', typeof categoryIds);
+
+        const result = await callAPI('save-woo-categories', { categories: categoryIds }, 'Categorías actualizadas exitosamente en WooCommerce');
+
+        console.log('API call result:', result);
+
         const display = document.getElementById('selected-categories-display');
         if (selectedCategories.length > 0) {
             display.innerHTML = selectedCategories.map(cat => `
@@ -295,19 +367,8 @@
             display.innerHTML = '<span class="text-muted">Sin categorías asignadas</span>';
         }
 
-        const form = document.getElementById('wooCommerceForm');
-        form.querySelectorAll('input[name="woo_categories[]"]').forEach(input => input.remove());
-
-        selectedCategories.forEach(cat => {
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'woo_categories[]';
-            input.value = cat.id;
-            form.appendChild(input);
-        });
-
         closeCategoryManager();
-        alert(`${selectedCategories.length} categoría(s) asignada(s) al producto`);
+        console.log('=== END saveSelectedCategories ===');
     }
 
     // Populate parent category select for creating new categories - with hierarchy
@@ -974,7 +1035,7 @@
                                                         {% if categories is iterable %}
                                                             {% for category in categories %}
                                                                 <span class="badge badge-info mr-2 mb-2" style="font-size: 0.95em;">
-                                                                    {{ category.name ?? 'Categoría ID ' ~ category.id }}
+                                                                    {{ category.name ?? ('Categoría ID ' ~ category.id) }}
                                                                     <i class="fas fa-check-circle ml-1"></i>
                                                                 </span>
                                                             {% endfor %}
@@ -1359,5 +1420,50 @@
             </div>
         </div>
     </div>
+
+    <script>
+        // Debug test function - call this from browser console to test the flow
+        window.testCategorySave = function() {
+            console.log('=== TESTING CATEGORY SAVE FLOW ===');
+            console.log('Current product ID:', "{{ fsc.model.idproducto }}");
+            console.log('Current product woo_id:', "{{ fsc.model.woo_id ?? 'NOT SET' }}");
+            console.log('Selected categories:', selectedCategories);
+            console.log('WooCommerce categories loaded:', wooCategories.length);
+
+            if (!selectedCategories || selectedCategories.length === 0) {
+                console.warn('WARNING: No categories selected. Select some categories first.');
+                return;
+            }
+
+            if (!"{{ fsc.model.woo_id ?? '' }}") {
+                console.error('ERROR: Product does not have a WooCommerce ID. Create product in WooCommerce first.');
+                return;
+            }
+
+            console.log('Test data that will be sent:');
+            const testData = {
+                action: 'save-woo-categories',
+                fs_id: "{{ fsc.model.idproducto }}",
+                categories: selectedCategories.map(cat => cat.id)
+            };
+            console.log(testData);
+
+            console.log('Calling saveSelectedCategories()...');
+            saveSelectedCategories();
+        };
+
+        // Add to window for easy access
+        window.debugCategoryFlow = {
+            getSelectedCategories: () => selectedCategories,
+            getWooCategories: () => wooCategories,
+            getProductId: () => "{{ fsc.model.idproducto }}",
+            getWooId: () => "{{ fsc.model.woo_id ?? 'NOT SET' }}",
+            testSave: () => window.testCategorySave()
+        };
+
+        console.log('Debug tools available:');
+        console.log('  - window.testCategorySave() - Test the category save flow');
+        console.log('  - window.debugCategoryFlow - Access to category data and functions');
+    </script>
 
 {% endblock %}

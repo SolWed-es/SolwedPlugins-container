@@ -3,8 +3,10 @@
 namespace FacturaScripts\Plugins\PushWoocommerceProductosvariaciones\Extension\Model;
 
 use Closure;
-use FacturaScripts\Core\Session;
 use FacturaScripts\Core\Tools;
+use FacturaScripts\Core\Session;
+use FacturaScripts\Core\Model\Producto;
+use FacturaScripts\Plugins\PushWoocommerceProductosvariaciones\Lib\WooProductService;
 
 /**
  * Para modificar el comportamiento de modelos de otro plugins (o del core)
@@ -115,7 +117,43 @@ class Variante
 
     public function deleteBefore(): Closure
     {
-        return function () {};
+        return function () {
+            // Check if the variation is synced with WooCommerce
+            if (!empty($this->woo_variation_id)) {
+                error_log("Variante::deleteBefore - Deleting synced variation. Woo Variation ID: " . $this->woo_variation_id);
+
+                try {
+                    // Load the parent product to get the woo_product_id
+                    $fsProduct = new Producto();
+                    if ($fsProduct->loadFromCode($this->idproducto) && !empty($fsProduct->woo_id)) {
+                        error_log("Variante::deleteBefore - Parent product found with Woo ID: " . $fsProduct->woo_id);
+
+                        // Call the service to delete the variation from WooCommerce
+                        $productService = new WooProductService();
+                        $result = $productService->deleteVariation(
+                            $this->idvariante,
+                            (int)$fsProduct->woo_id,
+                            (int)$this->woo_variation_id,
+                            true // Force delete
+                        );
+
+                        if (!$result['success']) {
+                            error_log("Variante::deleteBefore - FAILED to delete variation from WooCommerce. Message: " . $result['message']);
+                            // Optional: You could prevent deletion if the API call fails by returning false
+                            // return false;
+                        } else {
+                            error_log("Variante::deleteBefore - SUCCESSFULLY deleted variation from WooCommerce.");
+                        }
+                    } else {
+                        error_log("Variante::deleteBefore - Could not find parent product or parent is not synced. FS Product ID: " . $this->idproducto);
+                    }
+                } catch (\Exception $e) {
+                    error_log("Variante::deleteBefore - EXCEPTION while deleting variation from WooCommerce: " . $e->getMessage());
+                }
+            }
+
+            return true; // Allow the local deletion to proceed
+        };
     }
 
     public function save(): Closure

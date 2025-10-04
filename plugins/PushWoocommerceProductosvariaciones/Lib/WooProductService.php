@@ -157,6 +157,74 @@ class WooProductService
         }
     }
 
+    public function updateProductCategories(int $wooProductId, array $categoryIds): bool
+    {
+        error_log("=== START WooProductService::updateProductCategories ===");
+        error_log("WooProductService::updateProductCategories - Updating categories for WooCommerce product ID: {$wooProductId}");
+        error_log("WooProductService::updateProductCategories - Category IDs received: " . print_r($categoryIds, true));
+        error_log("WooProductService::updateProductCategories - Category IDs count: " . count($categoryIds));
+
+        try {
+            // Build categories array for WooCommerce API
+            $categoriesData = array_map(function ($id) {
+                return ['id' => $id];
+            }, $categoryIds);
+
+            error_log("WooProductService::updateProductCategories - Categories data formatted: " . print_r($categoriesData, true));
+
+            $data = [
+                'categories' => $categoriesData
+            ];
+
+            error_log("WooProductService::updateProductCategories - Full data payload: " . json_encode($data));
+            error_log("WooProductService::updateProductCategories - Calling wooClient->put with endpoint: products/{$wooProductId}");
+
+            $result = $this->wooClient->put("products/{$wooProductId}", $data);
+
+            error_log("WooProductService::updateProductCategories - API response received: " . print_r($result, true));
+            error_log("WooProductService::updateProductCategories - Response type: " . gettype($result));
+
+            if (is_object($result)) {
+                error_log("WooProductService::updateProductCategories - Response has ID: " . (isset($result->id) ? 'YES (' . $result->id . ')' : 'NO'));
+                if (isset($result->categories)) {
+                    error_log("WooProductService::updateProductCategories - Response categories: " . print_r($result->categories, true));
+                }
+            }
+
+            if (isset($result->id)) {
+                error_log("WooProductService::updateProductCategories - SUCCESS: Categories updated for product ID: {$wooProductId}");
+
+                // Find and update the FacturaScripts product
+                $fsProduct = new Producto();
+                $where = [new DataBaseWhere('woo_id', $result->id)];
+                if ($fsProduct->loadFromCode('', $where)) {
+                    if (isset($result->categories)) {
+                        $fsProduct->woo_categories = json_encode($result->categories);
+                        if (!$fsProduct->save()) {
+                            error_log("WooProductService::updateProductCategories - FAILED to save woo_categories to FS product ID: {$fsProduct->idproducto}");
+                        } else {
+                            error_log("WooProductService::updateProductCategories - SUCCESS: Saved categories to FS product ID: {$fsProduct->idproducto}");
+                        }
+                    }
+                } else {
+                    error_log("WooProductService::updateProductCategories - FAILED to find FS product with woo_id: {$wooProductId}");
+                }
+                error_log("=== END WooProductService::updateProductCategories (SUCCESS) ===");
+                return true;
+            }
+
+            error_log("WooProductService::updateProductCategories - FAILED: No ID in response for product ID: {$wooProductId}");
+            error_log("=== END WooProductService::updateProductCategories (FAILED) ===");
+            return false;
+        } catch (\Exception $e) {
+            error_log("WooProductService::updateProductCategories - EXCEPTION: " . $e->getMessage());
+            error_log("WooProductService::updateProductCategories - Exception class: " . get_class($e));
+            error_log("WooProductService::updateProductCategories - Exception trace: " . $e->getTraceAsString());
+            error_log("=== END WooProductService::updateProductCategories (EXCEPTION) ===");
+            return false;
+        }
+    }
+
     /**
      * Get a WooCommerce product by ID
      *

@@ -14,6 +14,7 @@ class WooHelper {
 
 
         if (self::$woo_client) {
+            error_log("[WooAPI] Returning existing client instance");
             return self::$woo_client;
         }
 
@@ -21,10 +22,16 @@ class WooHelper {
         $ck = Tools::settings('woocommerce', 'ck');
         $cs = Tools::settings('woocommerce', 'cs');
 
+        error_log("[WooAPI] Configuration - URL: " . ($url ?: 'NOT SET'));
+        error_log("[WooAPI] Configuration - Consumer Key: " . ($ck ? 'SET (length: ' . strlen($ck) . ')' : 'NOT SET'));
+        error_log("[WooAPI] Configuration - Consumer Secret: " . ($cs ? 'SET (length: ' . strlen($cs) . ')' : 'NOT SET'));
+
         if (!$url || !$ck || !$cs) {
+            error_log("[WooAPI] ERROR: Missing WooCommerce configuration");
             return null;
         }
 
+        error_log("[WooAPI] Creating new WooCommerce client");
         self::$woo_client = new Client(
             $url,
             $ck,
@@ -36,6 +43,7 @@ class WooHelper {
             ]
         );
 
+        error_log("[WooAPI] Client created successfully");
         return self::$woo_client;
     }
 
