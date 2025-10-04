@@ -1,9 +1,9 @@
 {
     "metadata": {
-        "generated": "03-10-2025 10:19:39",
+        "generated": "04-10-2025 16:39:08",
         "repo": "https://github.com/SolWed-es/SolwedPlugins-container",
         "plugin_count": 4,
-        "workflow_run": "18219607904"
+        "workflow_run": "18246868089"
     },
     "plugins": [
         {
@@ -39,7 +39,7 @@
             "require": [],
             "require_php": [],
             "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/PushWoocommerceProductosvariaciones.zip",
-            "last_updated": "2025-10-03"
+            "last_updated": "2025-10-04"
         },
         {
             "name": "SolwedTheme",
