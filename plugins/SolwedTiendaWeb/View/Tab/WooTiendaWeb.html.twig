@@ -1,0 +1,2514 @@
+{% set firstView = fsc.views | first %}
+{% set product = firstView.model %}
+{% set currentView = fsc.getCurrentView() %}
+
+{% include 'Macro/Toasts.html.twig' %}
+
+<script>
+    let wooCategories = [];
+    const productUrl = "{{ fsc.getEditUrl() ~ '?code=' ~ fsc.model.idproducto }}";
+
+    // Helper function for API calls
+    async function callAPI(action, data = {}, successMessage, redirect = false) {
+        console.log('=== START callAPI ===');
+        console.log('Action:', action);
+        console.log('Data:', data);
+        console.log('Success message:', successMessage);
+        console.log('Redirect:', redirect);
+
+        animateSpinner('add');
+
+        const formData = new FormData();
+        formData.append('action', action);
+        formData.append('fs_id', "{{ fsc.model.idproducto }}");
+
+        console.log('FormData initial entries:');
+        console.log('  action:', action);
+        console.log('  fs_id:', "{{ fsc.model.idproducto }}");
+
+        // Add additional data
+        for (const key in data) {
+            const value = data[key];
+            console.log(`Processing data key: ${key}, value:`, value, 'type:', typeof value);
+
+            // Handle arrays by appending each value with the key
+            if (Array.isArray(value)) {
+                console.log(`  ${key} is an array with ${value.length} items`);
+                value.forEach((item, index) => {
+                    console.log(`    Appending ${key}[]: ${item} (index ${index})`);
+                    formData.append(key + '[]', item);
+                });
+            } else {
+                console.log(`  ${key} is not an array, appending as-is`);
+                formData.append(key, value);
+            }
+        }
+
+        // Log all FormData entries
+        console.log('Final FormData entries:');
+        for (let pair of formData.entries()) {
+            console.log(`  ${pair[0]}: ${pair[1]}`);
+        }
+
+        try {
+            console.log('Sending fetch request to:', '{{ fsc.url() }}');
+            const response = await fetch('{{ fsc.url() }}', { method: 'POST', body: formData });
+
+            console.log('Response received:');
+            console.log('  Status:', response.status);
+            console.log('  Status text:', response.statusText);
+            console.log('  OK:', response.ok);
+
+            animateSpinner('remove', true);
+
+            const result = await response.json();
+            console.log('Response JSON:', result);
+
+            if (response.ok && result.success) {
+                console.log('SUCCESS: API call succeeded');
+                if (successMessage) alert(successMessage);
+                if (redirect) setTimeout(() => window.location.href = productUrl, 1500);
+                console.log('=== END callAPI (SUCCESS) ===');
+                return result;
+            } else {
+                console.log('FAILURE: API call failed');
+                let errorMessages = '';
+                if (result.messages && Array.isArray(result.messages)) {
+                    errorMessages = result.messages.map(msg => msg.message).join('\n');
+                } else if (result.errors && Array.isArray(result.errors)) {
+                    errorMessages = result.errors.map(err => err.message).join('\n');
+                } else if (result.message) {
+                    errorMessages = result.message;
+                } else {
+                    errorMessages = 'Error desconocido';
+                }
+                console.log('Error messages:', errorMessages);
+                alert('Error: ' + errorMessages);
+                console.log('=== END callAPI (FAILURE) ===');
+            }
+        } catch (error) {
+            console.log('EXCEPTION in callAPI:', error);
+            alert('Error de conexión');
+            console.error('API call error:', error);
+            animateSpinner('remove', false);
+            console.log('=== END callAPI (EXCEPTION) ===');
+        }
+        return null;
+    }
+
+    function createNewProduct(action) {
+        const warningDiv = document.getElementById('productTypeWarning');
+        warningDiv.style.display = 'none';
+        warningDiv.innerHTML = '';
+
+        if (!"{{ fsc.model.idproducto }}") {
+            alert('Primero guarda el producto en FacturaScripts');
+            return false;
+        }
+
+        const selectedType = document.querySelector('input[name="product_type"]:checked').value;
+        const variantCount = {{ product.variants|length }};
+
+        if (variantCount === 1 && selectedType === 'variable') {
+            warningDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Se necesitan al menos 2 o más variantes para crear un producto variable.';
+            warningDiv.style.display = 'block';
+            return false; // Stop execution
+        }
+
+        if (variantCount > 1 && selectedType === 'simple') {
+            warningDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Existe más de 1 variante para este producto. Un producto simple solo admite 1 variante. Cambie a Producto variable si este es un producto variable.';
+            warningDiv.style.display = 'block';
+            // Do not stop execution, just warn
+        }
+
+        const data = {
+            product_type: selectedType
+        };
+
+        const successMessage = selectedType === 'variable'
+            ? `Producto variable con ${variantCount} variantes creado exitosamente!`
+            : 'Producto simple creado exitosamente!';
+
+        callAPI(action, data, successMessage, true);
+        return false;
+    }
+
+    function updateWooCommerceProduct() {
+        const form = document.getElementById('wooCommerceForm');
+        const formData = new FormData(form);
+
+        // Convert FormData to object, but handle arrays properly
+        const data = {};
+        for (const [key, value] of formData.entries()) {
+            // Handle array fields (like woo_categories[])
+            if (key.endsWith('[]')) {
+                const arrayKey = key.slice(0, -2); // Remove the '[]' suffix
+                if (!data[arrayKey]) {
+                    data[arrayKey] = [];
+                }
+                data[arrayKey].push(value);
+            } else {
+                data[key] = value;
+            }
+        }
+
+        callAPI('update-wc-product', data, 'Producto actualizado exitosamente en WooCommerce');
+        return false;
+    }
+
+    function syncFromWooCommerce() {
+        callAPI('sync-from-wc', {}, 'Datos sincronizados desde WooCommerce', true);
+    }
+
+    function deleteWooCommerceProduct() {
+        if (confirm('¿Estás seguro de que quieres desvincular y eliminar este producto de WooCommerce? Esta acción no se puede deshacer.')) {
+            const data = {
+                force: true // Permanently delete from WooCommerce
+            };
+            callAPI('delete-product', data, 'Producto eliminado exitosamente de WooCommerce.', true);
+        }
+    }
+
+    let selectedCategories = [];
+
+    // Initialize selected categories from current product data
+    function initializeSelectedCategories() {
+        try {
+            const categoriesData = '{{ fsc.model.woo_categories ? fsc.model.woo_categories|raw : "[]" }}';
+            const parsed = JSON.parse(categoriesData);
+
+            if (Array.isArray(parsed)) {
+                // Map category IDs to full category objects with names
+                selectedCategories = parsed.map(cat => {
+                    const categoryId = cat.id || cat;
+                    const fullCategory = wooCategories.find(wc => wc.id == categoryId);
+
+                    if (fullCategory) {
+                        return { id: fullCategory.id, name: fullCategory.name };
+                    }
+
+                    // Fallback if category not found in current list
+                    return { id: categoryId, name: cat.name || 'Categoría ' + categoryId };
+                }).filter(c => c !== null);
+            } else {
+                selectedCategories = [];
+            }
+        } catch (e) {
+            console.error('Error initializing categories:', e);
+            selectedCategories = [];
+        }
+    }
+
+    // Open category manager modal
+    function openCategoryManager() {
+        document.getElementById('categoryManagerModal').style.display = 'block';
+        document.getElementById('categories-loading').style.display = 'block';
+        document.getElementById('categories-container').style.display = 'none';
+        document.getElementById('categories-error').style.display = 'none';
+        loadWooCommerceCategories();
+    }
+
+    // Close category manager modal
+    function closeCategoryManager() {
+        document.getElementById('categoryManagerModal').style.display = 'none';
+        document.getElementById('category-search').value = '';
+    }
+
+    // Load categories from WooCommerce API
+    function loadWooCommerceCategories() {
+        callAPI('get-wc-categories', {}).then(result => {
+            if (result && result.categories) {
+                wooCategories = result.categories;
+                initializeSelectedCategories(); // Initialize AFTER categories are loaded
+                buildCategoryTree();
+                populateParentCategorySelect();
+                document.getElementById('categories-loading').style.display = 'none';
+                document.getElementById('categories-container').style.display = 'block';
+            } else {
+                document.getElementById('categories-loading').style.display = 'none';
+                document.getElementById('categories-error').style.display = 'block';
+            }
+        });
+    }
+
+    // Build hierarchical category tree
+    function buildCategoryTree() {
+        const tree = document.getElementById('categories-tree');
+        tree.innerHTML = '';
+
+        const categoryMap = {};
+        const rootCategories = [];
+
+        wooCategories.forEach(cat => {
+            categoryMap[cat.id] = { ...cat, children: [] };
+        });
+
+        wooCategories.forEach(cat => {
+            if (cat.parent === 0 || !cat.parent) {
+                rootCategories.push(categoryMap[cat.id]);
+            } else if (categoryMap[cat.parent]) {
+                categoryMap[cat.parent].children.push(categoryMap[cat.id]);
+            }
+        });
+
+        rootCategories.forEach(cat => renderCategory(cat, tree, 0));
+        updateSelectedCount();
+    }
+
+    // Render individual category with children
+    function renderCategory(category, container, level) {
+        const div = document.createElement('div');
+        div.className = 'category-item';
+        div.style.paddingLeft = (level * 20) + 'px';
+        div.dataset.categoryId = category.id;
+        div.dataset.categoryName = category.name;
+
+        const isSelected = selectedCategories.some(c => c.id == category.id);
+
+        div.innerHTML = `
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px; margin: 2px 0; border-radius: 4px; background: ${level > 0 ? '#f8f9fa' : 'white'};">
+                <label class="category-checkbox" style="cursor: pointer; flex: 1; margin: 0;">
+                    <input type="checkbox" value="${category.id}" ${isSelected ? 'checked' : ''} onchange="toggleCategorySelection(${category.id}, '${category.name.replace(/'/g, "\\'")}', this.checked)">
+                    <span style="margin-left: 8px;">
+                        ${level > 0 ? '<i class="fas fa-level-up-alt fa-rotate-90 text-muted mr-1"></i>' : '<i class="fas fa-folder text-warning mr-1"></i>'}
+                        <strong>${category.name}</strong>
+                        <span class="text-muted"> (${category.count || 0} productos)</span>
+                    </span>
+                </label>
+                <button type="button" class="btn btn-sm btn-danger" onclick="deleteCategory(${category.id}, '${category.name.replace(/'/g, "\\'")}', ${category.count || 0})" title="Eliminar categoría">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `;
+
+        container.appendChild(div);
+
+        if (category.children && category.children.length > 0) {
+            category.children.forEach(child => renderCategory(child, container, level + 1));
+        }
+    }
+
+    // Toggle category selection
+    function toggleCategorySelection(categoryId, categoryName, checked) {
+        if (checked) {
+            // Add current category if not already selected
+            if (!selectedCategories.some(c => c.id == categoryId)) {
+                selectedCategories.push({ id: categoryId, name: categoryName });
+            }
+
+            // Auto-select all parent categories
+            let parentId = wooCategories.find(c => c.id == categoryId)?.parent;
+            while (parentId && parentId > 0) {
+                const parentCategory = wooCategories.find(c => c.id == parentId);
+                if (parentCategory && !selectedCategories.some(c => c.id == parentId)) {
+                    selectedCategories.push({ id: parentId, name: parentCategory.name });
+                }
+                parentId = parentCategory?.parent;
+            }
+        } else {
+            // Uncheck current category
+            selectedCategories = selectedCategories.filter(c => c.id != categoryId);
+
+            // Auto-uncheck all child categories
+            const childrenToUncheck = getChildCategoryIds(categoryId);
+            childrenToUncheck.forEach(childId => {
+                selectedCategories = selectedCategories.filter(c => c.id != childId);
+            });
+        }
+        // Re-render the tree to reflect all state changes
+        buildCategoryTree();
+    }
+
+    // Helper function to get all child category IDs recursively
+    function getChildCategoryIds(parentId) {
+        const children = [];
+        wooCategories.forEach(cat => {
+            if (cat.parent == parentId) {
+                children.push(cat.id);
+                // Recursively get children of this category
+                children.push(...getChildCategoryIds(cat.id));
+            }
+        });
+        return children;
+    }
+
+    // Update selected count display
+    function updateSelectedCount() {
+        const count = selectedCategories.length;
+        document.getElementById('selected-count').textContent = `${count} categoría${count !== 1 ? 's' : ''} seleccionada${count !== 1 ? 's' : ''}`;
+    }
+
+    // Filter categories by search
+    function filterCategories() {
+        const searchTerm = document.getElementById('category-search').value.toLowerCase();
+        const items = document.querySelectorAll('.category-item');
+
+        items.forEach(item => {
+            const name = item.dataset.categoryName.toLowerCase();
+            item.style.display = name.includes(searchTerm) ? 'block' : 'none';
+        });
+    }
+
+    // Save selected categories
+    // Save selected categories
+    async function saveSelectedCategories() {
+        console.log('=== START saveSelectedCategories ===');
+        console.log('Selected categories:', selectedCategories);
+
+        const categoryIds = selectedCategories.map(cat => cat.id);
+        console.log('Category IDs to save:', categoryIds);
+        console.log('Category IDs count:', categoryIds.length);
+        console.log('Category IDs type:', typeof categoryIds);
+
+        const result = await callAPI('save-woo-categories', { categories: categoryIds }, 'Categorías actualizadas exitosamente en WooCommerce');
+
+        console.log('API call result:', result);
+
+        const display = document.getElementById('selected-categories-display');
+        if (selectedCategories.length > 0) {
+            display.innerHTML = selectedCategories.map(cat => `
+                <span class="badge badge-info mr-2 mb-2" style="font-size: 0.95em;">
+                    ${cat.name}
+                    <i class="fas fa-check-circle ml-1"></i>
+                </span>
+            `).join('');
+        } else {
+            display.innerHTML = '<span class="text-muted">Sin categorías asignadas</span>';
+        }
+
+        closeCategoryManager();
+        console.log('=== END saveSelectedCategories ===');
+    }
+
+    // Populate parent category select for creating new categories - with hierarchy
+    function populateParentCategorySelect() {
+        const select = document.getElementById('newCategoryParent');
+        if (!select) return;
+
+        select.innerHTML = '<option value="0">-- Sin categoría padre (Categoría principal) --</option>';
+
+        // Build category map
+        const categoryMap = {};
+        wooCategories.forEach(cat => {
+            categoryMap[cat.id] = { ...cat, children: [] };
+        });
+
+        // Organize into hierarchy
+        const rootCategories = [];
+        wooCategories.forEach(cat => {
+            if (cat.parent === 0 || !cat.parent) {
+                rootCategories.push(categoryMap[cat.id]);
+            } else if (categoryMap[cat.parent]) {
+                categoryMap[cat.parent].children.push(categoryMap[cat.id]);
+            }
+        });
+
+        // Render categories hierarchically
+        function addCategoryOption(category, level = 0) {
+            const option = document.createElement('option');
+            option.value = category.id;
+            const indent = '\u00A0\u00A0'.repeat(level); // Non-breaking spaces for indentation
+            option.textContent = indent + (level > 0 ? '↳ ' : '') + category.name;
+            select.appendChild(option);
+
+            // Add children recursively
+            if (category.children && category.children.length > 0) {
+                category.children.forEach(child => addCategoryOption(child, level + 1));
+            }
+        }
+
+        rootCategories.forEach(cat => addCategoryOption(cat, 0));
+    }
+
+    // Show create category modal
+    function showCreateCategoryModal() {
+        document.getElementById('createCategoryModal').style.display = 'block';
+        populateParentCategorySelect();
+    }
+
+    // Hide create category modal
+    function hideCreateCategoryModal() {
+        document.getElementById('createCategoryModal').style.display = 'none';
+        document.getElementById('newCategoryName').value = '';
+        document.getElementById('newCategoryParent').value = '0';
+    }
+
+    // Create new category
+    function createNewCategory() {
+        const categoryName = document.getElementById('newCategoryName').value.trim();
+        const parentId = document.getElementById('newCategoryParent').value;
+
+        if (!categoryName) {
+            alert('El nombre de la categoría es obligatorio');
+            return;
+        }
+
+        const data = {
+            category_name: categoryName,
+            parent_id: parseInt(parentId) || 0
+        };
+
+        callAPI('create-wc-category', data).then(result => {
+            if (result && result.category) {
+                loadWooCommerceCategories();
+                hideCreateCategoryModal();
+                alert(`Categoría "${categoryName}" creada exitosamente`);
+            }
+        });
+    }
+
+    // Delete category
+    function deleteCategory(categoryId, categoryName, productCount) {
+        // Check if category has products
+        if (productCount > 0) {
+            if (!confirm(`La categoría "${categoryName}" tiene ${productCount} producto(s) asignado(s).\n\n¿Está seguro de que desea eliminarla? Los productos no se eliminarán, solo se desasignarán de esta categoría.`)) {
+                return;
+            }
+        } else {
+            if (!confirm(`¿Está seguro de que desea eliminar la categoría "${categoryName}"?`)) {
+                return;
+            }
+        }
+
+        // Check if category has children
+        const hasChildren = wooCategories.some(cat => cat.parent == categoryId);
+        if (hasChildren) {
+            alert(`No se puede eliminar la categoría "${categoryName}" porque tiene subcategorías.\n\nPor favor, elimine primero las subcategorías.`);
+            return;
+        }
+
+        const data = {
+            category_id: categoryId,
+            force: true
+        };
+
+        callAPI('delete-wc-category', data).then(result => {
+            if (result && result.success) {
+                // Remove from selected categories if present
+                selectedCategories = selectedCategories.filter(c => c.id != categoryId);
+
+                // Reload categories
+                loadWooCommerceCategories();
+                alert(`Categoría "${categoryName}" eliminada exitosamente`);
+            }
+        });
+    }
+
+    function toggleStockManagement() {
+        const manageStockCheckbox = document.getElementById('woo_manage_stock');
+        const stockQuantityInput = document.getElementById('woo_stock_quantity');
+        
+        if (manageStockCheckbox && stockQuantityInput) {
+            stockQuantityInput.disabled = !manageStockCheckbox.checked;
+        }
+    }
+
+    function syncAllVariations() {
+        callAPI('sync-all-variations', {}, null, true).then(result => {
+            if (result && result.data) {
+                const message = `Sincronización completa: ${result.data.synced}/${result.data.total} variaciones sincronizadas exitosamente`;
+                alert(message);
+                setTimeout(() => window.location.reload(), 1000);
+            }
+        });
+    }
+
+    function syncVariation(variantId) {
+        callAPI('sync-variation', { variant_id: variantId }, 'Variación sincronizada exitosamente', true);
+    }
+
+    function createVariation(variantId) {
+        callAPI('create-variation', { variant_id: variantId }, null, true).then(result => {
+            if (result && result.data) {
+                alert('Variación creada exitosamente en WooCommerce con ID: ' + (result.data.id || 'desconocido'));
+                setTimeout(() => window.location.reload(), 1000);
+            }
+        });
+    }
+
+    function deleteVariation(variantId, wooProductId, wooVariationId) {
+        if (confirm('¿Estás seguro de que quieres eliminar esta variación de WooCommerce? Esta acción no se puede deshacer.')) {
+            const data = {
+                woo_product_id: wooProductId,
+                woo_variation_id: wooVariationId,
+                variant_id: variantId
+            };
+            callAPI('delete-variation', data, 'Variación eliminada exitosamente', true);
+        }
+    }
+
+    function syncProductImages() {
+        if (!"{{ fsc.model.idproducto }}") {
+            alert('No se puede sincronizar: producto no guardado en FacturaScripts');
+            return;
+        }
+
+        if (!confirm('¿Confirmas la sincronización de imágenes?')) {
+            return;
+        }
+
+        callAPI('sync-product-images', {}, null, true).then(result => {
+            if (result && result.success) {
+                const message = result.data && result.data.images_count !== undefined
+                    ? `Imágenes sincronizadas exitosamente: ${result.data.images_count} imagen(es) actualizadas en WooCommerce`
+                    : 'Imágenes sincronizadas exitosamente con WooCommerce';
+                alert(message);
+                setTimeout(() => window.location.reload(), 1000);
+            }
+        });
+    }
+    // Initialize on DOM ready
+    document.addEventListener('DOMContentLoaded', function() {
+        if (document.getElementById('wooCommerceForm')) {
+            // Categories are now loaded on-demand when opening the category manager
+            toggleStockManagement();
+            
+            const manageStockCheckbox = document.getElementById('woo_manage_stock');
+            if (manageStockCheckbox) {
+                manageStockCheckbox.addEventListener('change', toggleStockManagement);
+            }
+        }
+    });
+</script>
+
+<style>
+    /* ========================================
+       MODAL STYLES - Modern & Accessible
+       ======================================== */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1050;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(2px);
+        animation: fadeIn 0.2s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .modal-content {
+        background-color: #ffffff;
+        margin: 3% auto;
+        padding: 0;
+        border: none;
+        border-radius: 12px;
+        width: 400px;
+        max-width: 90%;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        animation: slideDown 0.3s ease-out;
+        overflow: hidden;
+    }
+
+    @keyframes slideDown {
+        from {
+            transform: translateY(-50px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .modal-content > * {
+        padding: 1.5rem;
+    }
+
+    .modal-content h4 {
+        margin: 0;
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        font-size: 1.25rem;
+        font-weight: 600;
+        border-bottom: none;
+    }
+
+    .modal-content h4 i {
+        margin-right: 0.5rem;
+    }
+
+    /* Large modal variant */
+    #categoryManagerModal .modal-content {
+        max-width: 920px;
+        max-height: 85vh;
+        overflow-y: auto;
+    }
+
+    /* ========================================
+       STATUS INDICATORS - Visual Feedback
+       ======================================== */
+    .status-indicator {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin-right: 8px;
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+        animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.6; }
+    }
+
+    .status-published {
+        background-color: #28a745;
+        box-shadow: 0 0 8px rgba(40, 167, 69, 0.4);
+    }
+
+    .status-draft {
+        background-color: #ffc107;
+        box-shadow: 0 0 8px rgba(255, 193, 7, 0.4);
+    }
+
+    .status-private {
+        background-color: #dc3545;
+        box-shadow: 0 0 8px rgba(220, 53, 69, 0.4);
+    }
+
+    /* ========================================
+       FORM SECTIONS - Organized Layout
+       ======================================== */
+    .woo-form-section {
+        border: 1px solid #e3e6f0;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        background: linear-gradient(to bottom, #ffffff 0%, #f8f9fc 100%);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+        transition: all 0.3s ease;
+    }
+
+    .woo-form-section:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        border-color: #d1d3e2;
+    }
+
+    .woo-form-section h6 {
+        color: #4e73df;
+        border-bottom: 2px solid #e3e6f0;
+        padding-bottom: 0.75rem;
+        margin-bottom: 1.25rem;
+        font-weight: 600;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .woo-form-section h6 i {
+        margin-right: 0.5rem;
+        color: #667eea;
+    }
+
+    .field-help {
+        font-size: 0.8125rem;
+        color: #858796;
+        margin-top: 0.375rem;
+        font-style: italic;
+    }
+
+    /* ========================================
+       FORM CONTROLS - Enhanced Inputs
+       ======================================== */
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
+    }
+
+    .form-group label {
+        font-weight: 500;
+        color: #5a5c69;
+        margin-bottom: 0.5rem;
+    }
+
+    /* ========================================
+       BUTTONS - Consistent & Modern
+       ======================================== */
+    {# .btn {
+        border-radius: 6px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        border: none;
+        padding: 0.5rem 1rem;
+    }
+
+    .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn:active {
+        transform: translateY(0);
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #5568d3 0%, #65408b 100%);
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, #1cc88a 0%, #13855c 100%);
+    }
+
+    .btn-success:hover {
+        background: linear-gradient(135deg, #17a673 0%, #0e6b47 100%);
+    }
+
+    .btn-danger {
+        background: linear-gradient(135deg, #e74a3b 0%, #be2617 100%);
+    }
+
+    .btn-danger:hover {
+        background: linear-gradient(135deg, #d32f2f 0%, #a01f13 100%);
+    }
+
+    .btn-info {
+        background: linear-gradient(135deg, #36b9cc 0%, #258391 100%);
+    }
+
+    .btn-info:hover {
+        background: linear-gradient(135deg, #2c9faf 0%, #1d6b76 100%);
+    }
+
+    .btn-lg {
+        padding: 0.75rem 2rem;
+        font-size: 1.1rem;
+        border-radius: 8px;
+    }
+
+    .btn-sm {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+    }
+
+    /* Outline button variants */
+    .btn-outline-primary,
+    .btn-outline-success,
+    .btn-outline-danger,
+    .btn-outline-info {
+        background: white;
+        border: 2px solid;
+        font-weight: 500;
+    }
+
+    .btn-outline-primary {
+        border-color: #667eea;
+        color: #667eea;
+    }
+
+    .btn-outline-primary:hover {
+        background: #667eea;
+        color: white;
+    }
+
+    .btn-outline-success {
+        border-color: #1cc88a;
+        color: #1cc88a;
+    }
+
+    .btn-outline-success:hover {
+        background: #1cc88a;
+        color: white;
+    }
+
+    .btn-outline-danger {
+        border-color: #e74a3b;
+        color: #e74a3b;
+    }
+
+    .btn-outline-danger:hover {
+        background: #e74a3b;
+        color: white;
+    }
+
+    .btn-outline-info {
+        border-color: #36b9cc;
+        color: #36b9cc;
+    }
+
+    .btn-outline-info:hover {
+        background: #36b9cc;
+        color: white;
+    } #}
+
+    /* ========================================
+       CARDS - Enhanced Containers
+       ======================================== */
+    .card {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+    }
+
+    .card:hover {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, #f8f9fc 0%, #eaecf4 100%);
+        border-bottom: 2px solid #e3e6f0;
+        border-radius: 10px 10px 0 0 !important;
+    }
+
+    .card-header h5,
+    .card-header h6 {
+        color: #4e73df;
+        font-weight: 600;
+    }
+
+    /* ========================================
+       CATEGORY TREE - Hierarchical Display
+       ======================================== */
+    .category-item {
+        transition: all 0.2s ease;
+    }
+
+    .category-item > div {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.75rem;
+        margin: 0.25rem 0;
+        border-radius: 6px;
+        background: white;
+        border: 1px solid #e3e6f0;
+        transition: all 0.2s ease;
+    }
+
+    .category-item > div:hover {
+        background: #f8f9fc;
+        border-color: #667eea;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+        transform: translateX(4px);
+    }
+
+    .category-checkbox {
+        cursor: pointer;
+        flex: 1;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        user-select: none;
+    }
+
+    .category-checkbox input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        margin-right: 0.5rem;
+        accent-color: #667eea;
+    }
+
+    .category-checkbox span {
+        display: flex;
+        align-items: center;
+        font-size: 0.95rem;
+    }
+
+    .category-item .btn-danger {
+        opacity: 0;
+        transition: opacity 0.2s ease;
+        padding: 0.25rem 0.5rem;
+    }
+
+    .category-item:hover .btn-danger {
+        opacity: 1;
+    }
+
+    #categories-tree {
+        background: #f8f9fc;
+        border: 2px solid #e3e6f0 !important;
+        border-radius: 8px;
+        padding: 1rem !important;
+    }
+
+    /* ========================================
+       BADGES - Status & Labels
+       ======================================== */
+    .badge {
+        padding: 0.4em 0.75em;
+        font-weight: 500;
+        border-radius: 6px;
+        font-size: 0.875rem;
+    }
+
+    .badge-info {
+        background: linear-gradient(135deg, #36b9cc 0%, #258391 100%);
+        color: white;
+    }
+
+    .badge-success {
+        background: linear-gradient(135deg, #1cc88a 0%, #13855c 100%);
+        color: white;
+    }
+
+    .badge-warning {
+        background: linear-gradient(135deg, #f6c23e 0%, #dda20a 100%);
+        color: #1f2937;
+    }
+
+    .badge-secondary {
+        background: linear-gradient(135deg, #858796 0%, #60616f 100%);
+        color: white;
+    }
+
+    /* Variation of badges for clearer status */
+    .badge-variant {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        font-weight: 600;
+        text-transform: none;
+    }
+
+    .badge-variant .fas {
+        font-size: 0.9em;
+        opacity: 0.9;
+    }
+
+    /* ========================================
+       TABLES - Data Display
+       ======================================== */
+    .table {
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .table thead th {
+        background: linear-gradient(135deg, #E9E4F0 0%, #D3CCE3 100%);
+        color: #000 !important;
+        border: none;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.8125rem;
+        letter-spacing: 0.5px;
+        padding: 1rem;
+    }
+
+    .table tbody tr {
+        transition: all 0.2s ease;
+    }
+
+    .table tbody tr:hover {
+        background-color: #f8f9fc;
+        transform: scale(1.01);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .table td {
+        vertical-align: middle;
+        padding: 0.875rem;
+    }
+
+    .table-bordered {
+        border: 1px solid #e3e6f0;
+    }
+
+    /* Variations Table Styling */
+    .table.table-hover.mb-0.variations-table,
+    .variations-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 8px;
+    }
+
+    .variations-table thead th {
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+        font-weight: 700;
+        border: none;
+        vertical-align: middle;
+        white-space: nowrap;
+        padding: 0.9rem 0.75rem;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+    }
+
+    .variations-table thead th i {
+        margin-right: 0.5rem;
+        opacity: 0.95;
+        font-size: 0.95rem;
+    }
+
+    .variations-table tbody tr {
+        background: #fff;
+        border-radius: 6px;
+        box-shadow: 0 1px 4px rgba(20,23,54,0.03);
+        transition: transform 0.12s ease, box-shadow 0.12s ease;
+    }
+
+    .variations-table tbody tr:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(39,46,135,0.06);
+    }
+
+    .variations-table tbody td {
+        vertical-align: middle;
+        padding: 0.7rem 0.75rem;
+    }
+
+    .variations-table .text-success {
+        color: #10b981 !important;
+        font-weight: 700;
+    }
+
+    .variations-table .text-muted {
+        color: #6b7280 !important;
+    }
+
+    /* Status badges inside table */
+    .variations-table .badge {
+        padding: 0.35rem 0.6rem;
+        font-size: 0.85rem;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    /* Actions: grouped, compact, clearer icons */
+    .variations-table .btn-group {
+        box-shadow: none;
+        border-radius: 6px;
+        overflow: hidden;
+        display: inline-flex;
+    }
+
+    .variations-table .btn-group .btn {
+        border: none;
+        padding: 0.45rem 0.6rem;
+        min-width: 36px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.35rem;
+    }
+
+    .variations-table .btn-group .btn .fas {
+        font-size: 0.92rem;
+    }
+
+    .variations-table .btn-group .btn-outline-primary {
+        color: #2563eb;
+        background: rgba(37,99,235,0.06);
+    }
+
+    .variations-table .btn-group .btn-outline-success {
+        color: #059669;
+        background: rgba(5,150,105,0.06);
+    }
+
+    .variations-table .btn-group .btn-outline-danger {
+        color: #dc2626;
+        background: rgba(220,38,38,0.06);
+    }
+
+    /* Make small text labels appear responsively */
+    .variations-table .btn .d-none.d-lg-inline {
+        margin-left: 0.35rem;
+    }
+
+    /* Utility: action title tooltip spacing */
+    .variations-table .btn[title] {
+        position: relative;
+    }
+
+    /* ========================================
+       ALERTS - Notifications & Messages
+       ======================================== */
+    .alert {
+        border-radius: 8px;
+        border: none;
+        padding: 1rem 1.25rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .alert-info {
+        background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+        color: #0c5460;
+        border-left: 4px solid #17a2b8;
+    }
+
+    .alert-warning {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+        color: #856404;
+        border-left: 4px solid #ffc107;
+    }
+
+    /* Enhanced alert cards for clearer hierarchy and icon support */
+    .alert-danger,
+    .alert-success {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        box-shadow: 0 1px 4px rgba(22, 28, 37, 0.06);
+        border-left-width: 6px;
+        border-left-style: solid;
+        color: inherit;
+    }
+
+    .alert-danger {
+        background: linear-gradient(135deg, #fff5f6 0%, #f8d7da 100%);
+        color: #721c24;
+        border-left-color: #dc3545;
+    }
+
+    .alert-success {
+        background: linear-gradient(135deg, #f6fffa 0%, #d4edda 100%);
+        color: #155724;
+        border-left-color: #28a745;
+    }
+
+    /* Small round icon to the left for quick visual scanning */
+    .alert-icon {
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.95rem;
+        color: #fff;
+        box-shadow: 0 1px 2px rgba(22,28,37,0.08);
+    }
+
+    .alert-danger .alert-icon {
+        background: #dc3545;
+    }
+
+    .alert-success .alert-icon {
+        background: #28a745;
+    }
+
+    /* Support for compact alerts used inside card info rows */
+    .alert-compact {
+        padding: 0.45rem 0.6rem;
+        gap: 0.5rem;
+        border-radius: 6px;
+        font-size: 0.875rem;
+    }
+
+    /* ========================================
+       SELECTED CATEGORIES DISPLAY
+       ======================================== */
+    #selected-categories-display {
+        background: linear-gradient(135deg, #f8f9fc 0%, #eaecf4 100%);
+        border: 2px dashed #d1d3e2 !important;
+        border-radius: 8px;
+        padding: 1rem !important;
+        min-height: 100px;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.25s ease;
+        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.04);
+    }
+
+    #selected-categories-display:hover {
+        border-color: #667eea !important;
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fc 100%);
+        transform: translateY(-2px);
+    }
+
+    #selected-categories-display .badge {
+        font-size: 0.95rem;
+        padding: 0.45rem 0.8rem;
+        animation: slideIn 0.25s ease;
+        border-radius: 999px;
+        box-shadow: 0 1px 0 rgba(0,0,0,0.04);
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-6px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* ========================================
+       LOADING STATES
+       ======================================== */
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
+        border-width: 0.28rem;
+        border-style: solid;
+        border-right-color: rgba(0, 0, 0, 0.06);
+        border-left-color: rgba(0, 0, 0, 0.06);
+        border-top-color: #667eea;
+        border-bottom-color: rgba(0, 0, 0, 0.06);
+    }
+
+    #categories-loading {
+        padding: 3rem 1rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* ========================================
+       SEARCH INPUT
+       ======================================== */
+    {# .input-group-text {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 6px 0 0 6px;
+    }
+
+    #category-search {
+        border-left: none;
+        border-radius: 0 6px 6px 0;
+        padding: 0.75rem;
+    }
+
+    #category-search:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
+    } #}
+
+    /* ========================================
+       PRODUCT TYPE WARNING
+       ======================================== */
+    #productTypeWarning {
+        border-left: 4px solid #ffc107;
+        animation: shake 0.5s ease;
+    }
+
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-10px); }
+        75% { transform: translateX(10px); }
+    }
+
+    /* ========================================
+       FORM CHECK INLINE - Better Spacing
+       ======================================== */
+    .form-check-inline {
+        margin-right: 1.5rem;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .form-check-input {
+        width: 18px;
+        height: 18px;
+        margin-right: 0.5rem;
+        cursor: pointer;
+        accent-color: #667eea;
+    }
+
+    .form-check-label {
+        cursor: pointer;
+        user-select: none;
+        margin-bottom: 0;
+    }
+
+    /* ========================================
+       RESPONSIVE DESIGN
+       ======================================== */
+    @media (max-width: 768px) {
+        .modal-content {
+            margin: 10% auto;
+            width: 95%;
+        }
+
+        #categoryManagerModal .modal-content {
+            max-width: 95%;
+        }
+
+        .btn-lg {
+            padding: 0.625rem 1.5rem;
+            font-size: 1rem;
+        }
+
+        .woo-form-section {
+            padding: 1rem;
+        }
+
+        .card-header {
+            padding: 0.75rem 1rem;
+        }
+
+        .table {
+            font-size: 0.875rem;
+        }
+
+        .category-item > div {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .category-item .btn-danger {
+            opacity: 1;
+            align-self: flex-end;
+        }
+    }
+
+    /* ========================================
+       UTILITY CLASSES
+       ======================================== */
+    {# .text-gradient {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    } #}
+
+    .shadow-hover {
+        transition: box-shadow 0.25s cubic-bezier(.4,0,.2,1), transform 0.15s ease;
+    }
+
+    .shadow-hover:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 30px rgba(20, 35, 60, 0.12) !important;
+    }
+
+    /* ========================================
+       SCROLLBAR STYLING
+       ======================================== */
+    #categories-tree::-webkit-scrollbar,
+    .modal-content::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    #categories-tree::-webkit-scrollbar-track,
+    .modal-content::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+
+    #categories-tree::-webkit-scrollbar-thumb,
+    .modal-content::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 10px;
+    }
+
+    #categories-tree::-webkit-scrollbar-thumb:hover,
+    .modal-content::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(135deg, #5568d3 0%, #65408b 100%);
+    }
+
+    /* ========================================
+       ANIMATION FOR BUTTONS WITH ICONS
+       ======================================== */
+    .btn i {
+        transition: transform 0.28s ease, color 0.18s ease;
+    }
+
+    .btn:hover i.fa-sync,
+    .btn:hover i.fa-sync-alt {
+        transform: rotate(180deg);
+        color: #ffffff;
+    }
+
+    .btn:hover i.fa-trash,
+    .btn:hover i.fa-trash-alt {
+        transform: scale(1.1);
+        color: #e55353;
+    }
+
+    .btn:hover i.fa-save {
+        transform: scale(1.05);
+    }
+
+    /* ========================================
+       SELECTED COUNT BADGE
+       ======================================== */
+    #selected-count {
+        font-weight: 600;
+        color: #667eea;
+        font-size: 1rem;
+    }
+
+    /* ========================================
+       INFO SECTIONS - Better Visual Hierarchy
+       ======================================== */
+    .card-body .row.mb-3 {
+        padding: 1rem;
+        background: #f8f9fc;
+        border-radius: 8px;
+        border: 1px solid #e3e6f0;
+    }
+
+    .card-body .row.mb-3 strong {
+        color: #4e73df;
+        font-weight: 600;
+    }
+
+    /* ========================================
+       INITIAL SYNC CARD (visual hierarchy + status)
+       ======================================== */
+    .initial-sync-card {
+        border-left: 6px solid rgba(102, 126, 234, 0.9);
+        background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(245,247,255,0.9));
+        padding: 0;
+        overflow: hidden;
+        border-radius: 6px;
+    }
+
+    .initial-sync-card .card-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+        border-bottom: none;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem 1.25rem;
+    }
+
+    .initial-sync-card .card-header i {
+        font-size: 1.15rem;
+        opacity: 0.95;
+    }
+
+    .initial-sync-card .card-body {
+        padding: 1.15rem 1.25rem;
+    }
+
+    /* Status badges used throughout the initial sync UI */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.45rem 0.8rem;
+        border-radius: 999px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+    }
+
+    .status-badge.not-synced {
+        background: linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 100%);
+        color: #6b7280;
+        border: 1px solid rgba(99,102,241,0.06);
+    }
+
+    .status-badge.ready {
+        background: linear-gradient(90deg, #e6ffed 0%, #d1f7dc 100%);
+        color: #155724;
+        border: 1px solid rgba(72,187,120,0.12);
+    }
+
+    .status-badge.warning {
+        background: linear-gradient(90deg, #fff8e6 0%, #fff3d1 100%);
+        color: #856404;
+        border: 1px solid rgba(255,193,7,0.12);
+    }
+
+    /* Product type option: improved hover/focus/active states */
+    .product-type-option {
+        background: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        padding: 0.85rem;
+        transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.12s ease;
+        cursor: pointer;
+    }
+
+    .product-type-option:hover {
+        border-color: #667eea;
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.12);
+        transform: translateY(-3px);
+    }
+
+    .product-type-option:focus {
+        outline: none;
+        border-color: #5568d3;
+        box-shadow: 0 0 0 3px rgba(86, 93, 212, 0.12);
+    }
+
+    .product-type-option.active {
+        border-color: #2b6cb0;
+        background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+        box-shadow: 0 12px 30px rgba(43,108,176,0.08);
+    }
+
+    .product-type-option .option-icon {
+        font-size: 1.5rem;
+        width: 48px;
+        height: 48px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        color: #fff;
+    }
+
+    .product-type-option .option-icon.simple {
+        background: linear-gradient(90deg, #4caf50 0%, #43a047 100%);
+    }
+
+    .product-type-option .option-icon.variable {
+        background: linear-gradient(90deg, #36b9cc 0%, #2fa6b0 100%);
+    }
+
+    .product-type-option .option-label {
+        font-weight: 700;
+        font-size: 1.02rem;
+    }
+
+    .product-type-option .option-desc {
+        color: #6b7280;
+        font-size: 0.92rem;
+    }
+
+    /* Image Synchronization Card Specifics */
+    .image-sync-card {
+        border-left: 4px solid #36b9cc;
+        overflow: hidden;
+        border-radius: 6px;
+    }
+
+    .image-sync-card .card-header {
+        background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);
+        border-bottom: none;
+    }
+
+    .image-sync-card .card-header h6 {
+        color: #0e7490;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0;
+        font-weight: 700;
+    }
+
+    .image-sync-card .card-body .alert {
+        background: #e0f7fa;
+        border-left: 3px solid #36b9cc;
+        margin-bottom: 0;
+    }
+
+    .image-sync-card .btn-info {
+        background: linear-gradient(135deg, #36b9cc 0%, #2fa6b0 100%);
+        border: none;
+        color: #fff;
+        font-weight: 600;
+    }
+
+    .image-sync-card .btn-info i {
+        margin-right: 0.5rem;
+    }
+
+    /* Sync Info Card Layout */
+    .sync-info-card {
+        background: linear-gradient(135deg, #f8f9fc 0%, #eaecf4 100%);
+        border-radius: 8px;
+        border: 1px solid #e3e6f0;
+    }
+
+    .sync-info-card .card-body h6 {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #6c757d;
+        margin-bottom: 1rem;
+    }
+
+    .sync-info-card .p-3 {
+        background: #fff;
+        border: 1px solid rgba(0,0,0,0.04);
+    }
+
+    .sync-info-card .p-3 .text-muted i {
+        width: 16px;
+        text-align: center;
+    }
+
+    .sync-info-card .text-primary,
+    .sync-info-card .text-success {
+        font-weight: 600;
+    }
+
+    .sync-info-card .text-break small {
+        word-break: break-word;
+    }
+
+    /* Compact icon + value rows inside sync info */
+    .sync-info-card .meta-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+    }
+</style>
+
+{% block body %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col">
+
+                <div id="successAlert"></div>
+
+                {% if fsc.model.woo_id %}
+                    {# WooCommerce Edit Form #}
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                            <h5 class="m-0 font-weight-bold text-primary">
+                                <i class="fas fa-edit"></i> Editar Producto WooCommerce
+                                {% if product.variants|length > 1 %}
+                                    <small class="badge badge-info ml-2">Variable</small>
+                                {% else %}
+                                    <small class="badge badge-success ml-2">Simple</small>
+                                {% endif %}
+                            </h5>
+                            <div class="d-flex align-items-center">
+                                <span class="status-indicator status-{{ fsc.model.woo_status ?? 'draft' }}"></span>
+                                <span class="text-muted small mr-3">
+                                    Estado: {{ (fsc.model.woo_status ?? 'Draft')|title }}
+                                    {% if fsc.model.woo_status == 'publish' %}
+                                        <i class="fas fa-eye text-success ml-1" title="Visible en tienda"></i>
+                                    {% else %}
+                                        <i class="fas fa-eye-slash text-warning ml-1" title="No visible en tienda"></i>
+                                    {% endif %}
+                                </span>
+                                <button type="button" class="btn btn-sm btn-outline-danger ml-2"
+                                        onclick="deleteWooCommerceProduct()" title="Eliminar este producto de WooCommerce">
+                                    <i class="fas fa-trash-alt"></i>
+                                    <span class="d-none d-sm-inline-block ml-1">Borrar</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+
+                            {# WooCommerce Info #}
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <strong>WooCommerce ID:</strong> {{ fsc.model.woo_id }}
+                                </div>
+                                <div class="col-md-3">
+                                    <strong>FS Referencia:</strong> {{ fsc.model.referencia }}
+                                </div>
+                                <div class="col-md-3">
+                                    <strong>Stock FS:</strong> {{ fsc.model.stockfis ?? 0 }}
+                                </div>
+                                <div class="col-md-3">
+                                    {% if fsc.model.woo_permalink %}
+                                        <a href="{{ fsc.model.woo_permalink }}" target="_blank"
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-external-link-alt"></i> Ver en tienda
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                                                        {# Pricing Section With Variants #}
+                            {% if product.variants|length > 1 %}
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                                    <h5 class="m-0 font-weight-bold text-primary">
+                                        <i class="fas fa-cubes"></i> Variaciones WooCommerce
+                                    </h5>
+                                    <button type="button" class="btn btn-sm btn-outline-info" onclick="syncAllVariations()">
+                                        <i class="fas fa-sync-alt"></i> Sincronizar Todas
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-hover">
+                                            <thead class="thead-light">
+                                                <tr>
+                                                    <th>Referencia</th>
+                                                    <th>Atributos</th>
+                                                    <th>Precio</th>
+                                                    <th>Precio Rebajado</th>
+                                                    <th>Stock</th>
+                                                    <th>ID WooCommerce</th>
+                                                    <th>Última Sincronización</th>
+                                                    <th>Acciones</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for variant in product.getVariants() %}
+                                                <tr>
+                                                    <td>{{ variant.referencia }}</td>
+                                                    <td>{{ variant.description(true) }}</td>
+                                                    <td>{{ variant.woo_regular_price }} €</td>
+                                                    <td class="text-right">
+                                                        {% if variant.woo_sale_price is not null and variant.woo_sale_price != 0 %}
+                                                            {{ variant.woo_sale_price }} €
+                                                        {% else %}
+                                                            -
+                                                        {% endif %}
+                                                    </td>
+                                                    <td class="text-right">{{ variant.stockfis }}</td>
+                                                    <td class="text-center">
+                                                        {% if variant.woo_variation_id %}
+                                                            <span class="badge badge-success">{{ variant.woo_variation_id }}</span>
+                                                        {% else %}
+                                                            <span class="badge badge-warning">No sincronizado</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td class="text-center">
+                                                        {% if variant.woo_last_update %}
+                                                            {{ variant.woo_last_update }}
+                                                        {% else %}
+                                                            <span class="text-muted"> - </span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td class="text-center">
+                                                        {% if variant.woo_variation_id %}
+                                                            <button type="button" class="btn btn-sm btn-outline-primary" 
+                                                                    onclick="syncVariation({{ variant.idvariante }})">
+                                                                <i class="fas fa-sync"></i>
+                                                            </button>
+                                                            <button type="button" class="btn btn-sm btn-outline-danger"
+                                                                    onclick="deleteVariation({{ variant.idvariante }}, {{ product.woo_id }}, {{ variant.woo_variation_id }})">
+                                                                <i class="fas fa-trash-alt"></i>
+                                                            </button>
+                                                        {% else %}
+                                                            <button type="button" class="btn btn-sm btn-outline-success" 
+                                                                    onclick="createVariation({{ variant.idvariante }})">
+                                                                <i class="fas fa-plus"></i>
+                                                            </button>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {% endif %}
+
+                            <hr>
+
+                            {# Edit Form #}
+                            <form id="wooCommerceForm" onsubmit="updateWooCommerceProduct(); return false;">
+
+                                {# Basic Info Section #}
+                                <div class="woo-form-section">
+                                    <h6><i class="fas fa-info-circle"></i> Información Básica</h6>
+
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <div class="form-group">
+                                                <label for="woo_product_name">
+                                                    <strong>Nombre del Producto</strong>
+                                                </label>
+                                                <input type="text" class="form-control" id="woo_product_name"
+                                                       name="woo_product_name"
+                                                       value="{{ fsc.model.woo_product_name ?? fsc.model.descripcion }}"
+                                                       required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label for="woo_status">
+                                                    <strong>Estado</strong>
+                                                    <i class="fas fa-info-circle text-muted"
+                                                       title="Publicado = Visible en tienda, Borrador/Privado = Oculto"></i>
+                                                </label>
+                                                <select class="form-control" id="woo_status" name="woo_status">
+                                                    <option value="publish" {{ fsc.model.woo_status == 'publish' ? 'selected' : '' }}>
+                                                        🟢 Publicado (Visible)
+                                                    </option>
+                                                    <option value="draft" {{ fsc.model.woo_status == 'draft' or not fsc.model.woo_status ? 'selected' : '' }}>
+                                                        🟡 Borrador (Oculto)
+                                                    </option>
+                                                    <option value="private" {{ fsc.model.woo_status == 'private' ? 'selected' : '' }}>
+                                                        🔴 Privado
+                                                    </option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="woo_short_description">Descripción Corta</label>
+                                                <textarea class="form-control" id="woo_short_description"
+                                                          name="woo_short_description"
+                                                          rows="3">{{ fsc.model.woo_short_description ?? fsc.model.descripcion }}</textarea>
+                                                <div class="field-help">Descripción breve que aparece en listados de
+                                                    productos
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="woo_description">Descripción Larga</label>
+                                                <textarea class="form-control" id="woo_description"
+                                                          name="woo_description"
+                                                          rows="3">{{ fsc.model.woo_description ?? fsc.model.observaciones }}</textarea>
+                                                <div class="field-help">Descripción completa que aparece en la página
+                                                    del producto
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {# Pricing Section (Without variants) #}
+                                <div class="woo-form-section">
+                                    <h6><i class="fas fa-euro-sign"></i> Precios y Configuración</h6>
+
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label for="woo_sku">SKU (Opcional)</label>
+                                                <input type="text" class="form-control" id="woo_sku" name="woo_sku"
+                                                       value="{{ fsc.model.woo_sku ?? fsc.model.referencia }}">
+                                                <div class="field-help">Código único del producto</div>
+                                            </div>
+                                        </div>
+                                        {% if product.variants|length == 1 %}
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label for="woo_price">Precio Regular (€)</label>
+                                                <input type="number" step="0.01" class="form-control" id="woo_price"
+                                                       name="woo_price"
+                                                       value="{{ fsc.model.woo_price ?? fsc.model.precio }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label for="woo_sale_price">Precio Oferta (€)</label>
+                                                <input type="number" step="0.01" class="form-control"
+                                                       id="woo_sale_price" name="woo_sale_price"
+                                                       value="{{ fsc.model.woo_sale_price ?? '' }}"
+                                                       placeholder="Opcional">
+                                                <div class="field-help">Precio con descuento (opcional)</div>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label for="woo_tax_status">Estado de Impuestos</label>
+                                                <select class="form-control" id="woo_tax_status" name="woo_tax_status">
+                                                    <option value="taxable" {{ fsc.model.woo_tax_status == 'taxable' or not fsc.model.woo_tax_status ? 'selected' : '' }}>
+                                                        Gravable
+                                                    </option>
+                                                    <option value="shipping" {{ fsc.model.woo_tax_status == 'shipping' ? 'selected' : '' }}>
+                                                        Solo Envío
+                                                    </option>
+                                                    <option value="none" {{ fsc.model.woo_tax_status == 'none' ? 'selected' : '' }}>
+                                                        Sin Impuestos
+                                                    </option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label for="woo_catalog_visibility">Visibilidad en Catálogo</label>
+                                                <select class="form-control" id="woo_catalog_visibility"
+                                                        name="woo_catalog_visibility">
+                                                    <option value="visible" {{ fsc.model.woo_catalog_visibility == 'visible' or not fsc.model.woo_catalog_visibility ? 'selected' : '' }}>
+                                                        Catálogo y Búsqueda
+                                                    </option>
+                                                    <option value="catalog" {{ fsc.model.woo_catalog_visibility == 'catalog' ? 'selected' : '' }}>
+                                                        Solo Catálogo
+                                                    </option>
+                                                    <option value="search" {{ fsc.model.woo_catalog_visibility == 'search' ? 'selected' : '' }}>
+                                                        Solo Búsqueda
+                                                    </option>
+                                                    <option value="hidden" {{ fsc.model.woo_catalog_visibility == 'hidden' ? 'selected' : '' }}>
+                                                        Oculto
+                                                    </option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-8">
+                                            <div class="form-group">
+                                                <label>Características del Producto</label>
+
+                                                <div class="form-check-inline">
+                                                    <input type="checkbox" class="form-check-input" id="woo_featured"
+                                                           name="woo_featured"
+                                                           value="yes" {{ fsc.model.woo_featured ? 'checked' : '' }}>
+                                                    <label class="form-check-label mr-3"
+                                                           for="woo_featured">Destacado</label>
+                                                </div>
+
+                                                <div class="form-check-inline">
+                                                    <input type="checkbox" class="form-check-input" id="woo_virtual"
+                                                           name="woo_virtual"
+                                                           value="yes" {{ fsc.model.woo_virtual ? 'checked' : '' }}>
+                                                    <label class="form-check-label mr-3"
+                                                           for="woo_virtual">Virtual</label>
+                                                </div>
+
+                                                <div class="form-check-inline">
+                                                    <input type="checkbox" class="form-check-input"
+                                                           id="woo_downloadable" name="woo_downloadable"
+                                                           value="yes" {{ fsc.model.woo_downloadable ? 'checked' : '' }}>
+                                                    <label class="form-check-label mr-3" for="woo_downloadable">Descargable</label>
+                                                </div>
+
+                                                <div class="form-check-inline">
+                                                    <input type="checkbox" class="form-check-input"
+                                                           id="woo_reviews_allowed" name="woo_reviews_allowed"
+                                                           value="yes" {{ fsc.model.woo_reviews_allowed ? 'checked' : '' }}>
+                                                    <label class="form-check-label" for="woo_reviews_allowed">Permitir
+                                                        Reseñas</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {# Inventory Section #}
+                                {% if product.variants|length == 1 %}
+                                <div class="woo-form-section">
+                                    <h6><i class="fas fa-boxes"></i> Inventario</h6>
+
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <div class="form-check">
+                                                    <input type="checkbox" class="form-check-input"
+                                                           id="woo_manage_stock" name="woo_manage_stock"
+                                                           value="yes" {{ fsc.model.woo_manage_stock ? 'checked' : '' }}>
+                                                    <label class="form-check-label" for="woo_manage_stock">
+                                                        <strong>Gestionar Stock</strong>
+                                                    </label>
+                                                </div>
+                                                <div class="field-help">Activa el control de inventario para este
+                                                    producto
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label for="woo_stock_quantity">Cantidad en Stock</label>
+                                                <input type="number" class="form-control" id="woo_stock_quantity"
+                                                       name="woo_stock_quantity"
+                                                       value="{{ fsc.model.woo_stock_quantity ?? fsc.model.stockfis ?? 0 }}">
+                                                <div class="field-help">FS: {{ fsc.model.stockfis ?? 0 }}</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label for="woo_weight">Peso (kg)</label>
+                                                <input type="number" step="0.001" class="form-control" id="woo_weight"
+                                                       name="woo_weight"
+                                                       value="{{ fsc.model.woo_weight ?? '' }}" placeholder="0.000">
+                                                <div class="field-help">(Opcional)</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {# Shipping Section #}
+                                <div class="woo-form-section">
+                                    <h6><i class="fas fa-shipping-fast"></i> Dimensiones</h6>
+
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label for="woo_length">Largo (cm)</label>
+                                                <input type="number" step="0.1" class="form-control" id="woo_length"
+                                                       name="woo_length"
+                                                       value="{{ fsc.model.woo_length ?? '' }}" placeholder="0.0">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label for="woo_width">Ancho (cm)</label>
+                                                <input type="number" step="0.1" class="form-control" id="woo_width"
+                                                       name="woo_width"
+                                                       value="{{ fsc.model.woo_width ?? '' }}" placeholder="0.0">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label for="woo_height">Alto (cm)</label>
+                                                <input type="number" step="0.1" class="form-control" id="woo_height"
+                                                       name="woo_height"
+                                                       value="{{ fsc.model.woo_height ?? '' }}" placeholder="0.0">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="field-help">(Opcional)</div>
+                                </div>
+                                {% endif %}
+
+                                {# Save Button #}
+                                <div class="row mt-4 mb-4">
+                                    <div class="col text-center">
+                                        <button type="submit" form="wooCommerceForm" class="btn btn-lg btn-success btn-spin-action">
+                                            <i class="fas fa-save fa-fw"></i>
+                                            <span class="d-none d-sm-inline-block">Actualizar Producto WooCommerce</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                
+                            </div>
+                        </div>
+                        <div class="card shadow mb-4">
+                            <div class="card-body">
+                                {# Categories Section #}
+                                <div class="woo-form-section">
+                                    <h6><i class="fas fa-tags"></i> Categorías</h6>
+
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <div class="form-group">
+                                                <label>Categorías Asignadas</label>
+                                                <div id="selected-categories-display" class="border rounded p-3 bg-light" style="min-height: 80px;">
+                                                    {% if fsc.model.woo_categories %}
+                                                        {% set categories = json_decode(fsc.model.woo_categories) %}
+                                                        {% if categories is iterable %}
+                                                            {% for category in categories %}
+                                                                <span class="badge badge-info mr-2 mb-2" style="font-size: 0.95em;">
+                                                                    {{ category.name ?? ('Categoría ID ' ~ category.id) }}
+                                                                    <i class="fas fa-check-circle ml-1"></i>
+                                                                </span>
+                                                            {% endfor %}
+                                                        {% else %}
+                                                            <span class="text-muted">Sin categorías asignadas</span>
+                                                        {% endif %}
+                                                    {% else %}
+                                                        <span class="text-muted">Sin categorías asignadas</span>
+                                                    {% endif %}
+                                                </div>
+                                                <input type="hidden" id="woo_categories_hidden" name="woo_categories[]" value="">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label>&nbsp;</label>
+                                                <div>
+                                                    <button type="button" class="btn btn-primary btn-block mb-2"
+                                                            onclick="openCategoryManager()">
+                                                        <i class="fas fa-folder-open"></i> Gestionar Categorías
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            
+
+                            {# Image Synchronization Section #}
+                            <div class="woo-form-section"> <h6><i class="fas fa-images"></i> Sincronización de Imágenes</h6>
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <div class="form-group">
+                                            <p class="mb-2">
+                                                <strong>Estado actual:</strong>
+                                                Las imágenes se sincronizan automáticamente al crear/actualizar el producto.
+                                                Para sincronizar manualmente después de añadir o eliminar imágenes en FacturaScripts,
+                                                utiliza el botón de sincronización.
+                                            </p>
+                                            <div class="field-help">
+                                                <i class="fas fa-info-circle"></i>
+                                                Las modificaciones en las imágenes no se aplicarán en la tienda online hasta que se sincronicen desde aquí.
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label>&nbsp;</label>
+                                            <div>
+                                                <button type="button"
+                                                        class="btn btn-info btn-block btn-spin-action"
+                                                        onclick="syncProductImages()"
+                                                        title="Sincronizar imágenes desde FacturaScripts a WooCommerce">
+                                                    <i class="fas fa-sync-alt fa-fw"></i>
+                                                    Sincronizar Imágenes
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+
+                        </div>
+                    </div>
+
+
+
+
+                            
+
+                    {# Sync Info Card #}
+                    <div class="card shadow mb-4">
+                        <div class="card-body">
+                            <h6 class="text-muted"><i class="fas fa-info-circle"></i> Información de Sincronización</h6>
+                            <div class="row small text-muted">
+                                <div class="col-md-3">
+                                    <strong>Creado:</strong><br>
+                                    {{ fsc.model.woo_creation_date ?? 'N/A' }}<br>
+                                    <small>por: {{ fsc.model.woo_nick ?? 'N/A' }}</small>
+                                </div>
+                                <div class="col-md-3">
+                                    <strong>Última actualización:</strong><br>
+                                    {{ fsc.model.woo_last_update ?? 'N/A' }}<br>
+                                    <small>por: {{ fsc.model.woo_last_nick ?? 'N/A' }}</small>
+                                </div>
+                                <div class="col-md-4">
+                                    <strong>URL WooCommerce:</strong><br>
+                                    {% if fsc.model.woo_permalink %}
+                                        <a href="{{ fsc.model.woo_permalink }}" target="_blank" class="text-primary">
+                                            {{ fsc.model.woo_permalink|length > 50 ? fsc.model.woo_permalink|slice(0, 50) ~ '...' : fsc.model.woo_permalink }}
+                                        </a>
+                                    {% else %}
+                                        <span class="text-muted">No disponible</span>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-2">
+                                    <strong>Datos WooCommerce:</strong><br>
+                                    {% if fsc.model.woo_categories %}
+                                        {% set categories = json_decode(fsc.model.woo_categories) %}
+                                        <small>{{ categories|length }} categorías</small><br>
+                                    {% endif %}
+                                    {% if fsc.model.woo_images %}
+                                        {% set images = json_decode(fsc.model.woo_images) %}
+                                        <small>{{ images|length }} imágenes</small><br>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                {% else %}
+                    {# Initial Sync Card #}
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h5 class="m-0 font-weight-bold text-primary">
+                                <i class="fas fa-cube"></i> Sincronización WooCommerce
+                            </h5>
+                        </div>
+                        <div class="card-body">
+
+                            {# Product Info #}
+                            {% if fsc.model.idproducto %}
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <strong>Referencia:</strong> {{ fsc.model.referencia ?? 'Sin referencia' }}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <strong>Descripción:</strong> {{ fsc.model.descripcion ?? 'Sin descripción' }}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <strong>Tipo estimado de Producto:</strong>
+                                        {% if product.variants|length > 1 %}
+                                            <span class="badge badge-info">
+                                                <i class="fas fa-cubes"></i> Variable ({{ product.variants|length }} variantes)
+                                            </span>
+                                        {% elseif product.variants|length == 1 %}
+                                            <span class="badge badge-success">
+                                                <i class="fas fa-cube"></i> Simple (1 variante)
+                                            </span>
+                                        {% else %}
+                                            <span class="badge badge-warning">
+                                                <i class="fas fa-cube"></i> Simple (sin variantes)
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="row mb-4">
+                                    {# <div class="col-md-3">
+                                        <strong>Precio:</strong> {{ fsc.model.precio ?? '0' }} €
+                                    </div>
+                                    <div class="col-md-3">
+                                        <strong>Stock:</strong> {{ fsc.model.stockfis ?? '0' }}
+                                    </div> #}
+                                    <div class="col-md-3">
+                                        <span class="badge badge-secondary">No sincronizado</span>
+                                    </div>
+                                </div>
+
+                                {# Validation Check #}
+                                <div class="alert alert-info">
+                                    <h6><i class="fas fa-box"></i> Tipo de Producto</h6>
+                                    <p class="mb-3">Seleccione el tipo de producto que desea crear:</p>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="product_type" id="simple_product" value="simple">
+                                                <label class="form-check-label" for="simple_product">
+                                                    <strong>Producto Simple</strong>
+                                                    <br>
+                                                    <small class="text-muted">Un único producto sin variaciones</small>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="product_type" id="variable_product" value="variable" checked>
+                                                <label class="form-check-label" for="variable_product">
+                                                    <strong>Producto Variable</strong>
+                                                    <br>
+                                                    <small class="text-muted">Con diferentes atributos (talla, color, etc.)</small>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div id="productTypeWarning" class="alert alert-warning mt-3" style="display: none;">
+                                        <!-- Warning messages will be inserted here by JavaScriptj -->
+                                    </div>
+                                </div>
+                            {% endif %}
+
+                            {# Sync Actions #}
+                            <div class="text-center">
+                                {% if fsc.model.idproducto %}
+                                    {% set canSync = fsc.model.descripcion and fsc.model.referencia and fsc.model.precio is defined and fsc.model.precio >= 0 %}
+
+                                    {% if canSync %}
+                                        <p class="mb-4 text-success">
+                                            <i class="fas fa-check-circle"></i>
+                                            El producto está listo para sincronizar con WooCommerce
+                                            {% if product.variants|length > 1 %}
+                                                como <strong>producto variable</strong> con {{ product.variants|length }} variantes
+                                            {% else %}
+                                                como <strong>producto simple</strong>
+                                            {% endif %}
+                                        </p>
+
+                                        <button type="button"
+                                                class="btn btn-lg btn-primary btn-spin-action btn-sync-woo"
+                                                onclick="return createNewProduct('create-wc-product')">
+                                            <i class="fas fa-sync fa-fw"></i>
+                                            <span class="d-none d-sm-inline-block"> Crear Producto </span>
+                                        </button>
+                                    {% else %}
+                                        <p class="mb-4 text-warning">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                            Completa los datos requeridos antes de sincronizar
+                                        </p>
+
+                                        <button type="button" class="btn btn-lg btn-warning" disabled>
+                                            <i class="fas fa-exclamation-triangle fa-fw"></i>
+                                            <span class="d-none d-sm-inline-block">Datos incompletos</span>
+                                        </button>
+                                    {% endif %}
+
+                                {% else %}
+                                    <div class="alert alert-warning">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        Primero debes guardar el producto en FacturaScripts
+                                    </div>
+
+                                    <button type="button" class="btn btn-lg btn-secondary" disabled>
+                                        <i class="fas fa-save fa-fw"></i>
+                                        <span class="d-none d-sm-inline-block">Primero guarda el producto</span>
+                                    </button>
+                                {% endif %}
+
+                                <div class="mt-3 text-muted small">
+                                    <i class="fas fa-info-circle"></i>
+                                    La sincronización creará el producto en WooCommerce y guardará la relación
+                                </div>
+                            </div>
+                           
+                {% endif %}
+
+                {# Debug Info (remove in production) #}
+
+                {# <div class="card shadow mb-4">
+                    <div class="card-body bg-light">
+                        <h6>Debug Info:</h6>
+                        <small>
+                            <strong>FS Product:</strong><br>
+                            ID: {{ fsc.model.idproducto ?? 'null' }}<br>
+                            Referencia: {{ fsc.model.referencia ?? 'null' }}<br>
+                            Descripción: {{ fsc.model.descripcion ?? 'null' }}<br>
+                            Precio: {{ fsc.model.precio ?? 'null' }}<br>
+                            Stock: {{ fsc.model.stockfis ?? 'null' }}<br>
+
+                            <strong>WooCommerce Data:</strong><br>
+                            WooCommerce ID: {{ fsc.model.woo_id ?? 'null' }}<br>
+                            Status: {{ fsc.model.woo_status ?? 'null' }}<br>
+                            Categories: {{ fsc.model.woo_categories ?? 'null' }}<br>
+                            Last Update: {{ fsc.model.woo_last_update ?? 'null' }}<br>
+
+                            <strong>System:</strong><br>
+                            Current View: {{ currentView.getViewName() }}<br>
+                            URL: {{ fsc.url() }}
+                        </small>
+                    </div>
+                </div> #}
+
+
+            </div>
+        </div>
+    </div>
+
+    {# Category Manager Modal #}
+    <div id="categoryManagerModal" class="modal">
+        <div class="modal-content" style="max-width: 920px; max-height: 85vh; overflow-y: auto;">
+            <div class="d-flex justify-content-between align-items-center p-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); margin: 0; border-radius: 12px 12px 0 0;">
+                <h4 class="m-0 text-white" style="padding: 0;">
+                    <i class="fas fa-folder-tree"></i> Gestionar Categorías
+                </h4>
+                <button type="button" class="btn btn-sm btn-light" onclick="closeCategoryManager()" style="border-radius: 50%; width: 36px; height: 36px; padding: 0;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="p-4">
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                            </div>
+                            <input type="text" class="form-control" id="category-search"
+                                   placeholder="Buscar categorías..." onkeyup="filterCategories()">
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-right">
+                        <button type="button" class="btn btn-success btn-block" onclick="showCreateCategoryModal()">
+                            <i class="fas fa-plus"></i> Nueva Categoría
+                        </button>
+                    </div>
+                </div>
+
+                <div id="categories-loading" class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only">Cargando...</span>
+                    </div>
+                    <p class="mt-3 text-muted">Cargando categorías desde WooCommerce...</p>
+                </div>
+
+                <div id="categories-container" style="display: none;">
+                    <div class="alert alert-info mb-4" style="border-left: 4px solid #17a2b8;">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Selecciona las categorías</strong> que deseas asignar al producto.
+                        Las subcategorías se muestran indentadas debajo de sus categorías padre.
+                    </div>
+
+                    <div id="categories-tree" style="max-height: 400px; overflow-y: auto;">
+                        <!-- Categories will be loaded here dynamically -->
+                    </div>
+
+                    <div class="mt-4 p-3 d-flex justify-content-between align-items-center" style="background: #f8f9fc; border-radius: 8px; border: 1px solid #e3e6f0;">
+                        <span id="selected-count" class="font-weight-bold">0 categorías seleccionadas</span>
+                        <div>
+                            <button type="button" class="btn btn-secondary mr-2" onclick="closeCategoryManager()">
+                                <i class="fas fa-times"></i> Cancelar
+                            </button>
+                            <button type="button" class="btn btn-primary" onclick="saveSelectedCategories()">
+                                <i class="fas fa-save"></i> Guardar Selección
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="categories-error" style="display: none;" class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span id="categories-error-message">Error al cargar categorías</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Create Category Modal #}
+    <div id="createCategoryModal" class="modal">
+        <div class="modal-content">
+            <h4><i class="fas fa-plus-circle"></i> Crear Nueva Categoría</h4>
+
+            <div class="form-group">
+                <label for="newCategoryName">
+                    Nombre de la Categoría <span class="text-danger">*</span>
+                </label>
+                <input type="text" class="form-control" id="newCategoryName"
+                       placeholder="Ej: Electrónica, Ropa, etc.">
+            </div>
+
+            <div class="form-group">
+                <label for="newCategoryParent">Categoría Padre (Opcional)</label>
+                <select class="form-control" id="newCategoryParent">
+                    <option value="0">-- Sin categoría padre (Categoría principal) --</option>
+                    <!-- Will be populated dynamically -->
+                </select>
+                <div class="field-help mt-2">
+                    <i class="fas fa-info-circle"></i>
+                    Selecciona una categoría padre para crear una subcategoría
+                </div>
+            </div>
+
+            <div class="text-right mt-4">
+                <button type="button" class="btn btn-secondary mr-2" onclick="hideCreateCategoryModal()">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button type="button" class="btn btn-primary" onclick="createNewCategory()">
+                    <i class="fas fa-plus"></i> Crear Categoría
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Debug test function - call this from browser console to test the flow
+        window.testCategorySave = function() {
+            console.log('=== TESTING CATEGORY SAVE FLOW ===');
+            console.log('Current product ID:', "{{ fsc.model.idproducto }}");
+            console.log('Current product woo_id:', "{{ fsc.model.woo_id ?? 'NOT SET' }}");
+            console.log('Selected categories:', selectedCategories);
+            console.log('WooCommerce categories loaded:', wooCategories.length);
+
+            if (!selectedCategories || selectedCategories.length === 0) {
+                console.warn('WARNING: No categories selected. Select some categories first.');
+                return;
+            }
+
+            if (!"{{ fsc.model.woo_id ?? '' }}") {
+                console.error('ERROR: Product does not have a WooCommerce ID. Create product in WooCommerce first.');
+                return;
+            }
+
+            console.log('Test data that will be sent:');
+            const testData = {
+                action: 'save-woo-categories',
+                fs_id: "{{ fsc.model.idproducto }}",
+                categories: selectedCategories.map(cat => cat.id)
+            };
+            console.log(testData);
+
+            console.log('Calling saveSelectedCategories()...');
+            saveSelectedCategories();
+        };
+
+        // Add to window for easy access
+        window.debugCategoryFlow = {
+            getSelectedCategories: () => selectedCategories,
+            getWooCategories: () => wooCategories,
+            getProductId: () => "{{ fsc.model.idproducto }}",
+            getWooId: () => "{{ fsc.model.woo_id ?? 'NOT SET' }}",
+            testSave: () => window.testCategorySave()
+        };
+
+        console.log('Debug tools available:');
+        console.log('  - window.testCategorySave() - Test the category save flow');
+        console.log('  - window.debugCategoryFlow - Access to category data and functions');
+    </script>
+
+{% endblock %}

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view>
+    <columns>
+        <group name="default" numcolumns="12" valign="top" title="Tienda WEB" description="Se encuentra el usuario y contraseña en 'Wordpress > Woocommerce (Ajustes) > Avanzado > API REST" icon="fas fa-store">
+
+            <column name="enlace" order="100" title="Enlace de la Tienda" numcolumns="12">
+                <widget type="text" fieldname="enlace" required="true" />
+            </column>
+            <column name="user" order="110" title="API: Usuario (CK)" numcolumns="6">
+                <widget type="password" fieldname="ck" required="true"/>
+            </column>
+            <column name="pass" order="120" title="API: Contraseña (CS)" numcolumns="6">
+                <widget type="password" fieldname="cs" required="true"/>
+            </column>
+        </group>
+    </columns>
+</view>
