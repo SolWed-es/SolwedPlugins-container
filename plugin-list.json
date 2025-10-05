@@ -1,9 +1,9 @@
 {
     "metadata": {
-        "generated": "05-10-2025 01:36:35",
+        "generated": "05-10-2025 17:22:21",
         "repo": "https://github.com/SolWed-es/SolwedPlugins-container",
-        "plugin_count": 4,
-        "workflow_run": "18252171905"
+        "plugin_count": 5,
+        "workflow_run": "18261950818"
     },
     "plugins": [
         {
@@ -51,6 +51,17 @@
             "require_php": [],
             "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/SolwedTheme.zip",
             "last_updated": "2025-09-01"
+        },
+        {
+            "name": "SolwedTiendaWeb",
+            "description": "Sincroniza productos variables y sus variaciones entre FacturaScripts y WooCommerce. Gestiona precios, stock, im\u00e1genes y categor\u00edas directamente desde tu ERP.",
+            "version": 1.1,
+            "min_version": 2024.1,
+            "min_php": 7.3,
+            "require": [],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/SolwedTiendaWeb.zip",
+            "last_updated": "2025-10-05"
         }
     ]
 }
