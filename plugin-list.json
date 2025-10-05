@@ -1,9 +1,9 @@
 {
     "metadata": {
-        "generated": "05-10-2025 17:22:21",
+        "generated": "05-10-2025 17:24:29",
         "repo": "https://github.com/SolWed-es/SolwedPlugins-container",
-        "plugin_count": 5,
-        "workflow_run": "18261950818"
+        "plugin_count": 4,
+        "workflow_run": "18261973667"
     },
     "plugins": [
         {
@@ -29,17 +29,6 @@
             "require_php": [],
             "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/IeWhatsapp.zip",
             "last_updated": "2025-09-08"
-        },
-        {
-            "name": "PushWoocommerceProductosvariaciones",
-            "description": "PushWoocommerceProductosvariacionesvariaciones",
-            "version": 1,
-            "min_version": 2024.1,
-            "min_php": 7.3,
-            "require": [],
-            "require_php": [],
-            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/PushWoocommerceProductosvariaciones.zip",
-            "last_updated": "2025-10-04"
         },
         {
             "name": "SolwedTheme",
