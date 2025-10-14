@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <view>
     <columns>
-        <group name="woocommerce" numcolumns="12" icon="fas fa-shop" title="WooCommerce" valign="bottom">
+        <group name="woocommerce" numcolumns="12" icon="fas fa-shop" title="Tienda WEB" valign="bottom" order="999">
             <column name="ID Woocommerce" numcolumns="2" order="1000">
                 <widget type="text" fieldname="woo_variation_id" readonly="true" icon="fas fa-hashtag"/>
             </column>
@@ -13,14 +13,14 @@
             </column>
             <column name="Estado" numcolumns="4" order="1030">
                 <widget type="select" fieldname="woo_status" icon="fas fa-shield-alt">
-                    <values title="publish">Visible</values>
-                    <values title="private">Privado</values>
+                    <values title="Visible">Visible</values>
+                    <values title="Privado">Privado</values>
                 </widget>
             </column>
 
 
 
-            <column name="Descripción" numcolumns="12" order="1040">
+            <column name="Descripción (Opcional)" numcolumns="12" order="1040">
                 <widget type="text" fieldname="woo_description" icon="fas fa-text"/>
             </column>
 
@@ -29,10 +29,10 @@
             <column name="Gestionar Stock" numcolumns="2" order="1050">
                 <widget type="checkbox" fieldname="woo_manage_stock" icon="fas fa-boxes"/>
             </column>
-            <column name="Cantidad en Stock" display="right" numcolumns="3" order="1060">
+            <!-- <column name="Cantidad en Stock" display="right" numcolumns="3" order="1060">
                 <widget type="number" fieldname="woo_stock_quantity" min="0" icon="fas fa-cubes"/>
-            </column>
-            <column name="Peso (kg)" display="right" numcolumns="3" order="1070">
+            </column> -->
+            <column name="Peso (kg) (Opcional)" display="right" numcolumns="3" order="1070">
                 <widget type="number" fieldname="woo_weight" decimal="3" min="0" icon="fas fa-weight"/>
             </column>
             <column name="Última actualización" numcolumns="4" order="1080">

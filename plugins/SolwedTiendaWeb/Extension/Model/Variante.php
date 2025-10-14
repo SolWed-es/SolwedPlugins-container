@@ -100,11 +100,11 @@ class Variante
             $this->woo_description = null;
             $this->woo_regular_price = null;
             $this->woo_sale_price = null;
-            $this->woo_manage_stock = false;
+            $this->woo_manage_stock = true;
             $this->woo_stock_quantity = null;
             $this->woo_weight = null;
             $this->woo_dimensions = null;
-            $this->woo_status = null;
+            $this->woo_status = "Visible";
             $this->woo_permalink = null;
             $this->woo_last_update = null;
         };
@@ -161,9 +161,24 @@ class Variante
         return function () {
             // Handle WooCommerce integer fields before saving
             //$this->woo_variation_id = $this->idvariante;
+            //error_log("-------------------------------------------------------> " . $this->woo_regular_price);
             if ($this->woo_stock_quantity === '') {
                 $this->woo_stock_quantity = null;
             }
+
+            // Set to null if the value is exactly 0 (assuming user won't explicitly set 0)
+            // if ($this->woo_regular_price === 0 || $this->woo_regular_price === 0.0 || $this->woo_regular_price === null) {
+            //     $this->woo_regular_price = null;
+            // }
+            // if ($this->woo_sale_price === 0 || $this->woo_sale_price === 0.0) {
+            //     $this->woo_sale_price = null;
+            // }
+            // if ($this->woo_weight === 0 || $this->woo_weight === 0.0) {
+            //     $this->woo_weight = null;
+            // }
+            // if ($this->woo_stock_quantity === 0) {
+            //     $this->woo_stock_quantity = null;
+            // }
 
             return true; // Continue with original save()
         };
@@ -201,6 +216,9 @@ class Variante
             // Convert empty strings to null for integer fields
             if ($this->woo_variation_id === '') {
                 $this->woo_variation_id = null;
+            }
+            if ($this->woo_regular_price === '') {
+                $this->woo_regular_price = null;
             }
 
             // Set woo_variation_id if empty (this runs before save)

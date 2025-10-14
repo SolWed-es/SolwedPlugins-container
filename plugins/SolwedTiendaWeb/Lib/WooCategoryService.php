@@ -308,4 +308,169 @@ class WooCategoryService
             'errors' => $errors
         ];
     }
+
+    /**
+     * Sync all FacturaScripts Familias to WooCommerce categories
+     * FacturaScripts is the source of truth
+     *
+     * @return array ['success' => bool, 'message' => string, 'synced' => int, 'errors' => array]
+     */
+    public function syncFamiliasToWooCommerce(): array
+    {
+        error_log("WooCategoryService::syncFamiliasToWooCommerce - Starting category sync from FacturaScripts to WooCommerce");
+
+        try {
+            // Load all Familias from FacturaScripts
+            $familiaModel = new \FacturaScripts\Dinamic\Model\Familia();
+            $allFamilias = $familiaModel->all();
+
+            if (empty($allFamilias)) {
+                error_log("WooCategoryService::syncFamiliasToWooCommerce - No familias found in FacturaScripts");
+                return [
+                    'success' => true,
+                    'message' => 'No hay categorías para sincronizar',
+                    'synced' => 0,
+                    'errors' => []
+                ];
+            }
+
+            error_log("WooCategoryService::syncFamiliasToWooCommerce - Found " . count($allFamilias) . " familias to sync");
+
+            // Sort familias by hierarchy (parents first)
+            $sortedFamilias = $this->sortFamiliasByHierarchy($allFamilias);
+
+            $syncedCount = 0;
+            $errors = [];
+
+            foreach ($sortedFamilias as $familia) {
+                try {
+                    error_log("WooCategoryService::syncFamiliasToWooCommerce - Processing familia: {$familia->descripcion} (codfamilia: {$familia->codfamilia})");
+
+                    // Determine parent WooCommerce category ID
+                    $parentWcId = 0;
+                    if (!empty($familia->madre)) {
+                        error_log("WooCategoryService::syncFamiliasToWooCommerce - Familia has parent (madre): {$familia->madre}");
+
+                        // Load parent familia to get its wc_category_id
+                        $parentFamilia = new \FacturaScripts\Dinamic\Model\Familia();
+                        if ($parentFamilia->loadFromCode($familia->madre)) {
+                            $parentWcId = $parentFamilia->wc_category_id ?? 0;
+                            error_log("WooCategoryService::syncFamiliasToWooCommerce - Parent WC category ID: {$parentWcId}");
+                        }
+                    }
+
+                    // Check if categoria already exists in WooCommerce
+                    if (!empty($familia->wc_category_id)) {
+                        error_log("WooCategoryService::syncFamiliasToWooCommerce - Familia already has WC category ID: {$familia->wc_category_id}, updating...");
+
+                        // Update existing category
+                        $updateData = [
+                            'name' => $familia->descripcion,
+                            'parent' => $parentWcId
+                        ];
+
+                        $wcCategory = $this->updateCategory($familia->wc_category_id, $updateData);
+
+                        if ($wcCategory) {
+                            error_log("WooCategoryService::syncFamiliasToWooCommerce - Successfully updated WC category: {$familia->descripcion}");
+                            $syncedCount++;
+                        } else {
+                            $errorMsg = "Error al actualizar categoría '{$familia->descripcion}' en WooCommerce";
+                            error_log("WooCategoryService::syncFamiliasToWooCommerce - " . $errorMsg);
+                            $errors[] = $errorMsg;
+                        }
+                    } else {
+                        error_log("WooCategoryService::syncFamiliasToWooCommerce - Creating new WC category for: {$familia->descripcion}");
+
+                        // Create new category
+                        $wcCategory = $this->createCategory($familia->descripcion, null, null, $parentWcId);
+
+                        if ($wcCategory && isset($wcCategory->id)) {
+                            error_log("WooCategoryService::syncFamiliasToWooCommerce - Successfully created WC category with ID: {$wcCategory->id}");
+
+                            // Save WooCommerce category ID to Familia
+                            $familia->wc_category_id = $wcCategory->id;
+                            if ($familia->save()) {
+                                error_log("WooCategoryService::syncFamiliasToWooCommerce - Successfully saved wc_category_id to Familia");
+                                $syncedCount++;
+                            } else {
+                                $errorMsg = "Error al guardar wc_category_id en Familia '{$familia->descripcion}'";
+                                error_log("WooCategoryService::syncFamiliasToWooCommerce - " . $errorMsg);
+                                $errors[] = $errorMsg;
+                            }
+                        } else {
+                            $errorMsg = "Error al crear categoría '{$familia->descripcion}' en WooCommerce";
+                            error_log("WooCategoryService::syncFamiliasToWooCommerce - " . $errorMsg);
+                            $errors[] = $errorMsg;
+                        }
+                    }
+                } catch (\Exception $e) {
+                    $errorMsg = "Error sincronizando familia '{$familia->descripcion}': " . $e->getMessage();
+                    error_log("WooCategoryService::syncFamiliasToWooCommerce - " . $errorMsg);
+                    $errors[] = $errorMsg;
+                }
+            }
+
+            $message = "Sincronizadas {$syncedCount} de " . count($sortedFamilias) . " categorías";
+            if (!empty($errors)) {
+                $message .= " con " . count($errors) . " errores";
+            }
+
+            error_log("WooCategoryService::syncFamiliasToWooCommerce - Sync complete: {$message}");
+
+            return [
+                'success' => $syncedCount > 0,
+                'message' => $message,
+                'synced' => $syncedCount,
+                'errors' => $errors
+            ];
+        } catch (\Exception $e) {
+            error_log("WooCategoryService::syncFamiliasToWooCommerce - Exception: " . $e->getMessage());
+            error_log("WooCategoryService::syncFamiliasToWooCommerce - Exception trace: " . $e->getTraceAsString());
+
+            return [
+                'success' => false,
+                'message' => 'Error al sincronizar categorías: ' . $e->getMessage(),
+                'synced' => 0,
+                'errors' => [$e->getMessage()]
+            ];
+        }
+    }
+
+    /**
+     * Sort familias by hierarchy to ensure parents are processed before children
+     *
+     * @param array $familias
+     * @return array
+     */
+    private function sortFamiliasByHierarchy(array $familias): array
+    {
+        error_log("WooCategoryService::sortFamiliasByHierarchy - Sorting " . count($familias) . " familias by hierarchy");
+
+        $sorted = [];
+        $processed = [];
+        $maxIterations = count($familias) * 2; // Prevent infinite loop
+        $iteration = 0;
+
+        while (count($sorted) < count($familias) && $iteration < $maxIterations) {
+            $iteration++;
+
+            foreach ($familias as $familia) {
+                // Skip if already processed
+                if (isset($processed[$familia->codfamilia])) {
+                    continue;
+                }
+
+                // If no parent or parent already processed, add to sorted list
+                if (empty($familia->madre) || isset($processed[$familia->madre])) {
+                    $sorted[] = $familia;
+                    $processed[$familia->codfamilia] = true;
+                }
+            }
+        }
+
+        error_log("WooCategoryService::sortFamiliasByHierarchy - Sorted " . count($sorted) . " familias in {$iteration} iterations");
+
+        return $sorted;
+    }
 }

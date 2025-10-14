@@ -3,6 +3,7 @@
 namespace FacturaScripts\Plugins\SolwedTiendaWeb\Extension\Controller;
 
 use Closure;
+use FacturaScripts\Dinamic\Model\Familia;
 use FacturaScripts\Dinamic\Model\Producto;
 use FacturaScripts\Dinamic\Model\Variante;
 use FacturaScripts\Core\Base\DataBase\DataBaseWhere;
@@ -87,6 +88,10 @@ class EditProducto
                 case 'sync-product-images':
                     $this->handleSyncProductImages();
                     return false;
+
+                case 'sync-familias-to-wc':
+                    $this->handleSyncFamiliasToWooCommerce();
+                    return false;
             }
         };
     }
@@ -111,6 +116,20 @@ class EditProducto
                     $where = [new DataBaseWhere('idproducto', $fsProduct->idproducto)];
                     $variations = $varianteModel->all($where);
                     $view->variations = $variations;
+
+                    // Load familia if product has one assigned
+                    if (!empty($fsProduct->codfamilia)) {
+                        $familiaModel = new Familia();
+                        if ($familiaModel->loadFromCode($fsProduct->codfamilia)) {
+                            $view->productFamilia = $familiaModel;
+                            error_log("EditProducto::loadData - Loaded familia: {$familiaModel->descripcion} (wc_category_id: " . ($familiaModel->wc_category_id ?? 'null') . ")");
+                        }
+                    }
+
+                    // Decode WooCommerce categories for easier access in Twig
+                    if (!empty($fsProduct->woo_categories)) {
+                        $view->wcCategories = json_decode($fsProduct->woo_categories, true);
+                    }
                 }
             }
         };
@@ -944,6 +963,52 @@ class EditProducto
             }
 
             error_log("=== END handleSaveWooCommerceCategories ===");
+        };
+    }
+
+    /**
+     * Handle syncing all Familias from FacturaScripts to WooCommerce categories
+     */
+    protected function handleSyncFamiliasToWooCommerce()
+    {
+        return function () {
+            error_log("EditProducto::handleSyncFamiliasToWooCommerce - Starting Familias sync to WooCommerce");
+
+            $this->setTemplate(false);
+            header('Content-Type: application/json');
+
+            try {
+                $categoryService = new WooCategoryService();
+                $result = $categoryService->syncFamiliasToWooCommerce();
+
+                if ($result['success']) {
+                    error_log("EditProducto::handleSyncFamiliasToWooCommerce - Sync successful: " . $result['message']);
+
+                    echo json_encode([
+                        'success' => true,
+                        'message' => $result['message'],
+                        'synced' => $result['synced'],
+                        'errors' => $result['errors']
+                    ]);
+                } else {
+                    error_log("EditProducto::handleSyncFamiliasToWooCommerce - Sync failed: " . $result['message']);
+
+                    http_response_code(400);
+                    echo json_encode([
+                        'success' => false,
+                        'message' => $result['message'],
+                        'errors' => $result['errors']
+                    ]);
+                }
+            } catch (\Exception $e) {
+                error_log("EditProducto::handleSyncFamiliasToWooCommerce - Exception: " . $e->getMessage());
+
+                http_response_code(500);
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Error interno del servidor: ' . $e->getMessage()
+                ]);
+            }
         };
     }
 }

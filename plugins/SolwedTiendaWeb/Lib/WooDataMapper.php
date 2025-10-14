@@ -67,7 +67,7 @@ class WooDataMapper
                 'sku' => $formData['sku'] ?? '',
                 'regular_price' => $formData['regular_price'] ?? '',
                 'sale_price' => $formData['sale_price'] ?? '',
-                'manage_stock' => $formData['manage_stock'] ?? false,
+                'manage_stock' => $formData['manage_stock'] ?? true,
                 'stock_quantity' => (int) ($formData['stock_quantity'] ?? 0),
                 'status' => $formData['status'] ?? 'draft',
                 'catalog_visibility' => $formData['catalog_visibility'] ?? 'visible',
@@ -80,7 +80,7 @@ class WooDataMapper
                 'reviews_allowed' => $formData['reviews_allowed'] ?? false,
                 'tags' => $formData['tags'] ?? [],
 
-                'stock_status' => 'instock', //TODO: Review this part. User might not manage stock correctly. We force instock for now.
+                //'stock_status' => 'instock', //TODO: Review this part. User might not manage stock correctly. We force instock for now.
             ];
 
             // Handle dimensions
@@ -124,7 +124,7 @@ class WooDataMapper
             $fsProduct->woo_catalog_visibility = $wooProduct->catalog_visibility ?? '';
 
             // Inventory & Shipping
-            $fsProduct->woo_manage_stock = $wooProduct->manage_stock ?? false;
+            $fsProduct->woo_manage_stock = $wooProduct->manage_stock ?? true;
             $fsProduct->woo_stock_quantity = $wooProduct->stock_quantity ?? 0;
             $fsProduct->woo_stock_status = $wooProduct->stock_status ?? '';
             $fsProduct->woo_weight = $wooProduct->weight ?? '';
@@ -141,9 +141,11 @@ class WooDataMapper
             $fsProduct->woo_tax_status = $wooProduct->tax_status ?? '';
 
             // Complex data as JSON
-            // if (!empty($wooProduct->categories)) {
-            //     $fsProduct->woo_categories = json_encode($wooProduct->categories);
-            // }
+            // Store WooCommerce categories to track what's currently in WC
+            // This helps us detect if the FS Familia has changed and needs to be updated in WC
+            if (!empty($wooProduct->categories)) {
+                $fsProduct->woo_categories = json_encode($wooProduct->categories);
+            }
 
             if (!empty($wooProduct->images)) {
                 $fsProduct->woo_images = json_encode($wooProduct->images);
@@ -190,7 +192,7 @@ class WooDataMapper
             $fsProduct->woo_catalog_visibility = $formData['catalog_visibility'] ?? '';
 
             // Inventory & Shipping
-            $fsProduct->woo_manage_stock = $formData['manage_stock'] ?? false;
+            $fsProduct->woo_manage_stock = $formData['manage_stock'] ?? true;
             $fsProduct->woo_stock_quantity = (int) ($formData['stock_quantity'] ?? 0);
             $fsProduct->woo_weight = $formData['weight'] ?? '';
 
@@ -256,6 +258,41 @@ class WooDataMapper
 
 
     /**
+     * Get WooCommerce category IDs from product's Familia
+     *
+     * @param Producto $fsProduct
+     * @return array Array of category IDs for WooCommerce
+     */
+    public static function getProductCategoriesFromFamilia(Producto $fsProduct): array
+    {
+        error_log("WooDataMapper::getProductCategoriesFromFamilia - Getting categories for product ID: {$fsProduct->idproducto}");
+
+        $categories = [];
+
+        try {
+            if (!empty($fsProduct->codfamilia)) {
+                $familia = new \FacturaScripts\Dinamic\Model\Familia();
+                if ($familia->loadFromCode($fsProduct->codfamilia)) {
+                    if (!empty($familia->wc_category_id)) {
+                        $categories[] = ['id' => (int)$familia->wc_category_id];
+                        error_log("WooDataMapper::getProductCategoriesFromFamilia - Found WC category ID: {$familia->wc_category_id} for familia: {$familia->descripcion}");
+                    } else {
+                        error_log("WooDataMapper::getProductCategoriesFromFamilia - Familia '{$familia->descripcion}' has no wc_category_id");
+                    }
+                } else {
+                    error_log("WooDataMapper::getProductCategoriesFromFamilia - Could not load familia with code: {$fsProduct->codfamilia}");
+                }
+            } else {
+                error_log("WooDataMapper::getProductCategoriesFromFamilia - Product has no codfamilia");
+            }
+        } catch (\Exception $e) {
+            error_log("WooDataMapper::getProductCategoriesFromFamilia - Error: " . $e->getMessage());
+        }
+
+        return $categories;
+    }
+
+    /**
      * Convert FacturaScripts product to WooCommerce simple product format
      */
     public static function fsToWooCommerceSimple(Producto $fsProduct): array
@@ -264,21 +301,21 @@ class WooDataMapper
 
         try {
             $data = [
-                'name' => $fsProduct->referencia ?? 'Producto sin nombre',
+                'name' => $fsProduct->descripcion ?? $fsProduct->referencia ?? 'Producto sin nombre',
                 'type' => 'simple',
-                'description' =>  '',
+                'description' =>  $fsProduct->detalles ?? '',
                 'short_description' => '',
-                'sku' => '',
-                'status' => 'draft', // Start as draft for safety
+                'sku' => $fsProduct->codbarras ?? '',
+                'status' => 'publish',
                 'catalog_visibility' => 'visible',
                 'tax_status' => 'taxable',
                 'virtual' => false,
                 'downloadable' => false,
                 'featured' => false,
                 'reviews_allowed' => false,
-                'manage_stock' => false,
+                'manage_stock' => true,
                 'stock_quantity' => (int)($fsProduct->stockfis ?? 0),
-                'stock_status' => 'instock'
+                //'stock_status' => 'instock'
             ];
 
             // Add pricing if available
@@ -289,6 +326,13 @@ class WooDataMapper
             // Add weight and dimensions if available
             if (!empty($fsProduct->peso)) {
                 $data['weight'] = (string)$fsProduct->peso;
+            }
+
+            // Add categories from Familia
+            $categories = self::getProductCategoriesFromFamilia($fsProduct);
+            if (!empty($categories)) {
+                $data['categories'] = $categories;
+                error_log("WooDataMapper::fsToWooCommerceSimple - Added " . count($categories) . " categories");
             }
 
             error_log("WooDataMapper::fsToWooCommerceSimple - Successfully mapped simple product data");
@@ -308,12 +352,12 @@ class WooDataMapper
 
         try {
             $data = [
-                'name' => $fsProduct->referencia ?? 'Producto sin nombre',
+                'name' => $fsProduct->descripcion ?? $fsProduct->referencia ?? 'Producto sin nombre',
                 'type' => 'variable',
-                //'description' => $fsProduct->observaciones ?? '',
+                'description' => $fsProduct->detalles ?? '',
                 //'short_description' => $fsProduct->descripcion ?? '',
                 //'sku' => $fsProduct->codbarras ?? '',
-                'status' => 'draft',
+                'status' => 'publish',
                 'catalog_visibility' => 'visible',
                 'tax_status' => 'taxable',
                 'virtual' => false,
@@ -326,6 +370,13 @@ class WooDataMapper
             $attributes = self::extractAttributesFromVariants($variants);
             if (!empty($attributes)) {
                 $data['attributes'] = $attributes;
+            }
+
+            // Add categories from Familia
+            $categories = self::getProductCategoriesFromFamilia($fsProduct);
+            if (!empty($categories)) {
+                $data['categories'] = $categories;
+                error_log("WooDataMapper::fsToWooCommerceVariable - Added " . count($categories) . " categories");
             }
 
             //error_log("WooDataMapper::fsToWooCommerceVariable - Successfully mapped variable product data");
@@ -424,10 +475,11 @@ class WooDataMapper
             }
 
             $data = [
-                'sku' => $variant->codbarras ?? '',
-                'description' => $variant->woo_description ?? '',
+                'sku' => $variant->codbarras ?? null,
+                'description' => $variant->woo_description ?? null,
+                //'sale_price' => (string) ($variant->woo_sale_price ?? null),
                 //'dimensions' => $variant->woo_dimensions ?? '',
-                'manage_stock' => $variant->woo_manage_stock ?? false,
+                'manage_stock' => $variant->woo_manage_stock ?? true,
                 'stock_quantity' => (int) ($variant->stockfis ?? null),
                 'weight' => (string) ($variant->woo_weight ?? null),
                 'status' => $status
@@ -440,8 +492,10 @@ class WooDataMapper
                 $data['regular_price'] = (string) $variant->precio;
             }
 
-            if (!empty($variant->woo_sale_price)) {
+            if ($variant->woo_sale_price != 0) {
                 $data['sale_price'] = (string) $variant->woo_sale_price;
+            } else {
+                $data['sale_price'] = null;
             }
 
 
@@ -477,7 +531,7 @@ class WooDataMapper
             $variant->woo_permalink = $wooVariation->permalink ?? null;
             $variant->woo_description = $wooVariation->description ?? null;
             $variant->woo_weight = (float) $wooVariation->weight ?? null;
-            $variant->woo_manage_stock = $wooVariation->manage_stock ?? false;
+            $variant->woo_manage_stock = $wooVariation->manage_stock ?? true;
 
             // Handle dimensions
             if (!empty($wooVariation->dimensions)) {

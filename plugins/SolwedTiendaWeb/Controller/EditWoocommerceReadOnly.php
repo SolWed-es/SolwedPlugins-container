@@ -24,6 +24,7 @@ class EditWoocommerceReadOnly extends EditController
         $pageData["title"] = "Tienda WEB";
         $pageData["menu"] = "warehouse";
         $pageData["icon"] = "fas fa-store";
+        $pageData["showonmenu"] = false;
         return $pageData;
     }
 }

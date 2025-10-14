@@ -5,7 +5,6 @@
 {% include 'Macro/Toasts.html.twig' %}
 
 <script>
-    let wooCategories = [];
     const productUrl = "{{ fsc.getEditUrl() ~ '?code=' ~ fsc.model.idproducto }}";
 
     // Helper function for API calls
@@ -67,7 +66,7 @@
             if (response.ok && result.success) {
                 console.log('SUCCESS: API call succeeded');
                 if (successMessage) alert(successMessage);
-                if (redirect) setTimeout(() => window.location.href = productUrl, 1500);
+                if (redirect) setTimeout(() => window.location.href = productUrl, 500);
                 console.log('=== END callAPI (SUCCESS) ===');
                 return result;
             } else {
@@ -152,7 +151,7 @@
             }
         }
 
-        callAPI('update-wc-product', data, 'Producto actualizado exitosamente en WooCommerce');
+        callAPI('update-wc-product', data, 'Producto actualizado exitosamente en WooCommerce', true);
         return false;
     }
 
@@ -169,6 +168,29 @@
         }
     }
 
+    function syncProductImages() {
+        if (!"{{ fsc.model.idproducto }}") {
+            alert('No se puede sincronizar: producto no guardado en FacturaScripts');
+            return;
+        }
+
+        if (!confirm('¿Confirmas la sincronización de imágenes?')) {
+            return;
+        }
+
+        callAPI('sync-product-images', {}, null, true).then(result => {
+            if (result && result.success) {
+                const message = result.data && result.data.images_count !== undefined
+                    ? `Imágenes sincronizadas exitosamente: ${result.data.images_count} imagen(es) actualizadas en WooCommerce`
+                    : 'Imágenes sincronizadas exitosamente con WooCommerce';
+                alert(message);
+                setTimeout(() => window.location.reload(), 1000);
+            }
+        });
+    }
+
+    // OLD CATEGORY MANAGEMENT CODE - COMMENTED OUT - Now using FacturaScripts Familias
+{#     
     let selectedCategories = [];
 
     // Initialize selected categories from current product data
@@ -492,7 +514,9 @@
                 alert(`Categoría "${categoryName}" eliminada exitosamente`);
             }
         });
-    }
+    } #}
+
+    // END OLD CATEGORY MANAGEMENT CODE
 
     function toggleStockManagement() {
         const manageStockCheckbox = document.getElementById('woo_manage_stock');
@@ -512,6 +536,25 @@
             }
         });
     }
+
+    {# function syncFamiliasToWooCommerce() {
+        if (!confirm('¿Desea sincronizar todas las Familias de FacturaScripts como categorías en WooCommerce?\n\nEsto creará o actualizará las categorías en WooCommerce según las familias existentes.')) {
+            return;
+        }
+
+        callAPI('sync-familias-to-wc', {}, null, false).then(result => {
+            if (result && result.success) {
+                const message = `✓ ${result.message}\n\nCategorías sincronizadas: ${result.synced}`;
+                if (result.errors && result.errors.length > 0) {
+                    alert(message + '\n\nErrores:\n' + result.errors.join('\n'));
+                } else {
+                    alert(message);
+                }
+                // Reload page to show updated sync status
+                setTimeout(() => window.location.reload(), 1500);
+            }
+        });
+    } #}
 
     function syncVariation(variantId) {
         callAPI('sync-variation', { variant_id: variantId }, 'Variación sincronizada exitosamente', true);
@@ -536,27 +579,28 @@
             callAPI('delete-variation', data, 'Variación eliminada exitosamente', true);
         }
     }
+    
+    
 
-    function syncProductImages() {
-        if (!"{{ fsc.model.idproducto }}") {
-            alert('No se puede sincronizar: producto no guardado en FacturaScripts');
+    function syncFamiliasToWooCommerce() {
+        if (!confirm('¿Desea sincronizar todas las Familias de FacturaScripts como categorías en WooCommerce?\n\nEsto creará o actualizará las categorías en WooCommerce según las familias existentes.')) {
             return;
         }
 
-        if (!confirm('¿Confirmas la sincronización de imágenes?')) {
-            return;
-        }
-
-        callAPI('sync-product-images', {}, null, true).then(result => {
+        callAPI('sync-familias-to-wc', {}, null, false).then(result => {
             if (result && result.success) {
-                const message = result.data && result.data.images_count !== undefined
-                    ? `Imágenes sincronizadas exitosamente: ${result.data.images_count} imagen(es) actualizadas en WooCommerce`
-                    : 'Imágenes sincronizadas exitosamente con WooCommerce';
-                alert(message);
-                setTimeout(() => window.location.reload(), 1000);
+                const message = `✓ ${result.message}\n\nCategorías sincronizadas: ${result.synced}`;
+                if (result.errors && result.errors.length > 0) {
+                    alert(message + '\n\nErrores:\n' + result.errors.join('\n'));
+                } else {
+                    alert(message);
+                }
+                // Reload page to show updated sync status
+                setTimeout(() => window.location.reload(), 1500);
             }
         });
     }
+
     // Initialize on DOM ready
     document.addEventListener('DOMContentLoaded', function() {
         if (document.getElementById('wooCommerceForm')) {
@@ -573,9 +617,14 @@
 
 <style>
     /* ========================================
+       SCOPED STYLES FOR WOO TIENDAWEB PAGE
+       All selectors are scoped to .woo-tiendaweb-page
+       ======================================== */
+
+    /* ========================================
        MODAL STYLES - Modern & Accessible
        ======================================== */
-    .modal {
+    .woo-tiendaweb-page .modalx {
         display: none;
         position: fixed;
         z-index: 1050;
@@ -593,7 +642,7 @@
         to { opacity: 1; }
     }
 
-    .modal-content {
+    .woo-tiendaweb-page .modalx-content {
         background-color: #ffffff;
         margin: 3% auto;
         padding: 0;
@@ -617,11 +666,11 @@
         }
     }
 
-    .modal-content > * {
+    .woo-tiendaweb-page .modalx-content > * {
         padding: 1.5rem;
     }
 
-    .modal-content h4 {
+    .woo-tiendaweb-page .modalx-content h4 {
         margin: 0;
         padding: 1.5rem;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -631,12 +680,12 @@
         border-bottom: none;
     }
 
-    .modal-content h4 i {
+    .woo-tiendaweb-page .modalx-content h4 i {
         margin-right: 0.5rem;
     }
 
     /* Large modal variant */
-    #categoryManagerModal .modal-content {
+    .woo-tiendaweb-page #categoryManagerModal .modalx-content {
         max-width: 920px;
         max-height: 85vh;
         overflow-y: auto;
@@ -645,7 +694,7 @@
     /* ========================================
        STATUS INDICATORS - Visual Feedback
        ======================================== */
-    .status-indicator {
+    .woo-tiendaweb-page .status-indicator {
         display: inline-block;
         width: 10px;
         height: 10px;
@@ -660,17 +709,17 @@
         50% { opacity: 0.6; }
     }
 
-    .status-published {
+    .woo-tiendaweb-page .status-published {
         background-color: #28a745;
         box-shadow: 0 0 8px rgba(40, 167, 69, 0.4);
     }
 
-    .status-draft {
+    .woo-tiendaweb-page .status-draft {
         background-color: #ffc107;
         box-shadow: 0 0 8px rgba(255, 193, 7, 0.4);
     }
 
-    .status-private {
+    .woo-tiendaweb-page .status-private {
         background-color: #dc3545;
         box-shadow: 0 0 8px rgba(220, 53, 69, 0.4);
     }
@@ -709,7 +758,7 @@
         color: #667eea;
     }
 
-    .field-help {
+    .woo-tiendaweb-page .field-help {
         font-size: 0.8125rem;
         color: #858796;
         margin-top: 0.375rem;
@@ -719,12 +768,12 @@
     /* ========================================
        FORM CONTROLS - Enhanced Inputs
        ======================================== */
-    .form-control:focus {
+    .woo-tiendaweb-page .form-control:focus {
         border-color: #667eea;
         box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
     }
 
-    .form-group label {
+    .woo-tiendaweb-page .form-group label {
         font-weight: 500;
         color: #5a5c69;
         margin-bottom: 0.5rem;
@@ -847,25 +896,25 @@
     /* ========================================
        CARDS - Enhanced Containers
        ======================================== */
-    .card {
+    .woo-tiendaweb-page .card {
         border: none;
         border-radius: 10px;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         transition: all 0.3s ease;
     }
 
-    .card:hover {
+    .woo-tiendaweb-page .card:hover {
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
     }
 
-    .card-header {
+    .woo-tiendaweb-page .card-header {
         background: linear-gradient(135deg, #f8f9fc 0%, #eaecf4 100%);
         border-bottom: 2px solid #e3e6f0;
         border-radius: 10px 10px 0 0 !important;
     }
 
-    .card-header h5,
-    .card-header h6 {
+    .woo-tiendaweb-page .card-header h5,
+    .woo-tiendaweb-page .card-header h6 {
         color: #4e73df;
         font-weight: 600;
     }
@@ -873,11 +922,11 @@
     /* ========================================
        CATEGORY TREE - Hierarchical Display
        ======================================== */
-    .category-item {
+    .woo-tiendaweb-page .category-item {
         transition: all 0.2s ease;
     }
 
-    .category-item > div {
+    .woo-tiendaweb-page .category-item > div {
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -889,14 +938,14 @@
         transition: all 0.2s ease;
     }
 
-    .category-item > div:hover {
+    .woo-tiendaweb-page .category-item > div:hover {
         background: #f8f9fc;
         border-color: #667eea;
         box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
         transform: translateX(4px);
     }
 
-    .category-checkbox {
+    .woo-tiendaweb-page .category-checkbox {
         cursor: pointer;
         flex: 1;
         margin: 0;
@@ -905,7 +954,7 @@
         user-select: none;
     }
 
-    .category-checkbox input[type="checkbox"] {
+    .woo-tiendaweb-page .category-checkbox input[type="checkbox"] {
         width: 18px;
         height: 18px;
         cursor: pointer;
@@ -913,23 +962,23 @@
         accent-color: #667eea;
     }
 
-    .category-checkbox span {
+    .woo-tiendaweb-page .category-checkbox span {
         display: flex;
         align-items: center;
         font-size: 0.95rem;
     }
 
-    .category-item .btn-danger {
+    .woo-tiendaweb-page .category-item .btn-danger {
         opacity: 0;
         transition: opacity 0.2s ease;
         padding: 0.25rem 0.5rem;
     }
 
-    .category-item:hover .btn-danger {
+    .woo-tiendaweb-page .category-item:hover .btn-danger {
         opacity: 1;
     }
 
-    #categories-tree {
+    .woo-tiendaweb-page #categories-tree {
         background: #f8f9fc;
         border: 2px solid #e3e6f0 !important;
         border-radius: 8px;
@@ -939,35 +988,35 @@
     /* ========================================
        BADGES - Status & Labels
        ======================================== */
-    .badge {
+    .woo-tiendaweb-page .badge {
         padding: 0.4em 0.75em;
         font-weight: 500;
         border-radius: 6px;
         font-size: 0.875rem;
     }
 
-    .badge-info {
+    .woo-tiendaweb-page .badge-info {
         background: linear-gradient(135deg, #36b9cc 0%, #258391 100%);
         color: white;
     }
 
-    .badge-success {
+    .woo-tiendaweb-page .badge-success {
         background: linear-gradient(135deg, #1cc88a 0%, #13855c 100%);
         color: white;
     }
 
-    .badge-warning {
+    .woo-tiendaweb-page .badge-warning {
         background: linear-gradient(135deg, #f6c23e 0%, #dda20a 100%);
         color: #1f2937;
     }
 
-    .badge-secondary {
+    .woo-tiendaweb-page .badge-secondary {
         background: linear-gradient(135deg, #858796 0%, #60616f 100%);
         color: white;
     }
 
     /* Variation of badges for clearer status */
-    .badge-variant {
+    .woo-tiendaweb-page .badge-variant {
         display: inline-flex;
         align-items: center;
         gap: 0.45rem;
@@ -975,7 +1024,7 @@
         text-transform: none;
     }
 
-    .badge-variant .fas {
+    .woo-tiendaweb-page .badge-variant .fas {
         font-size: 0.9em;
         opacity: 0.9;
     }
@@ -983,12 +1032,12 @@
     /* ========================================
        TABLES - Data Display
        ======================================== */
-    .table {
+    .woo-tiendaweb-page .table {
         border-radius: 8px;
         overflow: hidden;
     }
 
-    .table thead th {
+    .woo-tiendaweb-page .table thead th {
         background: linear-gradient(135deg, #E9E4F0 0%, #D3CCE3 100%);
         color: #000 !important;
         border: none;
@@ -999,34 +1048,34 @@
         padding: 1rem;
     }
 
-    .table tbody tr {
+    .woo-tiendaweb-page .table tbody tr {
         transition: all 0.2s ease;
     }
 
-    .table tbody tr:hover {
+    .woo-tiendaweb-page .table tbody tr:hover {
         background-color: #f8f9fc;
         transform: scale(1.01);
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
 
-    .table td {
+    .woo-tiendaweb-page .table td {
         vertical-align: middle;
         padding: 0.875rem;
     }
 
-    .table-bordered {
+    .woo-tiendaweb-page .table-bordered {
         border: 1px solid #e3e6f0;
     }
 
     /* Variations Table Styling */
-    .table.table-hover.mb-0.variations-table,
-    .variations-table {
+    .woo-tiendaweb-page .table.table-hover.mb-0.variations-table,
+    .woo-tiendaweb-page .variations-table {
         width: 100%;
         border-collapse: separate;
         border-spacing: 0 8px;
     }
 
-    .variations-table thead th {
+    .woo-tiendaweb-page .variations-table thead th {
         background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
         color: #fff;
         font-weight: 700;
@@ -1038,40 +1087,40 @@
         border-top-right-radius: 8px;
     }
 
-    .variations-table thead th i {
+    .woo-tiendaweb-page .variations-table thead th i {
         margin-right: 0.5rem;
         opacity: 0.95;
         font-size: 0.95rem;
     }
 
-    .variations-table tbody tr {
+    .woo-tiendaweb-page .variations-table tbody tr {
         background: #fff;
         border-radius: 6px;
         box-shadow: 0 1px 4px rgba(20,23,54,0.03);
         transition: transform 0.12s ease, box-shadow 0.12s ease;
     }
 
-    .variations-table tbody tr:hover {
+    .woo-tiendaweb-page .variations-table tbody tr:hover {
         transform: translateY(-2px);
         box-shadow: 0 6px 18px rgba(39,46,135,0.06);
     }
 
-    .variations-table tbody td {
+    .woo-tiendaweb-page .variations-table tbody td {
         vertical-align: middle;
         padding: 0.7rem 0.75rem;
     }
 
-    .variations-table .text-success {
+    .woo-tiendaweb-page .variations-table .text-success {
         color: #10b981 !important;
         font-weight: 700;
     }
 
-    .variations-table .text-muted {
+    .woo-tiendaweb-page .variations-table .text-muted {
         color: #6b7280 !important;
     }
 
     /* Status badges inside table */
-    .variations-table .badge {
+    .woo-tiendaweb-page .variations-table .badge {
         padding: 0.35rem 0.6rem;
         font-size: 0.85rem;
         border-radius: 999px;
@@ -1081,14 +1130,14 @@
     }
 
     /* Actions: grouped, compact, clearer icons */
-    .variations-table .btn-group {
+    .woo-tiendaweb-page .variations-table .btn-group {
         box-shadow: none;
         border-radius: 6px;
         overflow: hidden;
         display: inline-flex;
     }
 
-    .variations-table .btn-group .btn {
+    .woo-tiendaweb-page .variations-table .btn-group .btn {
         border: none;
         padding: 0.45rem 0.6rem;
         min-width: 36px;
@@ -1098,60 +1147,60 @@
         gap: 0.35rem;
     }
 
-    .variations-table .btn-group .btn .fas {
+    .woo-tiendaweb-page .variations-table .btn-group .btn .fas {
         font-size: 0.92rem;
     }
 
-    .variations-table .btn-group .btn-outline-primary {
+    .woo-tiendaweb-page .variations-table .btn-group .btn-outline-primary {
         color: #2563eb;
         background: rgba(37,99,235,0.06);
     }
 
-    .variations-table .btn-group .btn-outline-success {
+    .woo-tiendaweb-page .variations-table .btn-group .btn-outline-success {
         color: #059669;
         background: rgba(5,150,105,0.06);
     }
 
-    .variations-table .btn-group .btn-outline-danger {
+    .woo-tiendaweb-page .variations-table .btn-group .btn-outline-danger {
         color: #dc2626;
         background: rgba(220,38,38,0.06);
     }
 
     /* Make small text labels appear responsively */
-    .variations-table .btn .d-none.d-lg-inline {
+    .woo-tiendaweb-page .variations-table .btn .d-none.d-lg-inline {
         margin-left: 0.35rem;
     }
 
     /* Utility: action title tooltip spacing */
-    .variations-table .btn[title] {
+    .woo-tiendaweb-page .variations-table .btn[title] {
         position: relative;
     }
 
     /* ========================================
        ALERTS - Notifications & Messages
        ======================================== */
-    .alert {
+    .woo-tiendaweb-page .alert {
         border-radius: 8px;
         border: none;
         padding: 1rem 1.25rem;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     }
 
-    .alert-info {
+    .woo-tiendaweb-page .alert-info {
         background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
         color: #0c5460;
         border-left: 4px solid #17a2b8;
     }
 
-    .alert-warning {
+    .woo-tiendaweb-page .alert-warning {
         background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
         color: #856404;
         border-left: 4px solid #ffc107;
     }
 
     /* Enhanced alert cards for clearer hierarchy and icon support */
-    .alert-danger,
-    .alert-success {
+    .woo-tiendaweb-page .alert-danger,
+    .woo-tiendaweb-page .alert-success {
         display: flex;
         align-items: center;
         gap: 0.75rem;
@@ -1163,20 +1212,20 @@
         color: inherit;
     }
 
-    .alert-danger {
+    .woo-tiendaweb-page .alert-danger {
         background: linear-gradient(135deg, #fff5f6 0%, #f8d7da 100%);
         color: #721c24;
         border-left-color: #dc3545;
     }
 
-    .alert-success {
+    .woo-tiendaweb-page .alert-success {
         background: linear-gradient(135deg, #f6fffa 0%, #d4edda 100%);
         color: #155724;
         border-left-color: #28a745;
     }
 
     /* Small round icon to the left for quick visual scanning */
-    .alert-icon {
+    .woo-tiendaweb-page .alert-icon {
         width: 36px;
         height: 36px;
         min-width: 36px;
@@ -1189,16 +1238,16 @@
         box-shadow: 0 1px 2px rgba(22,28,37,0.08);
     }
 
-    .alert-danger .alert-icon {
+    .woo-tiendaweb-page .alert-danger .alert-icon {
         background: #dc3545;
     }
 
-    .alert-success .alert-icon {
+    .woo-tiendaweb-page .alert-success .alert-icon {
         background: #28a745;
     }
 
     /* Support for compact alerts used inside card info rows */
-    .alert-compact {
+    .woo-tiendaweb-page .alert-compact {
         padding: 0.45rem 0.6rem;
         gap: 0.5rem;
         border-radius: 6px;
@@ -1208,7 +1257,7 @@
     /* ========================================
        SELECTED CATEGORIES DISPLAY
        ======================================== */
-    #selected-categories-display {
+    .woo-tiendaweb-page #selected-categories-display {
         background: linear-gradient(135deg, #f8f9fc 0%, #eaecf4 100%);
         border: 2px dashed #d1d3e2 !important;
         border-radius: 8px;
@@ -1222,13 +1271,13 @@
         box-shadow: 0 2px 8px rgba(99, 102, 241, 0.04);
     }
 
-    #selected-categories-display:hover {
+    .woo-tiendaweb-page #selected-categories-display:hover {
         border-color: #667eea !important;
         background: linear-gradient(135deg, #ffffff 0%, #f8f9fc 100%);
         transform: translateY(-2px);
     }
 
-    #selected-categories-display .badge {
+    .woo-tiendaweb-page #selected-categories-display .badge {
         font-size: 0.95rem;
         padding: 0.45rem 0.8rem;
         animation: slideIn 0.25s ease;
@@ -1250,7 +1299,7 @@
     /* ========================================
        LOADING STATES
        ======================================== */
-    .spinner-border {
+    .woo-tiendaweb-page .spinner-border {
         width: 3rem;
         height: 3rem;
         border-width: 0.28rem;
@@ -1261,7 +1310,7 @@
         border-bottom-color: rgba(0, 0, 0, 0.06);
     }
 
-    #categories-loading {
+    .woo-tiendaweb-page #categories-loading {
         padding: 3rem 1rem;
         display: flex;
         justify-content: center;
@@ -1292,7 +1341,7 @@
     /* ========================================
        PRODUCT TYPE WARNING
        ======================================== */
-    #productTypeWarning {
+    .woo-tiendaweb-page #productTypeWarning {
         border-left: 4px solid #ffc107;
         animation: shake 0.5s ease;
     }
@@ -1306,13 +1355,13 @@
     /* ========================================
        FORM CHECK INLINE - Better Spacing
        ======================================== */
-    .form-check-inline {
+    .woo-tiendaweb-page .form-check-inline {
         margin-right: 1.5rem;
         display: inline-flex;
         align-items: center;
     }
 
-    .form-check-input {
+    .woo-tiendaweb-page .form-check-input {
         width: 18px;
         height: 18px;
         margin-right: 0.5rem;
@@ -1320,7 +1369,7 @@
         accent-color: #667eea;
     }
 
-    .form-check-label {
+    .woo-tiendaweb-page .form-check-label {
         cursor: pointer;
         user-select: none;
         margin-bottom: 0;
@@ -1330,16 +1379,16 @@
        RESPONSIVE DESIGN
        ======================================== */
     @media (max-width: 768px) {
-        .modal-content {
+        .woo-tiendaweb-page .modalx-content {
             margin: 10% auto;
             width: 95%;
         }
 
-        #categoryManagerModal .modal-content {
+        .woo-tiendaweb-page #categoryManagerModal .modalx-content {
             max-width: 95%;
         }
 
-        .btn-lg {
+        .woo-tiendaweb-page .btn-lg {
             padding: 0.625rem 1.5rem;
             font-size: 1rem;
         }
@@ -1348,21 +1397,21 @@
             padding: 1rem;
         }
 
-        .card-header {
+        .woo-tiendaweb-page .card-header {
             padding: 0.75rem 1rem;
         }
 
-        .table {
+        .woo-tiendaweb-page .table {
             font-size: 0.875rem;
         }
 
-        .category-item > div {
+        .woo-tiendaweb-page .category-item > div {
             flex-direction: column;
             align-items: flex-start;
             gap: 0.5rem;
         }
 
-        .category-item .btn-danger {
+        .woo-tiendaweb-page .category-item .btn-danger {
             opacity: 1;
             align-self: flex-end;
         }
@@ -1378,11 +1427,11 @@
         background-clip: text;
     } #}
 
-    .shadow-hover {
+    .woo-tiendaweb-page .shadow-hover {
         transition: box-shadow 0.25s cubic-bezier(.4,0,.2,1), transform 0.15s ease;
     }
 
-    .shadow-hover:hover {
+    .woo-tiendaweb-page .shadow-hover:hover {
         transform: translateY(-3px);
         box-shadow: 0 12px 30px rgba(20, 35, 60, 0.12) !important;
     }
@@ -1390,55 +1439,55 @@
     /* ========================================
        SCROLLBAR STYLING
        ======================================== */
-    #categories-tree::-webkit-scrollbar,
-    .modal-content::-webkit-scrollbar {
+    .woo-tiendaweb-page #categories-tree::-webkit-scrollbar,
+    .woo-tiendaweb-page .modalx-content::-webkit-scrollbar {
         width: 8px;
     }
 
-    #categories-tree::-webkit-scrollbar-track,
-    .modal-content::-webkit-scrollbar-track {
+    .woo-tiendaweb-page #categories-tree::-webkit-scrollbar-track,
+    .woo-tiendaweb-page .modalx-content::-webkit-scrollbar-track {
         background: #f1f1f1;
         border-radius: 10px;
     }
 
-    #categories-tree::-webkit-scrollbar-thumb,
-    .modal-content::-webkit-scrollbar-thumb {
+    .woo-tiendaweb-page #categories-tree::-webkit-scrollbar-thumb,
+    .woo-tiendaweb-page .modalx-content::-webkit-scrollbar-thumb {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         border-radius: 10px;
     }
 
-    #categories-tree::-webkit-scrollbar-thumb:hover,
-    .modal-content::-webkit-scrollbar-thumb:hover {
+    .woo-tiendaweb-page #categories-tree::-webkit-scrollbar-thumb:hover,
+    .woo-tiendaweb-page .modalx-content::-webkit-scrollbar-thumb:hover {
         background: linear-gradient(135deg, #5568d3 0%, #65408b 100%);
     }
 
     /* ========================================
        ANIMATION FOR BUTTONS WITH ICONS
        ======================================== */
-    .btn i {
+    .woo-tiendaweb-page .btn i {
         transition: transform 0.28s ease, color 0.18s ease;
     }
 
-    .btn:hover i.fa-sync,
-    .btn:hover i.fa-sync-alt {
+    .woo-tiendaweb-page .btn:hover i.fa-sync,
+    .woo-tiendaweb-page .btn:hover i.fa-sync-alt {
         transform: rotate(180deg);
         color: #ffffff;
     }
 
-    .btn:hover i.fa-trash,
-    .btn:hover i.fa-trash-alt {
+    .woo-tiendaweb-page .btn:hover i.fa-trash,
+    .woo-tiendaweb-page .btn:hover i.fa-trash-alt {
         transform: scale(1.1);
         color: #e55353;
     }
 
-    .btn:hover i.fa-save {
+    .woo-tiendaweb-page .btn:hover i.fa-save {
         transform: scale(1.05);
     }
 
     /* ========================================
        SELECTED COUNT BADGE
        ======================================== */
-    #selected-count {
+    .woo-tiendaweb-page #selected-count {
         font-weight: 600;
         color: #667eea;
         font-size: 1rem;
@@ -1447,14 +1496,14 @@
     /* ========================================
        INFO SECTIONS - Better Visual Hierarchy
        ======================================== */
-    .card-body .row.mb-3 {
+    .woo-tiendaweb-page .card-body .row.mb-3 {
         padding: 1rem;
         background: #f8f9fc;
         border-radius: 8px;
         border: 1px solid #e3e6f0;
     }
 
-    .card-body .row.mb-3 strong {
+    .woo-tiendaweb-page .card-body .row.mb-3 strong {
         color: #4e73df;
         font-weight: 600;
     }
@@ -1462,7 +1511,7 @@
     /* ========================================
        INITIAL SYNC CARD (visual hierarchy + status)
        ======================================== */
-    .initial-sync-card {
+    .woo-tiendaweb-page .initial-sync-card {
         border-left: 6px solid rgba(102, 126, 234, 0.9);
         background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(245,247,255,0.9));
         padding: 0;
@@ -1470,7 +1519,7 @@
         border-radius: 6px;
     }
 
-    .initial-sync-card .card-header {
+    .woo-tiendaweb-page .initial-sync-card .card-header {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: #fff;
         border-bottom: none;
@@ -1480,17 +1529,17 @@
         padding: 1rem 1.25rem;
     }
 
-    .initial-sync-card .card-header i {
+    .woo-tiendaweb-page .initial-sync-card .card-header i {
         font-size: 1.15rem;
         opacity: 0.95;
     }
 
-    .initial-sync-card .card-body {
+    .woo-tiendaweb-page .initial-sync-card .card-body {
         padding: 1.15rem 1.25rem;
     }
 
     /* Status badges used throughout the initial sync UI */
-    .status-badge {
+    .woo-tiendaweb-page .status-badge {
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
@@ -1501,26 +1550,26 @@
         box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
     }
 
-    .status-badge.not-synced {
+    .woo-tiendaweb-page .status-badge.not-synced {
         background: linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 100%);
         color: #6b7280;
         border: 1px solid rgba(99,102,241,0.06);
     }
 
-    .status-badge.ready {
+    .woo-tiendaweb-page .status-badge.ready {
         background: linear-gradient(90deg, #e6ffed 0%, #d1f7dc 100%);
         color: #155724;
         border: 1px solid rgba(72,187,120,0.12);
     }
 
-    .status-badge.warning {
+    .woo-tiendaweb-page .status-badge.warning {
         background: linear-gradient(90deg, #fff8e6 0%, #fff3d1 100%);
         color: #856404;
         border: 1px solid rgba(255,193,7,0.12);
     }
 
     /* Product type option: improved hover/focus/active states */
-    .product-type-option {
+    .woo-tiendaweb-page .product-type-option {
         background: #fff;
         border: 1px solid #dee2e6;
         border-radius: 6px;
@@ -1529,25 +1578,25 @@
         cursor: pointer;
     }
 
-    .product-type-option:hover {
+    .woo-tiendaweb-page .product-type-option:hover {
         border-color: #667eea;
         box-shadow: 0 8px 20px rgba(102, 126, 234, 0.12);
         transform: translateY(-3px);
     }
 
-    .product-type-option:focus {
+    .woo-tiendaweb-page .product-type-option:focus {
         outline: none;
         border-color: #5568d3;
         box-shadow: 0 0 0 3px rgba(86, 93, 212, 0.12);
     }
 
-    .product-type-option.active {
+    .woo-tiendaweb-page .product-type-option.active {
         border-color: #2b6cb0;
         background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
         box-shadow: 0 12px 30px rgba(43,108,176,0.08);
     }
 
-    .product-type-option .option-icon {
+    .woo-tiendaweb-page .product-type-option .option-icon {
         font-size: 1.5rem;
         width: 48px;
         height: 48px;
@@ -1558,37 +1607,37 @@
         color: #fff;
     }
 
-    .product-type-option .option-icon.simple {
+    .woo-tiendaweb-page .product-type-option .option-icon.simple {
         background: linear-gradient(90deg, #4caf50 0%, #43a047 100%);
     }
 
-    .product-type-option .option-icon.variable {
+    .woo-tiendaweb-page .product-type-option .option-icon.variable {
         background: linear-gradient(90deg, #36b9cc 0%, #2fa6b0 100%);
     }
 
-    .product-type-option .option-label {
+    .woo-tiendaweb-page .product-type-option .option-label {
         font-weight: 700;
         font-size: 1.02rem;
     }
 
-    .product-type-option .option-desc {
+    .woo-tiendaweb-page .product-type-option .option-desc {
         color: #6b7280;
         font-size: 0.92rem;
     }
 
     /* Image Synchronization Card Specifics */
-    .image-sync-card {
+    .woo-tiendaweb-page .image-sync-card {
         border-left: 4px solid #36b9cc;
         overflow: hidden;
         border-radius: 6px;
     }
 
-    .image-sync-card .card-header {
+    .woo-tiendaweb-page .image-sync-card .card-header {
         background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);
         border-bottom: none;
     }
 
-    .image-sync-card .card-header h6 {
+    .woo-tiendaweb-page .image-sync-card .card-header h6 {
         color: #0e7490;
         display: flex;
         align-items: center;
@@ -1597,31 +1646,31 @@
         font-weight: 700;
     }
 
-    .image-sync-card .card-body .alert {
+    .woo-tiendaweb-page .image-sync-card .card-body .alert {
         background: #e0f7fa;
         border-left: 3px solid #36b9cc;
         margin-bottom: 0;
     }
 
-    .image-sync-card .btn-info {
+    .woo-tiendaweb-page .image-sync-card .btn-info {
         background: linear-gradient(135deg, #36b9cc 0%, #2fa6b0 100%);
         border: none;
         color: #fff;
         font-weight: 600;
     }
 
-    .image-sync-card .btn-info i {
+    .woo-tiendaweb-page .image-sync-card .btn-info i {
         margin-right: 0.5rem;
     }
 
     /* Sync Info Card Layout */
-    .sync-info-card {
+    .woo-tiendaweb-page .sync-info-card {
         background: linear-gradient(135deg, #f8f9fc 0%, #eaecf4 100%);
         border-radius: 8px;
         border: 1px solid #e3e6f0;
     }
 
-    .sync-info-card .card-body h6 {
+    .woo-tiendaweb-page .sync-info-card .card-body h6 {
         display: flex;
         align-items: center;
         gap: 0.5rem;
@@ -1629,27 +1678,27 @@
         margin-bottom: 1rem;
     }
 
-    .sync-info-card .p-3 {
+    .woo-tiendaweb-page .sync-info-card .p-3 {
         background: #fff;
         border: 1px solid rgba(0,0,0,0.04);
     }
 
-    .sync-info-card .p-3 .text-muted i {
+    .woo-tiendaweb-page .sync-info-card .p-3 .text-muted i {
         width: 16px;
         text-align: center;
     }
 
-    .sync-info-card .text-primary,
-    .sync-info-card .text-success {
+    .woo-tiendaweb-page .sync-info-card .text-primary,
+    .woo-tiendaweb-page .sync-info-card .text-success {
         font-weight: 600;
     }
 
-    .sync-info-card .text-break small {
+    .woo-tiendaweb-page .sync-info-card .text-break small {
         word-break: break-word;
     }
 
     /* Compact icon + value rows inside sync info */
-    .sync-info-card .meta-row {
+    .woo-tiendaweb-page .sync-info-card .meta-row {
         display: flex;
         align-items: center;
         gap: 0.5rem;
@@ -1658,6 +1707,7 @@
 </style>
 
 {% block body %}
+    <div class="woo-tiendaweb-page">
     <div class="container-fluid">
         <div class="row">
             <div class="col">
@@ -1703,9 +1753,11 @@
                                 <div class="col-md-3">
                                     <strong>FS Referencia:</strong> {{ fsc.model.referencia }}
                                 </div>
+                                {% if product.variants|length < 2 %}
                                 <div class="col-md-3">
-                                    <strong>Stock FS:</strong> {{ fsc.model.stockfis ?? 0 }}
+                                    <strong>Stock FS:</strong> {{ fsc.model.stockfis ?? 'No configurado' }}
                                 </div>
+                                {% endif %}
                                 <div class="col-md-3">
                                     {% if fsc.model.woo_permalink %}
                                         <a href="{{ fsc.model.woo_permalink }}" target="_blank"
@@ -1804,7 +1856,7 @@
 
                                 {# Basic Info Section #}
                                 <div class="woo-form-section">
-                                    <h6><i class="fas fa-info-circle"></i> Información Básica</h6>
+                                    <h6><i class="fas fa-info-circle mr-2"></i>Información Básica</h6>
 
                                     <div class="row">
                                         <div class="col-md-8">
@@ -1846,7 +1898,8 @@
                                                 <label for="woo_short_description">Descripción Corta</label>
                                                 <textarea class="form-control" id="woo_short_description"
                                                           name="woo_short_description"
-                                                          rows="3">{{ fsc.model.woo_short_description ?? fsc.model.descripcion }}</textarea>
+                                                          rows="3"
+                                                          placeholder="Opcional">{{ fsc.model.woo_short_description ?? fsc.model.descripcion }}</textarea>
                                                 <div class="field-help">Descripción breve que aparece en listados de
                                                     productos
                                                 </div>
@@ -1857,7 +1910,8 @@
                                                 <label for="woo_description">Descripción Larga</label>
                                                 <textarea class="form-control" id="woo_description"
                                                           name="woo_description"
-                                                          rows="3">{{ fsc.model.woo_description ?? fsc.model.observaciones }}</textarea>
+                                                          rows="3"
+                                                          placeholder="Opcional">{{ fsc.model.woo_description ?? fsc.model.observaciones }}</textarea>
                                                 <div class="field-help">Descripción completa que aparece en la página
                                                     del producto
                                                 </div>
@@ -1868,13 +1922,13 @@
 
                                 {# Pricing Section (Without variants) #}
                                 <div class="woo-form-section">
-                                    <h6><i class="fas fa-euro-sign"></i> Precios y Configuración</h6>
+                                    <h6><i class="fas fa-euro-sign mr-2"></i> Precios y Configuración</h6>
 
                                     <div class="row">
                                         <div class="col-md-3">
                                             <div class="form-group">
-                                                <label for="woo_sku">SKU (Opcional)</label>
-                                                <input type="text" class="form-control" id="woo_sku" name="woo_sku"
+                                                <label for="woo_sku">SKU</label>
+                                                <input type="text" class="form-control" id="woo_sku" name="woo_sku" placeholder="Opcional"
                                                        value="{{ fsc.model.woo_sku ?? fsc.model.referencia }}">
                                                 <div class="field-help">Código único del producto</div>
                                             </div>
@@ -1895,7 +1949,7 @@
                                                        id="woo_sale_price" name="woo_sale_price"
                                                        value="{{ fsc.model.woo_sale_price ?? '' }}"
                                                        placeholder="Opcional">
-                                                <div class="field-help">Precio con descuento (opcional)</div>
+                                                <div class="field-help">Precio con descuento</div>
                                             </div>
                                         </div>
                                         {% endif %}
@@ -2003,16 +2057,16 @@
                                                 <label for="woo_stock_quantity">Cantidad en Stock</label>
                                                 <input type="number" class="form-control" id="woo_stock_quantity"
                                                        name="woo_stock_quantity"
-                                                       value="{{ fsc.model.woo_stock_quantity ?? fsc.model.stockfis ?? 0 }}">
-                                                <div class="field-help">FS: {{ fsc.model.stockfis ?? 0 }}</div>
+                                                       value="{{ fsc.model.woo_stock_quantity ?? fsc.model.stockfis ?? null }}">
+                                                <div class="field-help">FS: {{ fsc.model.stockfis ?? 'No configurado' }}</div>
                                             </div>
                                         </div>
                                         <div class="col-md-3">
                                             <div class="form-group">
                                                 <label for="woo_weight">Peso (kg)</label>
-                                                <input type="number" step="0.001" class="form-control" id="woo_weight"
+                                                <input type="number" step="0.01" class="form-control" id="woo_weight"
                                                        name="woo_weight"
-                                                       value="{{ fsc.model.woo_weight ?? '' }}" placeholder="0.000">
+                                                       value="{{ fsc.model.woo_weight ?? '' }}" placeholder="0,00">
                                                 <div class="field-help">(Opcional)</div>
                                             </div>
                                         </div>
@@ -2058,7 +2112,7 @@
                                     <div class="col text-center">
                                         <button type="submit" form="wooCommerceForm" class="btn btn-lg btn-success btn-spin-action">
                                             <i class="fas fa-save fa-fw"></i>
-                                            <span class="d-none d-sm-inline-block">Actualizar Producto WooCommerce</span>
+                                            <span class="d-none d-sm-inline-block">Actualizar Producto</span>
                                         </button>
                                     </div>
                                 </div>
@@ -2068,42 +2122,112 @@
                         </div>
                         <div class="card shadow mb-4">
                             <div class="card-body">
-                                {# Categories Section #}
+                                {# Categories Section - Using FacturaScripts Familias #}
                                 <div class="woo-form-section">
-                                    <h6><i class="fas fa-tags"></i> Categorías</h6>
+                                    <h6><i class="fas fa-tags mr-2"></i> Categorías</h6>
 
                                     <div class="row">
                                         <div class="col-md-8">
                                             <div class="form-group">
-                                                <label>Categorías Asignadas</label>
-                                                <div id="selected-categories-display" class="border rounded p-3 bg-light" style="min-height: 80px;">
-                                                    {% if fsc.model.woo_categories %}
-                                                        {% set categories = json_decode(fsc.model.woo_categories) %}
-                                                        {% if categories is iterable %}
-                                                            {% for category in categories %}
-                                                                <span class="badge badge-info mr-2 mb-2" style="font-size: 0.95em;">
-                                                                    {{ category.name ?? ('Categoría ID ' ~ category.id) }}
-                                                                    <i class="fas fa-check-circle ml-1"></i>
-                                                                </span>
+                                                <label>Categoría del Producto (Familia)</label>
+                                                <div class="border rounded p-3 bg-light" style="min-height: 80px;">
+                                                    {% if currentView.productFamilia %}
+                                                        {% set familia = currentView.productFamilia %}
+                                                        {% set wcCategories = currentView.wcCategories ?? [] %}
+                                                        {% set isCategoryInSync = false %}
+
+                                                        {# DEBUG Familias #}
+                                                        {# <div style="background: #f0f0f0; padding: 10px; margin-bottom: 10px; font-size: 11px; font-family: monospace;">
+                                                            <strong>DEBUG INFO:</strong><br>
+                                                            familia.wc_category_id = {{ familia.wc_category_id ?? 'NULL' }}<br>
+                                                            wcCategories = {{ wcCategories|json_encode }}<br>
+                                                            wcCategories count = {{ wcCategories|length }}<br>
+                                                            {% if familia.wc_category_id and wcCategories is iterable %}
+                                                                Checking categories...<br>
+                                                                {% for wcCat in wcCategories %}
+                                                                    - Category ID: {{ wcCat.id ?? 'NO ID' }} {% if wcCat.id == familia.wc_category_id %}✓ MATCH!{% endif %}<br>
+                                                                {% endfor %}
+                                                            {% endif %}
+                                                            isCategoryInSync = {{ isCategoryInSync ? 'TRUE' : 'FALSE' }}
+                                                        </div> #}
+                                                        {# END DEBUG  #}
+
+                                                        {% if familia.wc_category_id and wcCategories is iterable %}
+                                                            {% for wcCat in wcCategories %}
+                                                                {% if wcCat.id == familia.wc_category_id %}
+                                                                    {% set isCategoryInSync = true %}
+                                                                {% endif %}
                                                             {% endfor %}
-                                                        {% else %}
-                                                            <span class="text-muted">Sin categorías asignadas</span>
                                                         {% endif %}
+
+                                                        <div class="mb-2">
+                                                            <span class="badge badge-primary mr-2 mb-2" style="font-size: 0.95em;">
+                                                                <i class="fas fa-folder mr-1"></i>
+                                                                {{ familia.descripcion }}
+                                                            </span>
+                                                            {% if fsc.model.woo_id %}
+                                                                {% if isCategoryInSync %}
+                                                                    <span class="badge badge-success mb-2" style="font-size: 0.85em;">
+                                                                        <i class="fas fa-check mr-1"></i>
+                                                                        Cambio guardado
+                                                                    </span>
+                                                                {% else %}
+                                                                    <span class="badge badge-warning mb-2" style="font-size: 0.85em;">
+                                                                        <i class="fas fa-exclamation-circle mr-1"></i>
+                                                                        Cambio no guardado - Haz clic en "Actualizar Producto"
+                                                                    </span>
+                                                                {% endif %}
+                                                            {% endif %}
+                                                        </div>
+                                                        <small class="text-muted">
+                                                            <i class="fas fa-info-circle"></i>
+                                                            La categoría se gestiona desde Familias en FacturaScripts.
+                                                        </small>
                                                     {% else %}
-                                                        <span class="text-muted">Sin categorías asignadas</span>
+                                                        <div class="text-center py-3">
+                                                            <span class="text-muted">
+                                                                <i class="fas fa-folder-open mr-1"></i>
+                                                                Este producto no tiene familia asignada
+                                                            </span>
+                                                        </div>
+                                                        <small class="text-muted">
+                                                            <i class="fas fa-arrow-right mr-1"></i>
+                                                            Asigna una familia en la pestaña principal del producto
+                                                        </small>
                                                     {% endif %}
                                                 </div>
-                                                <input type="hidden" id="woo_categories_hidden" name="woo_categories[]" value="">
                                             </div>
                                         </div>
                                         <div class="col-md-4">
                                             <div class="form-group">
                                                 <label>&nbsp;</label>
                                                 <div>
-                                                    <button type="button" class="btn btn-primary btn-block mb-2"
-                                                            onclick="openCategoryManager()">
-                                                        <i class="fas fa-folder-open"></i> Gestionar Categorías
+                                                    <button type="button" class="btn btn-success btn-block mb-2 btn-spin-action"
+                                                            onclick="syncFamiliasToWooCommerce()"
+                                                            title="Sincronizar todas las Familias de FS a categorías de WooCommerce">
+                                                        <i class="fas fa-sync-alt fa-fw"></i>
+                                                        Sincronizar Familias
                                                     </button>
+                                                    {% if currentView.productFamilia %}
+                                                        {% set familia = currentView.productFamilia %}
+                                                        <div class="mt-2 mb-2">
+                                                            {% if familia.wc_category_id %}
+                                                                <span class="badge badge-success d-block py-2" style="font-size: 0.85em;">
+                                                                    <i class="fas fa-check-circle mr-1"></i>
+                                                                    Familia sincronizada con WC (ID: {{ familia.wc_category_id }})
+                                                                </span>
+                                                            {% else %}
+                                                                <span class="badge badge-warning d-block py-2" style="font-size: 0.85em;">
+                                                                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                                                                    Familia no sincronizada - Haz clic en "Sincronizar Familias"
+                                                                </span>
+                                                            {% endif %}
+                                                        </div>
+                                                    {% endif %}
+                                                    <small class="text-muted d-block mt-2">
+                                                        <i class="fas fa-info-circle"></i>
+                                                        Sincroniza todas las familias de FacturaScripts como categorías en WooCommerce
+                                                    </small>
                                                 </div>
                                             </div>
                                         </div>
@@ -2112,7 +2236,7 @@
                             
 
                             {# Image Synchronization Section #}
-                            <div class="woo-form-section"> <h6><i class="fas fa-images"></i> Sincronización de Imágenes</h6>
+                            <div class="woo-form-section"> <h6><i class="fas fa-images mr-2"></i> Sincronización de Imágenes</h6>
                                 <div class="row">
                                     <div class="col-md-8">
                                         <div class="form-group">
@@ -2180,7 +2304,7 @@
                                         <span class="text-muted">No disponible</span>
                                     {% endif %}
                                 </div>
-                                <div class="col-md-2">
+                                {# <div class="col-md-2">
                                     <strong>Datos WooCommerce:</strong><br>
                                     {% if fsc.model.woo_categories %}
                                         {% set categories = json_decode(fsc.model.woo_categories) %}
@@ -2190,7 +2314,7 @@
                                         {% set images = json_decode(fsc.model.woo_images) %}
                                         <small>{{ images|length }} imágenes</small><br>
                                     {% endif %}
-                                </div>
+                                </div> #}
                             </div>
                         </div>
                     </div>
@@ -2361,9 +2485,9 @@
         </div>
     </div>
 
-    {# Category Manager Modal #}
-    <div id="categoryManagerModal" class="modal">
-        <div class="modal-content" style="max-width: 920px; max-height: 85vh; overflow-y: auto;">
+    {# OLD Category Manager Modal - REMOVED - Now using FacturaScripts Familias #}
+    {# <div id="categoryManagerModal" class="modalx">
+        <div class="modalx-content" style="max-width: 920px; max-height: 85vh; overflow-y: auto;">
             <div class="d-flex justify-content-between align-items-center p-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); margin: 0; border-radius: 12px 12px 0 0;">
                 <h4 class="m-0 text-white" style="padding: 0;">
                     <i class="fas fa-folder-tree"></i> Gestionar Categorías
@@ -2431,8 +2555,8 @@
     </div>
 
     {# Create Category Modal #}
-    <div id="createCategoryModal" class="modal">
-        <div class="modal-content">
+    {# <div id="createCategoryModal" class="modalx">
+        <div class="modalx-content">
             <h4><i class="fas fa-plus-circle"></i> Crear Nueva Categoría</h4>
 
             <div class="form-group">
@@ -2464,51 +2588,6 @@
                 </button>
             </div>
         </div>
+    </div>  #}
     </div>
-
-    <script>
-        // Debug test function - call this from browser console to test the flow
-        window.testCategorySave = function() {
-            console.log('=== TESTING CATEGORY SAVE FLOW ===');
-            console.log('Current product ID:', "{{ fsc.model.idproducto }}");
-            console.log('Current product woo_id:', "{{ fsc.model.woo_id ?? 'NOT SET' }}");
-            console.log('Selected categories:', selectedCategories);
-            console.log('WooCommerce categories loaded:', wooCategories.length);
-
-            if (!selectedCategories || selectedCategories.length === 0) {
-                console.warn('WARNING: No categories selected. Select some categories first.');
-                return;
-            }
-
-            if (!"{{ fsc.model.woo_id ?? '' }}") {
-                console.error('ERROR: Product does not have a WooCommerce ID. Create product in WooCommerce first.');
-                return;
-            }
-
-            console.log('Test data that will be sent:');
-            const testData = {
-                action: 'save-woo-categories',
-                fs_id: "{{ fsc.model.idproducto }}",
-                categories: selectedCategories.map(cat => cat.id)
-            };
-            console.log(testData);
-
-            console.log('Calling saveSelectedCategories()...');
-            saveSelectedCategories();
-        };
-
-        // Add to window for easy access
-        window.debugCategoryFlow = {
-            getSelectedCategories: () => selectedCategories,
-            getWooCategories: () => wooCategories,
-            getProductId: () => "{{ fsc.model.idproducto }}",
-            getWooId: () => "{{ fsc.model.woo_id ?? 'NOT SET' }}",
-            testSave: () => window.testCategorySave()
-        };
-
-        console.log('Debug tools available:');
-        console.log('  - window.testCategorySave() - Test the category save flow');
-        console.log('  - window.debugCategoryFlow - Access to category data and functions');
-    </script>
-
 {% endblock %}

@@ -3,6 +3,7 @@
 namespace FacturaScripts\Plugins\SolwedTiendaWeb\Lib;
 
 use FacturaScripts\Core\Tools;
+use FacturaScripts\Dinamic\Model\Familia;
 use FacturaScripts\Dinamic\Model\Producto;
 use FacturaScripts\Dinamic\Model\Variante;
 use FacturaScripts\Dinamic\Model\ProductoImagen;
@@ -790,6 +791,22 @@ class WooProductService
             // Create the main simple product
             $wooData = WooDataMapper::fsToWooCommerceSimple($fsProduct);
 
+            // Automatically set category from Familia
+            if (!empty($fsProduct->codfamilia)) {
+                error_log("WooProductService::createSimpleProduct - Product has codfamilia: " . $fsProduct->codfamilia);
+                $familia = new Familia();
+                $loaded = $familia->loadFromCode($fsProduct->codfamilia);
+                if ($loaded && !empty($familia->wc_category_id)) {
+                    error_log("WooProductService::createSimpleProduct - Familia loaded successfully and has wc_category_id: " . $familia->wc_category_id);
+                    $wooData['categories'] = [['id' => $familia->wc_category_id]];
+                    error_log("WooProductService::createSimpleProduct - Assigning category from Familia: " . $familia->descripcion . " (ID: " . $familia->wc_category_id . ")");
+                } else {
+                    error_log("WooProductService::createSimpleProduct - Condition failed. Familia loaded: " . ($loaded ? 'true' : 'false') . ". Has wc_category_id: " . (!empty($familia->wc_category_id) ? 'true (' . $familia->wc_category_id . ')' : 'false'));
+                }
+            } else {
+                error_log("WooProductService::createSimpleProduct - Product does not have a codfamilia. Skipping category assignment.");
+            }
+
             // Add product images
             $images = $this->getProductImages($fsProduct->idproducto);
             if (!empty($images)) {
@@ -879,6 +896,22 @@ class WooProductService
         try {
             // Create the main variable product
             $wooData = WooDataMapper::fsToWooCommerceVariable($fsProduct, $variants);
+
+            // Automatically set category from Familia
+            if (!empty($fsProduct->codfamilia)) {
+                error_log("WooProductService::createVariableProduct - Product has codfamilia: " . $fsProduct->codfamilia);
+                $familia = new Familia();
+                $loaded = $familia->loadFromCode($fsProduct->codfamilia);
+                if ($loaded && !empty($familia->wc_category_id)) {
+                    error_log("WooProductService::createVariableProduct - Familia loaded successfully and has wc_category_id: " . $familia->wc_category_id);
+                    $wooData['categories'] = [['id' => $familia->wc_category_id]];
+                    error_log("WooProductService::createVariableProduct - Assigning category from Familia: " . $familia->descripcion . " (ID: " . $familia->wc_category_id . ")");
+                } else {
+                    error_log("WooProductService::createVariableProduct - Condition failed. Familia loaded: " . ($loaded ? 'true' : 'false') . ". Has wc_category_id: " . (!empty($familia->wc_category_id) ? 'true (' . $familia->wc_category_id . ')' : 'false'));
+                }
+            } else {
+                error_log("WooProductService::createVariableProduct - Product does not have a codfamilia. Skipping category assignment.");
+            }
 
             // Add product images
             $images = $this->getProductImages($fsProduct->idproducto);
@@ -1073,6 +1106,22 @@ class WooProductService
             // Convert form data to WooCommerce format
             $wooData = WooDataMapper::formToWooCommerce($formData);
 
+            // Automatically set category from Familia
+            if (!empty($fsProduct->codfamilia)) {
+                error_log("WooProductService::updateSimpleProduct - Product has codfamilia: " . $fsProduct->codfamilia);
+                $familia = new Familia();
+                $loaded = $familia->loadFromCode($fsProduct->codfamilia);
+                if ($loaded && !empty($familia->wc_category_id)) {
+                    error_log("WooProductService::updateSimpleProduct - Familia loaded successfully and has wc_category_id: " . $familia->wc_category_id);
+                    $wooData['categories'] = [['id' => $familia->wc_category_id]];
+                    error_log("WooProductService::updateSimpleProduct - Updating category from Familia: " . $familia->descripcion . " (ID: " . $familia->wc_category_id . ")");
+                } else {
+                    error_log("WooProductService::updateSimpleProduct - Condition failed. Familia loaded: " . ($loaded ? 'true' : 'false') . ". Has wc_category_id: " . (!empty($familia->wc_category_id) ? 'true (' . $familia->wc_category_id . ')' : 'false'));
+                }
+            } else {
+                error_log("WooProductService::updateSimpleProduct - Product does not have a codfamilia. Skipping category update.");
+            }
+
             // Add product images
             $images = $this->getProductImages($fsProduct->idproducto);
             if (!empty($images)) {
@@ -1118,6 +1167,22 @@ class WooProductService
             unset($wooData['sale_price']);
             unset($wooData['manage_stock']);
             unset($wooData['stock_quantity']);
+
+            // Automatically set category from Familia
+            if (!empty($fsProduct->codfamilia)) {
+                error_log("WooProductService::updateVariableProduct - Product has codfamilia: " . $fsProduct->codfamilia);
+                $familia = new \FacturaScripts\Dinamic\Model\Familia();
+                $loaded = $familia->loadFromCode($fsProduct->codfamilia);
+                if ($loaded && !empty($familia->wc_category_id)) {
+                    error_log("WooProductService::updateVariableProduct - Familia loaded successfully and has wc_category_id: " . $familia->wc_category_id);
+                    $wooData['categories'] = [['id' => $familia->wc_category_id]];
+                    error_log("WooProductService::updateVariableProduct - Updating category from Familia: " . $familia->descripcion . " (ID: " . $familia->wc_category_id . ")");
+                } else {
+                    error_log("WooProductService::updateVariableProduct - Condition failed. Familia loaded: " . ($loaded ? 'true' : 'false') . ". Has wc_category_id: " . (!empty($familia->wc_category_id) ? 'true (' . $familia->wc_category_id . ')' : 'false'));
+                }
+            } else {
+                error_log("WooProductService::updateVariableProduct - Product does not have a codfamilia. Skipping category update.");
+            }
 
             // Add product images (for the parent product)
             $images = $this->getProductImages($fsProduct->idproducto);
