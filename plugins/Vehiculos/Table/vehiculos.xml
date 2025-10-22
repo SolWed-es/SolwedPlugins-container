@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Document   : vehiculos.xml
+    Description:
+        Estructura de la tabla vehiculos.
+-->
+<table>
+    <column>
+        <name>idmaquina</name>
+        <type>serial</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>codagente</name>
+        <type>character varying(10)</type>
+    </column>
+    <column>
+        <name>codcliente</name>
+        <type>character varying(10)</type>
+    </column>
+    <column>
+        <name>marca</name>
+        <type>character varying(50)</type>
+    </column>
+    <column>
+        <name>modelo</name>
+        <type>character varying(100)</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>numserie</name>
+        <type>character varying(100)</type>
+    </column>
+    <column>
+        <name>matricula</name>
+        <type>character varying(20)</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>bastidor</name>
+        <type>character varying(25)</type>
+    </column>
+    <column>
+        <name>kilometros</name>
+        <type>integer</type>
+    </column>
+    <column>
+        <name>carroceria</name>
+        <type>character varying(100)</type>
+    </column>
+    <column>
+        <name>motor</name>
+        <type>character varying(200)</type>
+    </column>
+    <column>
+        <name>procedencia_matricula</name>
+        <type>character varying(50)</type>
+    </column>
+    <column>
+        <name>potencia</name>
+        <type>character varying(200)</type>
+    </column>
+    <column>
+        <name>idmarca_api</name>
+        <type>character varying(20)</type>
+    </column>
+    <column>
+        <name>id_marca_tecdoc</name>
+        <type>character varying(20)</type>
+    </column>
+    <column>
+        <name>id_modelo_tecdoc</name>
+        <type>character varying(20)</type>
+    </column>
+    <column>
+        <name>id_ktype</name>
+        <type>character varying(20)</type>
+    </column>
+    <column>
+        <name>descripcion</name>
+        <type>text</type>
+    </column>
+    <column>
+        <name>fecha_primera_matriculacion</name>
+        <type>date</type>
+    </column>
+    <constraint>
+        <name>vehiculos_pkey</name>
+        <type>PRIMARY KEY (idmaquina)</type>
+    </constraint>
+    <constraint>
+        <name>ca_vehiculos_clientes</name>
+        <type>FOREIGN KEY (codcliente) REFERENCES clientes (codcliente) ON DELETE RESTRICT ON UPDATE CASCADE</type>
+    </constraint>
+    <constraint>
+        <name>unique_matricula_cliente</name>
+        <type>UNIQUE (matricula, codcliente)</type>
+    </constraint>
+</table>

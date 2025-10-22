@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ * Vista completa con todos los datos del vehículo
+ -->
+<view>
+    <columns>
+        <!-- Campo oculto para ID -->
+        <column name="code" display="none" order="10">
+            <widget type="hidden" fieldname="idmaquina"/>
+        </column>
+
+        <!-- DATOS PRINCIPALES DEL VEHÍCULO -->
+        <group name="vehicle-basic" title="datos-vehiculo" numcolumns="12" order="100" icon="fa-solid fa-car">
+            <!-- Fila 1: Matrícula, Marca y Modelo -->
+            <column name="license-plate" title="matricula" numcolumns="4" order="110">
+                <widget type="text" fieldname="matricula" maxlength="20" icon="fa-solid fa-id-card" required="true" placeholder="1234ABC"/>
+            </column>
+            <column name="brand" title="marca" numcolumns="4" order="120">
+                <widget type="text" fieldname="marca" maxlength="50" icon="fa-solid fa-trademark" placeholder="Marca"/>
+            </column>
+            <column name="model" title="modelo" numcolumns="4" order="130">
+                <widget type="text" fieldname="modelo" maxlength="100" icon="fa-solid fa-car-side" required="true" placeholder="Modelo"/>
+            </column>
+
+            <!-- Fila 2: Bastidor, Código Modelo, Código Marca -->
+            <column name="vin-number" title="bastidor-vin" numcolumns="4" order="140">
+                <widget type="text" fieldname="bastidor" maxlength="25" icon="fa-solid fa-barcode" placeholder="VIN"/>
+            </column>
+            <column name="model-code" title="codigo-modelo" numcolumns="4" order="150">
+                <widget type="text" fieldname="numserie" maxlength="100" icon="fa-solid fa-hashtag" placeholder="Código Modelo"/>
+            </column>
+            <column name="brand-code" title="codigo-marca" numcolumns="4" order="160">
+                <widget type="text" fieldname="idmarca_api" maxlength="20" icon="fa-solid fa-code" placeholder="Código Marca"/>
+            </column>
+
+            <!-- Fila 3: Kilómetros, Fecha Matriculación, Procedencia País -->
+            <column name="kilometers" title="km" numcolumns="4" order="170">
+                <widget type="number" fieldname="kilometros" icon="fa-solid fa-road" min="0" step="1" placeholder="Km"/>
+            </column>
+            <column name="vehicle-date" title="fecha-matriculacion" numcolumns="4" order="180">
+                <widget type="date" fieldname="fecha_primera_matriculacion" icon="fa-solid fa-calendar-days"/>
+            </column>
+            <column name="procedencia" title="procedencia-pais" numcolumns="4" order="190">
+                <widget type="text" fieldname="procedencia_matricula" maxlength="50" icon="fa-solid fa-flag" placeholder="País"/>
+            </column>
+
+            <!-- Fila 4: Carrocería -->
+            <column name="carroceria" title="carroceria" numcolumns="12" order="200">
+                <widget type="text" fieldname="carroceria" maxlength="100" icon="fa-solid fa-warehouse" placeholder="Carrocería"/>
+            </column>
+        </group>
+
+        <!-- INFORMACIÓN DEL MOTOR Y CARACTERÍSTICAS -->
+        <group name="motor-specs" title="motor-especificaciones" numcolumns="12" order="200" icon="fa-solid fa-engine">
+            <!-- Fila 1: Motor, Potencia -->
+            <column name="motor-info" title="motor" numcolumns="6" order="210">
+                <widget type="text" fieldname="motor" maxlength="200" icon="fa-solid fa-gears" placeholder="Info Motor"/>
+            </column>
+            <column name="power" title="potencia" numcolumns="6" order="220">
+                <widget type="text" fieldname="potencia" maxlength="100" icon="fa-solid fa-bolt" placeholder="Ej: 2.0 TFSI 200CV"/>
+            </column>
+        </group>
+
+        <!-- IDS TECDOC (Catálogo de Piezas) - Campos ocultos -->
+        <column name="id-marca-tecdoc-hidden" display="none" order="500">
+            <widget type="hidden" fieldname="id_marca_tecdoc"/>
+        </column>
+        <column name="id-modelo-tecdoc-hidden" display="none" order="501">
+            <widget type="hidden" fieldname="id_modelo_tecdoc"/>
+        </column>
+        <column name="id-ktype-hidden" display="none" order="502">
+            <widget type="hidden" fieldname="id_ktype"/>
+        </column>
+        <column name="idmarca-api-hidden" display="none" order="503">
+            <widget type="hidden" fieldname="idmarca_api"/>
+        </column>
+
+        <!-- IDS TECDOC (Catálogo de Piezas) - Visualización solo lectura -->
+        <group name="tecdoc-ids" title="ids-tecdoc-catalogo" numcolumns="12" order="500" icon="fa-solid fa-database">
+            <column name="id-marca-tecdoc-display" title="id-marca-tecdoc" numcolumns="4" order="520">
+                <widget type="text" fieldname="id_marca_tecdoc" maxlength="20" icon="fa-solid fa-key" readonly="true" save="false"/>
+            </column>
+            <column name="id-modelo-tecdoc-display" title="id-modelo-tecdoc" numcolumns="4" order="530">
+                <widget type="text" fieldname="id_modelo_tecdoc" maxlength="20" icon="fa-solid fa-key" readonly="true" save="false"/>
+            </column>
+            <column name="id-ktype-display" title="id-ktype" numcolumns="4" order="540">
+                <widget type="text" fieldname="id_ktype" maxlength="20" icon="fa-solid fa-key" readonly="true" save="false"/>
+            </column>
+        </group>
+
+        <!-- INFORMACIÓN DEL PROPIETARIO -->
+        <group name="owner-info" title="propietario" numcolumns="12" order="600" icon="fa-solid fa-user">
+            <!-- Cliente/Propietario -->
+            <column name="customer" title="cliente" titleurl="ListCliente" numcolumns="12" order="610">
+                <widget type="autocomplete" fieldname="codcliente" onclick="EditCliente" placeholder="Buscar cliente...">
+                    <values source="clientes" fieldcode="codcliente" fieldtitle="nombre"/>
+                </widget>
+            </column>
+
+            <!-- Agente comercial -->
+            <column name="agent" title="agente" titleurl="ListAgente" numcolumns="12" order="615">
+                <widget type="autocomplete" fieldname="codagente" onclick="EditAgente" placeholder="Buscar agente...">
+                    <values source="agentes" fieldcode="codagente" fieldtitle="nombre"/>
+                </widget>
+            </column>
+
+            <!-- Información del cliente en solo lectura -->
+            <column name="customer-name" title="nombre" numcolumns="6" order="620">
+                <widget type="text" fieldname="cliente_nombre" readonly="true" save="false" icon="fa-solid fa-user"/>
+            </column>
+            <column name="customer-cif" title="documento" numcolumns="3" order="630">
+                <widget type="text" fieldname="cliente_cifnif" readonly="true" save="false" icon="fa-solid fa-id-card-clip"/>
+            </column>
+            <column name="customer-phone" title="telefono" numcolumns="3" order="640">
+                <widget type="text" fieldname="cliente_telefono" readonly="true" save="false" icon="fa-solid fa-phone"/>
+            </column>
+
+            <column name="customer-email" title="email" numcolumns="6" order="650">
+                <widget type="text" fieldname="cliente_email" readonly="true" save="false" icon="fa-solid fa-at"/>
+            </column>
+            <column name="customer-address" title="direccion" numcolumns="6" order="660">
+                <widget type="text" fieldname="cliente_direccion" readonly="true" save="false" icon="fa-solid fa-location-dot"/>
+            </column>
+        </group>
+
+        <!-- DESCRIPCIÓN (AL FINAL) -->
+        <group name="description-section" title="informacion-adicional" numcolumns="12" order="800" icon="fa-solid fa-align-left">
+            <column name="description" title="descripcion" numcolumns="12" order="810">
+                <widget type="textarea" fieldname="descripcion" icon="fa-solid fa-align-left" placeholder="Descripción adicional del vehículo"/>
+            </column>
+        </group>
+    </columns>
+</view>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ * Vista simplificada ListVehiculo (nuevo modelo fachada) reutilizando estructura base.
+ * Muestra únicamente los campos actuales foco del refactor.
+ -->
+<view>
+    <columns>
+        <column name="code" order="100" display="none">
+            <widget type="text" fieldname="idmaquina"/>
+        </column>
+        <column name="license-plate" order="110">
+            <widget type="text" fieldname="matricula"/>
+        </column>
+        <column name="brand" order="120">
+            <widget type="text" fieldname="marca"/>
+        </column>
+        <column name="model" order="130">
+            <widget type="text" fieldname="modelo"/>
+        </column>
+        <column name="vin-number" order="140">
+            <widget type="text" fieldname="bastidor"/>
+        </column>
+        <column name="kilometers" order="150">
+            <widget type="number" fieldname="kilometros"/>
+        </column>
+        <column name="customer" order="170">
+            <widget type="select" fieldname="codcliente">
+                <values source="clientes" fieldcode="codcliente" fieldtitle="nombre"/>
+            </widget>
+        </column>
+        <column name="registration-date" display="right" order="180">
+            <widget type="date" fieldname="fecha_primera_matriculacion"/>
+        </column>
+    </columns>
+</view>

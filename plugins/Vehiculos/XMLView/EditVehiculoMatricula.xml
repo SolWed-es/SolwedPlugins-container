@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ * Vista simplificada para crear vehículo desde matrícula
+ -->
+<view>
+    <columns>
+        <!-- Campo oculto para ID -->
+        <column name="code" display="none" order="10">
+            <widget type="hidden" fieldname="idmaquina"/>
+        </column>
+
+        <!-- Cliente (opcional) -->
+        <column name="customer" title="cliente" titleurl="ListCliente" numcolumns="12" order="100">
+            <widget type="autocomplete" fieldname="codcliente" onclick="EditCliente" placeholder="Seleccionar cliente (opcional)">
+                <values source="clientes" fieldcode="codcliente" fieldtitle="nombre"/>
+            </widget>
+        </column>
+
+        <!-- Matrícula -->
+        <column name="license-plate" title="matricula" numcolumns="12" order="110">
+            <widget type="text" fieldname="matricula" maxlength="20" icon="fa-solid fa-address-card" required="true" placeholder="Introduce matrícula (Ej: 1234ABC)"/>
+        </column>
+    </columns>
+</view>

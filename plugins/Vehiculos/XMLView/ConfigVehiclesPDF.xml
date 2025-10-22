@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ * Copyright (C) 2023-2024 Carlos Garcia Gomez <carlos@facturascripts.com>
+ * Configuración de vehículos para PlantillasPDF
+-->
+<view>
+    <columns>
+        <group name="vehicle-position" title="vehicle-position-settings" description="vehicle-position-settings-desc" icon="fa-solid fa-car" numcolumns="12">
+            <column name="name" display="none" order="0">
+                <widget type="text" fieldname="name" readonly="true" required="true"/>
+            </column>
+            <column name="show-vehicle-next-to-customer" title="show-vehicle-next-to-customer" description="show-vehicle-next-to-customer-desc" numcolumns="4" order="100">
+                <widget type="checkbox" fieldname="showvehiclenexttocustomer"/>
+            </column>
+            <column name="vehicle-position" title="vehicle-position" numcolumns="4" order="110">
+                <widget type="select" fieldname="vehicleposition" translate="true">
+                    <values>right</values>
+                    <values>below</values>
+                    <values>separate-section</values>
+                </widget>
+            </column>
+            <column name="vehicle-max-display" title="vehicle-max-display" description="vehicle-max-display-desc" numcolumns="4" order="120">
+                <widget type="number" decimals="0" min="1" max="5" fieldname="vehiclemaxdisplay"/>
+            </column>
+        </group>
+        
+        <group name="vehicle-content" title="vehicle-content-settings" description="vehicle-content-settings-desc" icon="fa-solid fa-list" numcolumns="12">
+            <column name="show-vehicle-compact" title="show-vehicle-compact" description="show-vehicle-compact-desc" numcolumns="3" order="200">
+                <widget type="checkbox" fieldname="showvehiclecompact"/>
+            </column>
+            <column name="show-vehicle-specifications" title="show-vehicle-specifications" description="show-vehicle-specifications-desc" numcolumns="3" order="210">
+                <widget type="checkbox" fieldname="showvehiclespecifications"/>
+            </column>
+            <column name="show-vehicle-image" title="show-vehicle-image" description="show-vehicle-image-desc" numcolumns="3" order="220">
+                <widget type="checkbox" fieldname="showvehicleimage"/>
+            </column>
+            <column name="vehicle-text-size" title="vehicle-text-size" numcolumns="3" order="230">
+                <widget type="number" decimals="0" min="8" max="16" fieldname="vehicletextsize"/>
+            </column>
+        </group>
+        
+        <group name="vehicle-fields" title="vehicle-fields-settings" description="vehicle-fields-settings-desc" icon="fa-solid fa-cogs" numcolumns="12">
+            <column name="show-license-plate" title="show-license-plate" numcolumns="2" order="300">
+                <widget type="checkbox" fieldname="showlicenseplate"/>
+            </column>
+            <column name="show-vin" title="show-vin" numcolumns="2" order="310">
+                <widget type="checkbox" fieldname="showvin"/>
+            </column>
+            <column name="show-manufacturer" title="show-manufacturer" numcolumns="2" order="320">
+                <widget type="checkbox" fieldname="showmanufacturer"/>
+            </column>
+            <column name="show-color" title="show-color" numcolumns="2" order="330">
+                <widget type="checkbox" fieldname="showcolor"/>
+            </column>
+            <column name="show-fuel-type" title="show-fuel-type" numcolumns="2" order="340">
+                <widget type="checkbox" fieldname="showfueltype"/>
+            </column>
+            <column name="show-kilometers" title="show-kilometers" numcolumns="2" order="350">
+                <widget type="checkbox" fieldname="showkilometers"/>
+            </column>
+            <column name="show-registration-date" title="show-registration-date" numcolumns="2" order="360">
+                <widget type="checkbox" fieldname="showregistrationdate"/>
+            </column>
+            <column name="show-serial-number" title="show-serial-number" numcolumns="2" order="370">
+                <widget type="checkbox" fieldname="showserialnumber"/>
+            </column>
+            <column name="show-description" title="show-description" numcolumns="2" order="380">
+                <widget type="checkbox" fieldname="showdescription"/>
+            </column>
+        </group>
+        
+        <group name="vehicle-styling" title="vehicle-styling-settings" description="vehicle-styling-settings-desc" icon="fa-solid fa-palette" numcolumns="12">
+            <column name="vehicle-border-color" title="vehicle-border-color" numcolumns="3" order="400">
+                <widget type="color" fieldname="vehiclebordercolor"/>
+            </column>
+            <column name="vehicle-background-color" title="vehicle-background-color" numcolumns="3" order="410">
+                <widget type="color" fieldname="vehiclebackgroundcolor"/>
+            </column>
+            <column name="vehicle-header-color" title="vehicle-header-color" numcolumns="3" order="420">
+                <widget type="color" fieldname="vehicleheadercolor"/>
+            </column>
+            <column name="vehicle-text-color" title="vehicle-text-color" numcolumns="3" order="430">
+                <widget type="color" fieldname="vehicletextcolor"/>
+            </column>
+        </group>
+    </columns>
+    <rows>
+        <row type="actions">
+            <button type="action" label="preview" action="preview" icon="fas fa-eye"/>
+        </row>
+    </rows>
+</view>
