@@ -1,9 +1,9 @@
 {
     "metadata": {
-        "generated": "19-10-2025 01:41:04",
+        "generated": "22-10-2025 16:51:47",
         "repo": "https://github.com/SolWed-es/SolwedPlugins-container",
-        "plugin_count": 4,
-        "workflow_run": "18623697510"
+        "plugin_count": 5,
+        "workflow_run": "18723592563"
     },
     "plugins": [
         {
@@ -51,6 +51,17 @@
             "require_php": [],
             "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/SolwedTiendaWeb.zip",
             "last_updated": "2025-10-14"
+        },
+        {
+            "name": "Vehiculos",
+            "description": "Gesti\u00f3n integral de veh\u00edculos: ficha completa (matr\u00edcula, bastidor, kil\u00f3metros, combustible, color, fabricante), asociaci\u00f3n autom\u00e1tica a facturas y exportaci\u00f3n profesional a PDF.",
+            "version": 1,
+            "min_version": 2024.8,
+            "min_php": 7.3,
+            "require": [],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/Vehiculos.zip",
+            "last_updated": "2025-10-22"
         }
     ]
 }
