@@ -29,7 +29,7 @@
                         {% if fsc.getPageData().name == fsc.user.homepage %}
                             <a class="btn btn-sm btn-secondary align-bottom active"
                                href="{{ fsc.url() }}?defaultPage=FALSE" title="{{ trans('marked-as-homepage') }}">
-                                <i class="fas fa-bookmark" aria-hidden="true"></i>
+                                <i class="fa-solid fa-bookmark" aria-hidden="true"></i>
                             </a>
                         {% else %}
                             <a class="btn btn-sm btn-secondary align-bottom" href="{{ fsc.url() }}?defaultPage=TRUE"
@@ -40,17 +40,17 @@
                         <span class="ml-2">{{ fsc.title }}</span>
                     </h1>
                 </div>
-                <div class="col-sm-12 col-md-6 justify-content-between">
-                    <button type="button" class="btn btn-primary mb-1" data-toggle="modal" data-target="#modalNews">
+                <div class="me-lg-auto col-sm-12 col-md-6 justify-content-between">
+                    <button type="button" class="btn btn-primary mb-1" data-bs-toggle="modal" data-bs-target="#modalNews">
                         <i class="fa-solid fa-newspaper"></i> {{ trans('news') }}
                     </button>
                     {% if fsc.showBackupWarning() %}
-                        <button type="button" class="btn btn-warning mb-1" data-toggle="modal"
-                                data-target="#modalBackup">
+                        <button type="button" class="btn btn-warning mb-1" data-bs-toggle="modal"
+                                data-bs-target="#modalBackup">
                             <i class="fa-solid fa-warning"></i> {{ trans('dashboard-backup') }}
                         </button>
                     {% endif %}
-                    <button type="button" class="btn btn-secondary mb-1" data-toggle="modal" data-target="#modalHelp">
+                    <button type="button" class="btn btn-secondary mb-1" data-bs-toggle="modal" data-bs-target="#modalHelp">
                         <i class="fa-solid fa-circle-question"></i> {{ trans('help') }}
                     </button>
                 </div>
@@ -68,15 +68,6 @@
         {% block sectionStats %}
             {{ _self.sectionStats(fsc) }}
         {% endblock %}
-        {% if fsc.updated == false %}
-            <div class="mb-3">
-                {{ Utils.updateInstall() }}
-            </div>
-        {% elseif fsc.registered == false %}
-            <div class="mb-3">
-                {{ Utils.registerInstall() }}
-            </div>
-        {% endif %}
         {% block sections %}
             <div class="row">
                 <div class="col">
@@ -89,14 +80,23 @@
                 </div>
             </div>
         {% endblock %}
+        {% if fsc.updated == false %}
+            <div class="mb-3">
+                {{ Utils.updateInstall() }}
+            </div>
+        {% elseif fsc.registered == false %}
+            <div class="mb-3">
+                {{ Utils.registerInstall() }}
+            </div>
+        {% endif %}
         <br/>
         <br/>
     </div>
     {% if fsc.showBackupWarning() %}
-        {{ _self.sectionBackup() }}
+        {{ _self.modalBackup() }}
     {% endif %}
-    {{ _self.sectionNews(fsc) }}
-    {{ _self.sectionHelp }}
+    {{ _self.modalNews(fsc) }}
+    {{ _self.modalHelp }}
 {% endblock %}
 
 {% macro sectionLinks(fsc) %}
@@ -111,7 +111,7 @@
     <div class="card">
         <div class="card-body">
             <h3 class="card-title mb-3">
-                <i class="fa-solid fa-folder-open me-2"></i>{{ trans('open') }}
+                <i class="fa-solid fa-clock-rotate-left me-2"></i>{{ trans('history') }}
             </h3>
 
             {% for link in fsc.openLinks %}
@@ -130,113 +130,63 @@
 {% endmacro %}
 
 {% macro sectionLowStock(fsc) %}
-    <div class="card shadow mb-3">
-        <div class="p-3">
-            <h2 class="h4 mb-0">
-                <i class="fas fa-pallet fa-fw"></i> {{ trans('minimum-stock') }}
-            </h2>
-        </div>
-        <div class="table-responsive">
-            <table class="table table-sm table-hover mb-0">
-                <thead>
-                <tr>
-                    <th>{{ trans('reference') }}</th>
-                    <th>{{ trans('warehouse') }}</th>
-                    <th class="text-right">{{ trans('minimum-stock') }}</th>
-                    <th class="text-right">{{ trans('available') }}</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for stock in fsc.lowStock %}
-                    <tr class="clickableRow table-danger" data-href="{{ stock.url() }}">
-                        <td>{{ stock.referencia }}</td>
-                        <td>{{ stock.codalmacen }}</td>
-                        <td class="text-right">{{ number(stock.stockmin) }}</td>
-                        <td class="text-right">{{ number(stock.disponible) }}</td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-{% endmacro %}
-
-{% macro sectionNews(fsc) %}
-    <div class="modal fade" id="modalNews" tabindex="-1" role="dialog" aria-labelledby="modalNews" aria-hidden="true">
-        <div class="modal-lg modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content shadow">
-                <div class="modal-header">
-                    <h3 class="modal-title">{{ trans('news') }}</h3>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    {% for news in fsc.news %}
-                        <div class="row">
-                            <div class="col">
-                                <div class="card shadow mb-3">
-                                    <div class="card-header">
-                                        <span class="float-right">{{ news.fecha }}</span>
-                                        <a href="{{ news.url }}" target="_blank">{{ news.title | raw }}</a>
-                                    </div>
-                                    <div class="card-body p-3">
-                                        <div class="form-row align-items-center">
-                                            <div class="col-auto">
-                                                <a href="{{ news.url }}" target="_blank"
-                                                   class="btn btn-outline-secondary">
-                                                    <i class="far fa-newspaper fa-3x"></i>
-                                                </a>
-                                            </div>
-                                            <div class="col">{{ news.body | raw }}</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+    <div class="card">
+        <div class="card-body">
+            <span class="float-right badge badge-danger">⭸ {{ trans('minimum-stock') }}</span>
+            <h3 class="card-title mb-3">
+                <i class="fa-solid fa-pallet me-2"></i> {{ trans('warehouse') }}
+            </h3>
+            {% for stock in fsc.lowStock %}
+                <div class="d-flex justify-content-between align-items-center border border-danger rounded p-3 mb-2">
+                    <div>
+                        <div class="font-weight-bold">
+                            {{ stock.referencia }} • {{ stock.codalmacen }} •
+                            <small class="text-muted">{{ trans('minimum-stock') }}: {{ number(stock.stockmin) }}</small>
+                            <small class="text-muted">{{ trans('available') }}: {{ number(stock.disponible) }}</small>
                         </div>
-                    {% endfor %}
+                       {# <div class="text-muted">
+                            <small class="text-muted">{{ trans('minimum-stock') }}: {{ number(stock.stockmin) }}</small>
+                            <small class="text-muted">{{ trans('available') }}: {{ number(stock.disponible) }}</small>
+                        </div>#}
+                    </div>
+                    <a href="{{ receipt.url() }}" class="btn btn-sm btn-outline-primary" title="{{ trans('open') }}">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    </a>
                 </div>
-            </div>
+            {% endfor %}
         </div>
     </div>
 {% endmacro %}
 
 {% macro sectionReceipts(fsc) %}
-    <div class="card shadow mb-3">
-        <div class="p-3">
+    <div class="card">
+        <div class="card-body">
             <span class="float-right badge badge-danger">{{ trans('unpaid') }}</span>
-            <h2 class="h4 mb-0">
-                <i class="fas fa-dollar-sign fa-fw"></i>
-                {{ trans('receipts') }}
-            </h2>
-        </div>
-        <div class="table-responsive">
-            <table class="table table-sm table-hover mb-0">
-                <thead>
-                <tr>
-                    <th>{{ trans('customer') }}</th>
-                    <th>{{ trans('observations') }}</th>
-                    <th class="text-right">{{ trans('amount') }}</th>
-                    <th class="text-right">{{ trans('expiration') }}</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for receipt in fsc.receipts %}
-                    <tr class="clickableRow table-danger" data-href="{{ receipt.url() }}">
-                        <td>{{ receipt.getSubject().nombre | raw }}</td>
-                        <td>{{ receipt.observaciones | raw }}</td>
-                        <td class="text-right text-nowrap">{{ money(receipt.importe) }}</td>
-                        <td class="text-right text-nowrap">{{ receipt.vencimiento }}</td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
+            <h3 class="card-title mb-3">
+                <i class="fa-solid fa-dollar-sign me-2"></i>{{ trans('receipts') }}
+            </h3>
+            {% for receipt in fsc.receipts %}
+                <div class="d-flex justify-content-between align-items-center border border-danger rounded p-3 mb-2">
+                    <div>
+                        <div class="font-weight-bold">
+                            {{ receipt.getSubject().nombre | raw }} • {{ money(receipt.importe) }} •
+                            <small class="text-muted">{{ trans('expiration') }}: {{ receipt.vencimiento }}</small>
+                        </div>
+                        <div>
+                            <small class="text-muted">{{ receipt.observaciones | raw }}</small>
+                        </div>
+                    </div>
+                    <a href="{{ receipt.url() }}" class="btn btn-sm btn-outline-primary" title="{{ trans('open') }}">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    </a>
+                </div>
+            {% endfor %}
         </div>
     </div>
 {% endmacro %}
 
 {% macro sectionStats(fsc) %}
-    <div class="card mb-3">
+    <div class="card">
         <div id="statusChart"></div>
     </div>
 
@@ -287,7 +237,7 @@
     </script>
 {% endmacro %}
 
-{% macro sectionBackup() %}
+{% macro modalBackup() %}
     <div class="modal fade" id="modalBackup" tabindex="-1" role="dialog" aria-labelledby="modalBackup"
          aria-hidden="true">
         <div class="modal-lg modal-dialog modal-dialog-centered" role="document">
@@ -319,7 +269,7 @@
     </div>
 {% endmacro %}
 
-{% macro sectionHelp() %}
+{% macro modalHelp() %}
     <div class="modal fade" id="modalHelp" tabindex="-1" role="dialog" aria-labelledby="modalHelp"
          aria-hidden="true">
         <div class="modal-lg modal-dialog modal-dialog-centered" role="document">
@@ -349,7 +299,7 @@
                         <li>
                             <a href="https://forms.gle/WhGgWWB6EbWjBNna6" rel="nofollow"
                                target="_blank">Encuesta de uso 2024/25
-                                <i class="fas fa-clipboard-check"></i>
+                                <i class="fa-solid fa-clipboard-check"></i>
                             </a>
                         </li>
                         <li>
@@ -357,6 +307,46 @@
                                 <i class="far fa-comment-dots"></i></a>
                         </li>
                     </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endmacro %}
+
+{% macro modalNews(fsc) %}
+    <div class="modal fade" id="modalNews" tabindex="-1" role="dialog" aria-labelledby="modalNews" aria-hidden="true">
+        <div class="modal-lg modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content shadow">
+                <div class="modal-header">
+                    <h3 class="modal-title">{{ trans('news') }}</h3>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    {% for news in fsc.news %}
+                        <div class="row">
+                            <div class="col">
+                                <div class="card shadow mb-3">
+                                    <div class="card-header">
+                                        <span class="float-right">{{ news.fecha }}</span>
+                                        <a href="{{ news.url }}" target="_blank">{{ news.title | raw }}</a>
+                                    </div>
+                                    <div class="card-body p-3">
+                                        <div class="row align-items-center">
+                                            <div class="col-auto">
+                                                <a href="{{ news.url }}" target="_blank"
+                                                   class="btn btn-outline-secondary">
+                                                    <i class="far fa-newspaper fa-3x"></i>
+                                                </a>
+                                            </div>
+                                            <div class="col">{{ news.body | raw }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
                 </div>
             </div>
         </div>

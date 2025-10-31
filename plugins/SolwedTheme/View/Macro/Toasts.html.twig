@@ -1,4 +1,5 @@
-<div id="messages-toasts" style="z-index: 9999; position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);"></div>
+<div id="messages-toasts"
+     style="z-index: 9999; position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);"></div>
 
 <script>
     function setToast(message, style = 'info', title = '', time = 10000) {
@@ -13,7 +14,7 @@
             case 'completed':
                 styleHeader = 'bg-success text-white';
                 styleBorder = 'border border-success';
-                icon = '<i class="fas fa-check-circle mr-1"></i>';
+                icon = '<i class="fa-solid fa-check-circle me-1"></i>';
                 title = title !== '' ? title : '{{ trans('completed') }}';
                 break;
 
@@ -24,21 +25,21 @@
                 live = 'assertive';
                 styleHeader = 'bg-danger text-white';
                 styleBorder = 'border border-danger';
-                icon = '<i class="fas fa-times-circle mr-1"></i>';
+                icon = '<i class="fa-solid fa-times-circle me-1"></i>';
                 title = title !== '' ? title : '{{ trans('common-error') }}';
                 break;
 
             case 'info':
                 styleHeader = 'bg-info text-white';
                 styleBorder = 'border border-info';
-                icon = '<i class="fas fa-info-circle mr-1"></i>';
+                icon = '<i class="fa-solid fa-info-circle me-1"></i>';
                 title = title !== '' ? title : '{{ trans('info') }}';
                 break;
 
             case 'spinner':
                 styleHeader = 'bg-info text-white';
                 styleBorder = 'border border-info';
-                icon = '<i class="fa-solid fa-circle-notch fa-spin mr-1"></i>';
+                icon = '<i class="fa-solid fa-circle-notch fa-spin me-1"></i>';
                 title = title !== '' ? title : '{{ trans('processing') }}';
                 break;
 
@@ -46,43 +47,61 @@
             case 'success':
                 styleHeader = 'bg-success text-white';
                 styleBorder = 'border border-success';
-                icon = '<i class="fas fa-check-circle mr-1"></i>';
+                icon = '<i class="fa-solid fa-check-circle me-1"></i>';
                 title = title !== '' ? title : '{{ trans('success') }}';
                 break;
 
             case 'warning':
                 styleHeader = 'bg-warning';
                 styleBorder = 'border border-warning';
-                icon = '<i class="fas fa-exclamation-circle mr-1"></i>';
+                icon = '<i class="fa-solid fa-exclamation-circle me-1"></i>';
                 title = title !== '' ? title : '{{ trans('warning') }}';
                 break;
         }
 
-        if (message === '') {
-            styleHeader += ' border-bottom-0';
+        // Crear estructura del toast
+        const container = document.getElementById('messages-toasts');
+
+        container.querySelectorAll('.toast.hide').forEach(t => t.remove());
+
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${style} ${styleBorder} ${delay}`;
+        toast.setAttribute('role', role);
+        toast.setAttribute('aria-live', live);
+        toast.setAttribute('aria-atomic', 'true');
+        toast.style.margin = '15px auto 0 auto';
+
+        const header = document.createElement('div');
+        header.className = `toast-header ${styleHeader}${message === '' ? ' border-bottom-0' : ''}`;
+
+        const strong = document.createElement('strong');
+        strong.className = 'me-auto';
+        strong.innerHTML = `${icon}${title}`;
+
+        const closeBtn = document.createElement('button');
+        closeBtn.type = 'button';
+        closeBtn.className = `btn-close ms-2${styleHeader.includes('text-white') ? ' btn-close-white' : ''}`;
+        closeBtn.setAttribute('data-bs-dismiss', 'toast');
+        closeBtn.setAttribute('aria-label', "{{ trans('close') }}");
+
+        header.appendChild(strong);
+        header.appendChild(closeBtn);
+        toast.appendChild(header);
+
+        if (message !== '') {
+            const body = document.createElement('div');
+            body.className = 'toast-body';
+            body.innerHTML = message;
+            toast.appendChild(body);
         }
 
-        let html = '<div class="toast toast-' + style + ' ' + styleBorder + '" style="margin: 15px auto 0 auto;" role="' + role + '" aria-live="' + live + '" aria-atomic="true" ' + delay + '>'
-            + '<div class="toast-header ' + styleHeader + '">'
-            + '<strong class="mr-auto">' + icon + title + '</strong>'
-            + '<button type="button" class="ml-4 btn close ' + styleHeader + '" data-dismiss="toast" aria-label="{{ trans('close') }}">'
-            + '<span aria-hidden="true">&times;</span>'
-            + '</button>'
-            + '</div>';
+        container.appendChild(toast);
 
-            if (message !== '') {
-                html += '<div class="toast-body">' + message + '</div>';
-            }
+        const autohide = time > 0;
+        const toastObj = new bootstrap.Toast(toast, {delay: time, autohide});
 
-            html += '</div>';
+        toast.addEventListener('hidden.bs.toast', () => toast.remove());
 
-        // eliminamos los toast con la clase hide
-        $('#messages-toasts .toast.hide').remove();
-
-        // agregamos el toast al div
-        $('#messages-toasts').append(html);
-
-        // mostramos los toast
-        $('#messages-toasts .toast').toast('show');
+        toastObj.show();
     }
 </script>
