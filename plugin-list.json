@@ -1,9 +1,9 @@
 {
     "metadata": {
-        "generated": "10-11-2025 08:19:28",
+        "generated": "10-11-2025 18:52:12",
         "repo": "https://github.com/SolWed-es/SolwedPlugins-container",
         "plugin_count": 6,
-        "workflow_run": "19225168601"
+        "workflow_run": "19242633067"
     },
     "plugins": [
         {
@@ -13,7 +13,7 @@
             "min_version": 2025.43,
             "min_php": 8.1,
             "require": [
-                ""
+                "PortalCliente"
             ],
             "require_php": [
                 ""
