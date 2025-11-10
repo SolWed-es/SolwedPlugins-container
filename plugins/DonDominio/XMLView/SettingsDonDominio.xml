@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view>
+    <columns>
+        <group name="dondominio" title="dondominio-settings-title" icon="fa-solid fa-globe" numcolumns="12" description="dondominio-settings-description">
+            <column name="name" display="none" order="0">
+                <widget type="text" fieldname="name" readonly="true" required="true"/>
+            </column>
+
+            <column name="api-user" title="dondominio-apiuser-label" numcolumns="6" order="100" description="dondominio-apiuser-help">
+                <widget type="text" fieldname="dondominio_apiuser" icon="fa-solid fa-user" required="true" autocomplete="off"/>
+            </column>
+
+            <column name="api-password" title="dondominio-apipasswd-label" numcolumns="6" order="110" description="dondominio-apipasswd-help">
+                <widget type="password" fieldname="dondominio_apipasswd" icon="fa-solid fa-key" autocomplete="new-password"/>
+            </column>
+
+            <column name="endpoint" title="dondominio-endpoint-label" numcolumns="6" order="120" description="dondominio-endpoint-help">
+                <widget type="text" fieldname="dondominio_endpoint" icon="fa-solid fa-link" autocomplete="off" default="https://simple-api.dondominio.net"/>
+            </column>
+
+            <column name="port" title="dondominio-port-label" numcolumns="3" order="130" description="dondominio-port-help">
+                <widget type="number" fieldname="dondominio_port" min="1" max="65535" step="1" icon="fa-solid fa-plug" required="true" default="443">
+                    <values>443</values>
+                </widget>
+            </column>
+
+            <column name="timeout" title="dondominio-timeout-label" numcolumns="3" order="140" description="dondominio-timeout-help">
+                <widget type="number" fieldname="dondominio_timeout" min="1" max="120" step="1" icon="fa-solid fa-stopwatch" default="15"/>
+                <values>15</values>
+            </column>
+
+            <column name="verify-ssl" title="dondominio-verifyssl-label" numcolumns="3" order="150" description="dondominio-verifyssl-help">
+                <widget type="checkbox" fieldname="dondominio_verifyssl" default="1"/>
+            </column>
+
+            <column name="server-ip" title="dondominio-serverip-label" numcolumns="6" order="160" description="dondominio-serverip-help">
+                <widget type="text" fieldname="dondominio_serverip" icon="fa-solid fa-network-wired" readonly="true" default="{{ fs_var('ip_address', '0.0.0.0') }}"/>
+            </column>
+
+            <column name="enable-listcliente" title="dondominio-enable-listcliente-label" numcolumns="6" order="170" description="dondominio-enable-listcliente-help">
+                <widget type="checkbox" fieldname="dondominio_enable_listcliente" default="0"/>
+            </column>
+        </group>
+    </columns>
+</view>

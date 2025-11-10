@@ -1,0 +1,86 @@
+{% extends "Master/ListController.html.twig" %}
+
+{% block body %}
+    {{ parent() }}
+
+    {# Notificación de dominios próximos a expirar - DESACTIVADA por optimización de memoria #}
+    {# Se puede reactivar manualmente si es necesario #}
+    {% if false and view.global_expiring_count > 0 %}
+    <div class="alert alert-danger mb-3">
+        <i class="fa-solid fa-exclamation-triangle me-2"></i>
+        <strong>¡Atención!</strong> Hay {{ view.global_expiring_count }} dominio(s) que expira(n) en menos de 30 días en todo el sistema.
+        <a href="#" class="alert-link">Revisar dominios expirando</a>
+    </div>
+    {% endif %}
+
+    {% if view.result_limit_reached %}
+    <div class="alert alert-warning mb-3">
+        <i class="fa-solid fa-filter me-2"></i>
+        {{ trans('dondominio-domains-limit-warning', {'%count%': view.result_limit_value}) }}
+    </div>
+    {% endif %}
+
+    {% for item in data %}
+        <tr>
+            <td>
+                <a href="EditCliente?code={{ item.codcliente }}&activetab=EditClienteDominio" class="text-decoration-none">
+                    <i class="fa-solid fa-globe me-2"></i>{{ item.domain }}
+                </a>
+            </td>
+            <td>
+                <a href="EditCliente?code={{ item.codcliente }}" class="text-decoration-none">
+                    <i class="fa-solid fa-user me-2"></i>{{ item.codcliente }}
+                </a>
+            </td>
+            <td>
+                <a href="EditCliente?code={{ item.codcliente }}" class="text-decoration-none">
+                    <i class="fa-solid fa-building me-2"></i>{{ item.cliente_nombre }}
+                </a>
+            </td>
+
+            <td>
+                {% if item.status == 'active' %}
+                    <span class="badge bg-success">{{ trans('dondominio-status-active') }}</span>
+                {% elseif item.status == 'pending' %}
+                    <span class="badge bg-warning">{{ trans('dondominio-status-pending') }}</span>
+                {% elseif item.status == 'expired' %}
+                    <span class="badge bg-danger">{{ trans('dondominio-status-expired') }}</span>
+                {% elseif item.status == 'suspended' %}
+                    <span class="badge bg-dark">{{ trans('dondominio-status-suspended') }}</span>
+                {% else %}
+                    <span class="text-muted">{{ item.status }}</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if item.expires_at %}
+                    {{ item.expires_at|date('d/m/Y') }}
+                {% else %}
+                    <span class="text-muted">-</span>
+                {% endif %}
+            </td>
+            <td class="text-center">
+                {% if item.autorenew %}
+                    <i class="fa-solid fa-check text-success"></i>
+                {% else %}
+                    <i class="fa-solid fa-times text-muted"></i>
+                {% endif %}
+            </td>
+            <td>
+                {% if item.synced_at %}
+                    <small class="text-muted">{{ item.synced_at|date('d/m/Y H:i') }}</small>
+                {% else %}
+                    <span class="text-muted">API</span>
+                {% endif %}
+            </td>
+            <td>
+                <div class="btn-group" role="group">
+                    <a href="EditCliente?code={{ item.codcliente }}&activetab=EditClienteDominio"
+                       class="btn btn-sm btn-outline-primary"
+                       title="{{ trans('open-client') }}">
+                        <i class="fa-solid fa-external-link-alt"></i>
+                    </a>
+                </div>
+            </td>
+        </tr>
+    {% endfor %}
+{% endblock %}

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<table>
+    <column>
+        <name>id</name>
+        <type>serial</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>codcliente</name>
+        <type>character varying(20)</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>contact_id</name>
+        <type>character varying(80)</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>name</name>
+        <type>character varying(120)</type>
+    </column>
+    <column>
+        <name>email</name>
+        <type>character varying(120)</type>
+    </column>
+    <column>
+        <name>phone</name>
+        <type>character varying(60)</type>
+    </column>
+    <column>
+        <name>tax_number</name>
+        <type>character varying(50)</type>
+    </column>
+    <column>
+        <name>country</name>
+        <type>character varying(8)</type>
+    </column>
+    <column>
+        <name>verification_status</name>
+        <type>character varying(40)</type>
+    </column>
+    <column>
+        <name>daaccepted</name>
+        <type>boolean</type>
+        <default>FALSE</default>
+    </column>
+    <column>
+        <name>raw_data</name>
+        <type>text</type>
+    </column>
+    <column>
+        <name>synced_at</name>
+        <type>timestamp</type>
+    </column>
+    <column>
+        <name>created_at</name>
+        <type>timestamp</type>
+    </column>
+    <column>
+        <name>updated_at</name>
+        <type>timestamp</type>
+    </column>
+    <constraint>
+        <name>clientes_dondominio_dominios_contactos_pkey</name>
+        <type>PRIMARY KEY (id)</type>
+    </constraint>
+</table>

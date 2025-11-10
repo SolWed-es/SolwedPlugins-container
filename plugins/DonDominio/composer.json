@@ -1,0 +1,13 @@
+{
+    "name": "dondominio/facturascripts-plugin",
+    "description": "DonDominio API integration for FacturaScripts",
+    "type": "library",
+    "require": {
+        "dondominio/api-sdk-php": "^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "FacturaScripts\\Plugins\\DonDominio\\": ""
+        }
+    }
+}

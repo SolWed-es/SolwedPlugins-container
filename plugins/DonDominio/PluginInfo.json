@@ -1,0 +1,14 @@
+{
+    "name": "DonDominio",
+    "description": "Integración con la API de DonDominio para la gestión de dominios",
+    "version": "1.0.0",
+    "author": "Tu Nombre",
+    "url": "https://tudominio.com",
+    "compatible_versions": ">=2025.43",
+    "php_min": "8.1",
+    "dependencies": [],
+    "i18n": [
+        "en_US",
+        "es_ES"
+    ]
+}

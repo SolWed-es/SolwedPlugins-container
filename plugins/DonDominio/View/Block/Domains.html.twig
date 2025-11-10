@@ -1,0 +1,483 @@
+{# Los contactos se pasan desde el controlador en view.cursor #}
+{% set contacts = view.cursor %}
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h3 class="mb-1"><i class="fa-solid fa-address-book me-2"></i>Contactos y Dominios DonDominio</h3>
+            <p class="text-muted mb-0">Gestión completa de contactos y dominios del cliente</p>
+
+            {# Notificación de dominios próximos a expirar #}
+            {% if view.expiring_count > 0 %}
+            <div class="alert alert-danger d-flex align-items-center mt-3">
+                <i class="fa-solid fa-exclamation-triangle me-2"></i>
+                <div>
+                    <strong>¡Atención!</strong> Este cliente tiene {{ view.expiring_count }} dominio(s) que expira(n) en menos de 30 días:
+                    <ul class="mb-0 mt-2">
+                        {% for domain in view.expiring_domains %}
+                        <li><strong>{{ domain.name }}</strong> - Expira el {{ domain.expiration|date('d/m/Y') }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if contacts is empty %}
+    <div class="alert alert-info">
+        <i class="fa-solid fa-circle-info me-2"></i>
+        No se encontraron contactos para este cliente en DonDominio.
+    </div>
+    {% else %}
+    
+    {# Recorrer contactos #}
+    {% for contact in contacts %}
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h5 class="mb-0">
+                        <i class="fa-solid fa-user-circle me-2"></i>
+                        {{ contact.name ?: 'Contacto ' ~ loop.index }}
+                    </h5>
+                    <small>
+                        <i class="fa-solid fa-id-card me-1"></i>{{ contact.tax_number }}
+                        <i class="fa-solid fa-envelope ms-3 me-1"></i>{{ contact.email }}
+                    </small>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <span class="badge bg-light text-dark me-1">
+                        {{ contact.type == 'individual' ? 'Particular' : 'Empresa' }}
+                    </span>
+                    {% if contact.verification_status == 'verified' %}
+                    <span class="badge bg-success">
+                        <i class="fa-solid fa-check-circle me-1"></i>Verificado
+                    </span>
+                    {% else %}
+                    <span class="badge bg-warning text-dark">
+                        <i class="fa-solid fa-exclamation-triangle me-1"></i>No verificado
+                    </span>
+                    {% endif %}
+                    <span class="badge bg-light text-dark ms-1">
+                        <i class="fa-solid fa-globe me-1"></i>{{ contact.domains_count }} dominio(s)
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card-body">
+            {# Información compacta del contacto #}
+            <div class="row mb-3 pb-3 border-bottom">
+                <div class="col-md-2">
+                    <small class="text-muted d-block">Contact ID</small>
+                    <code class="small">{{ contact.id }}</code>
+                </div>
+                <div class="col-md-2">
+                    <small class="text-muted d-block">Empresa</small>
+                    <strong class="small">{{ contact.company ?: 'N/A' }}</strong>
+                </div>
+                <div class="col-md-2">
+                    <small class="text-muted d-block">País</small>
+                    <span class="small">
+                        {% if contact.country %}
+                        <i class="fa-solid fa-flag me-1"></i>{{ contact.country }}
+                        {% else %}
+                        N/A
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="col-md-2">
+                    <small class="text-muted d-block">Teléfono</small>
+                    <span class="small">{{ contact.phone }}</span>
+                </div>
+            </div>
+            
+            {# Dominios del contacto #}
+            {% if contact.domains_count > 0 %}
+            <h6 class="text-primary mb-3">
+                <i class="fa-solid fa-globe me-2"></i>Dominios ({{ contact.domains_count }})
+            </h6>
+            
+            {% for domain in contact.domains %}
+            <div class="card mb-3 border" id="domain-card-{{ loop.parent.loop.index }}-{{ loop.index }}">
+                <div class="card-body">
+                    <div class="row align-items-start">
+                        {# Columna 1: Dominio y Estado #}
+                        <div class="col-md-3">
+                            <h6 class="mb-2">
+                                <i class="fa-solid fa-globe text-primary me-1"></i>
+                                <strong>{{ domain.name }}</strong>
+                            </h6>
+                            <div class="mb-2">
+                                {% set statusMap = {
+                                    'active': {'class': 'success', 'icon': 'circle-check', 'text': 'Activo'},
+                                    'pending': {'class': 'warning', 'icon': 'clock', 'text': 'Pendiente'},
+                                    'expired': {'class': 'danger', 'icon': 'circle-xmark', 'text': 'Expirado'},
+                                    'suspended': {'class': 'secondary', 'icon': 'pause', 'text': 'Suspendido'},
+                                } %}
+                                {% set status = statusMap[domain.status] ?? {'class': 'secondary', 'icon': 'circle-question', 'text': domain.status|capitalize} %}
+                                <span class="badge bg-{{ status.class }}">
+                                    <i class="fa-solid fa-{{ status.icon }} me-1"></i>{{ status.text }}
+                                </span>
+                            </div>
+                            {% if domain.domain_id %}
+                            <small class="text-muted d-block">ID: {{ domain.domain_id }}</small>
+                            {% endif %}
+                            {% if domain.tld %}
+                            <small class="text-muted d-block">TLD: .{{ domain.tld }}</small>
+                            {% endif %}
+                            {% if domain.expiration %}
+                            <small class="text-muted d-block">
+                                <i class="fa-solid fa-calendar me-1"></i>Expira: {{ domain.expiration|date('d/m/Y') }}
+                            </small>
+                            {% endif %}
+                            {% if domain.created %}
+                            <small class="text-muted d-block">
+                                <i class="fa-solid fa-clock me-1"></i>Creado: {{ domain.created|date('d/m/Y') }}
+                            </small>
+                            {% endif %}
+                        </div>
+                        
+                        {# Columna 2: Configuración #}
+                        <div class="col-md-3">
+                            <small class="text-muted d-block mb-2"><strong>Configuración</strong></small>
+                            
+                            {# Auto-renovación #}
+                            <div class="mb-2">
+                                <small class="text-muted">Auto-renovación:</small>
+                                <div class="form-check form-switch d-inline-block ms-2">
+                                    <input class="form-check-input" type="checkbox" 
+                                           id="autorenew-{{ loop.parent.loop.index }}-{{ loop.index }}"
+                                           {{ domain.autorenew ? 'checked' : '' }}
+                                           onchange="toggleAutoRenew('{{ domain.name }}', this.checked)">
+                                </div>
+                            </div>
+                            
+                            {# Bloqueo de transferencia #}
+                            <div class="mb-2">
+                                <small class="text-muted">Bloqueo:</small>
+                                <div class="form-check form-switch d-inline-block ms-2">
+                                    <input class="form-check-input" type="checkbox" 
+                                           id="transferlock-{{ loop.parent.loop.index }}-{{ loop.index }}"
+                                           {{ domain.transfer_lock ? 'checked' : '' }}
+                                           onchange="toggleTransferLock('{{ domain.name }}', this.checked)">
+                                </div>
+                            </div>
+                            
+                            {# AuthCode #}
+                            <div class="mt-3">
+                                <button type="button" class="btn btn-sm btn-outline-warning" 
+                                        onclick="getDomainAuthcode('{{ domain.name }}')"
+                                        title="Obtener código de autorización">
+                                    <i class="fa-solid fa-key me-1"></i>Ver AuthCode
+                                </button>
+                            </div>
+                            
+                            {# IDs de contactos #}
+                            {% if domain.ownerContactID %}
+                            <div class="mt-3 pt-2 border-top">
+                                <small class="text-muted d-block"><strong>IDs Contactos</strong></small>
+                                <small class="text-muted d-block">Owner: <code class="small">{{ domain.ownerContactID }}</code></small>
+                                {% if domain.adminContactID and domain.adminContactID != domain.ownerContactID %}
+                                <small class="text-muted d-block">Admin: <code class="small">{{ domain.adminContactID }}</code></small>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        {# Columna 3: Nameservers (editable inline) #}
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <small class="text-muted">
+                                    <strong><i class="fa-solid fa-server me-1"></i>Nameservers</strong>
+                                </small>
+                                <button type="button" class="btn btn-sm btn-link p-0"
+                                        onclick="toggleEditNameservers({{ loop.parent.loop.index }}, {{ loop.index }})"
+                                        id="edit-ns-btn-contact-{{ loop.parent.loop.index }}-domain-{{ loop.index }}">
+                                    <i class="fa-solid fa-edit"></i> Editar
+                                </button>
+                            </div>
+                            
+                            {# Vista de nameservers #}
+                            <div id="ns-view-contact-{{ loop.parent.loop.index }}-domain-{{ loop.index }}">
+                                {% if domain.nameservers is not empty %}
+                                <ul class="list-unstyled small mb-0">
+                                    {% for ns in domain.nameservers %}
+                                    <li class="mb-1">
+                                        <i class="fa-solid fa-caret-right text-primary me-1"></i>
+                                        <code class="small">{{ ns }}</code>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                                {% else %}
+                                <small class="text-muted">No configuradas</small>
+                                {% endif %}
+                            </div>
+
+                            {# Formulario de edición de nameservers (oculto por defecto) #}
+                            <div id="ns-edit-contact-{{ loop.parent.loop.index }}-domain-{{ loop.index }}" style="display: none;">
+                                <form onsubmit="saveNameservers(event, '{{ domain.name }}', {{ loop.parent.loop.index }}, {{ loop.index }})">
+                                    <input type="hidden" name="multireqtoken" value="{{ fsc.multiRequestProtection.newToken() }}">
+                                    <div id="ns-inputs-contact-{{ loop.parent.loop.index }}-domain-{{ loop.index }}">
+                                        {% if domain.nameservers is not empty %}
+                                            {% for ns in domain.nameservers %}
+                                            <div class="input-group input-group-sm mb-1">
+                                                <span class="input-group-text" style="width: 45px;">NS{{ loop.index }}</span>
+                                                <input type="text" class="form-control form-control-sm" 
+                                                       name="nameservers[]" value="{{ ns }}" required>
+                                                {% if loop.index > 2 %}
+                                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                        onclick="this.closest('.input-group').remove()">
+                                                    <i class="fa-solid fa-times"></i>
+                                                </button>
+                                                {% endif %}
+                                            </div>
+                                            {% endfor %}
+                                        {% else %}
+                                            <div class="input-group input-group-sm mb-1">
+                                                <span class="input-group-text" style="width: 45px;">NS1</span>
+                                                <input type="text" class="form-control form-control-sm" 
+                                                       name="nameservers[]" placeholder="ns1.ejemplo.com" required>
+                                            </div>
+                                            <div class="input-group input-group-sm mb-1">
+                                                <span class="input-group-text" style="width: 45px;">NS2</span>
+                                                <input type="text" class="form-control form-control-sm" 
+                                                       name="nameservers[]" placeholder="ns2.ejemplo.com" required>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="btn-group btn-group-sm mt-2 w-100" role="group">
+                                        <button type="button" class="btn btn-outline-primary btn-sm" 
+                                                onclick="addNsInput({{ loop.parent.loop.index }}, {{ loop.index }})">
+                                            <i class="fa-solid fa-plus"></i>
+                                        </button>
+                                        <button type="submit" class="btn btn-success btn-sm">
+                                            <i class="fa-solid fa-save me-1"></i>Guardar
+                                        </button>
+                                        <button type="button" class="btn btn-secondary btn-sm" 
+                                                onclick="toggleEditNameservers({{ loop.parent.loop.index }}, {{ loop.index }})">
+                                            <i class="fa-solid fa-times"></i>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="alert alert-info mb-0">
+                <i class="fa-solid fa-info-circle me-2"></i>
+                Este contacto no tiene dominios asociados.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+</div>
+
+<script>
+// Toggle edición de nameservers
+function toggleEditNameservers(contactIdx, domainIdx) {
+    const viewEl = document.getElementById('ns-view-contact-' + contactIdx + '-domain-' + domainIdx);
+    const editEl = document.getElementById('ns-edit-contact-' + contactIdx + '-domain-' + domainIdx);
+    const btnEl = document.getElementById('edit-ns-btn-contact-' + contactIdx + '-domain-' + domainIdx);
+    
+    if (editEl.style.display === 'none') {
+        viewEl.style.display = 'none';
+        editEl.style.display = 'block';
+        btnEl.innerHTML = '<i class="fa-solid fa-times"></i> Cancelar';
+    } else {
+        viewEl.style.display = 'block';
+        editEl.style.display = 'none';
+        btnEl.innerHTML = '<i class="fa-solid fa-edit"></i> Editar';
+    }
+}
+
+// Añadir input de nameserver
+function addNsInput(contactIdx, domainIdx) {
+    const container = document.getElementById('ns-inputs-contact-' + contactIdx + '-domain-' + domainIdx);
+    const count = container.querySelectorAll('input[name="nameservers[]"]').length + 1;
+    
+    if (count > 7) {
+        alert('Máximo 7 nameservers permitidos');
+        return;
+    }
+    
+    const div = document.createElement('div');
+    div.className = 'input-group input-group-sm mb-1';
+    div.innerHTML = '<span class="input-group-text" style="width: 45px;">NS' + count + '</span>' +
+        '<input type="text" class="form-control form-control-sm" name="nameservers[]" placeholder="ns' + count + '.ejemplo.com">' +
+        '<button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest(\'.input-group\').remove()">' +
+        '<i class="fa-solid fa-times"></i></button>';
+    container.appendChild(div);
+}
+
+// Guardar nameservers
+function saveNameservers(event, domainName, contactIdx, domainIdx) {
+    event.preventDefault();
+    
+    const form = event.target;
+    const inputs = form.querySelectorAll('input[name="nameservers[]"]');
+    const nameservers = Array.from(inputs)
+        .map(input => input.value.trim())
+        .filter(ns => ns.length > 0);
+    
+    if (nameservers.length < 2) {
+        alert('Debes configurar al menos 2 nameservers');
+        return;
+    }
+    
+    const formData = new FormData();
+    
+    // Obtener el token del formulario
+    const token = form.querySelector('input[name="multireqtoken"]');
+    if (token) {
+        formData.append('multireqtoken', token.value);
+    }
+    
+    formData.append('action', 'dondominio-domain-update-nameservers');
+    formData.append('domain_name', domainName);
+    
+    // Añadir los nameservers
+    nameservers.forEach(ns => formData.append('nameservers[]', ns));
+    
+    fetch(window.location.href, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Nameservers actualizados correctamente');
+            location.reload();
+        } else {
+            alert('Error: ' + (data.message || 'Error desconocido'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al actualizar nameservers');
+    });
+}
+
+// Toggle auto-renovación
+function toggleAutoRenew(domainName, enable) {
+    if (!confirm(`¿Confirmas ${enable ? 'activar' : 'desactivar'} la auto-renovación para ${domainName}?`)) {
+        event.target.checked = !enable;
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('action', 'dondominio-domain-toggle-autorenew');
+    formData.append('domain_name', domainName);
+    
+    fetch(window.location.href, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(`Auto-renovación ${enable ? 'activada' : 'desactivada'} correctamente`);
+        } else {
+            alert('Error: ' + (data.message || 'Error desconocido'));
+            event.target.checked = !enable;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al cambiar auto-renovación');
+        event.target.checked = !enable;
+    });
+}
+
+// Toggle bloqueo de transferencia
+function toggleTransferLock(domainName, enable) {
+    if (!confirm(`¿Confirmas ${enable ? 'bloquear' : 'desbloquear'} las transferencias para ${domainName}?`)) {
+        event.target.checked = !enable;
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('action', 'update-domain-transfer-lock');
+    formData.append('domain_name', domainName);
+    formData.append('lock', enable ? '1' : '0');
+    
+    fetch(window.location.href, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(`Transferencias ${enable ? 'bloqueadas' : 'desbloqueadas'} correctamente`);
+        } else {
+            alert('Error: ' + (data.message || 'Error desconocido'));
+            event.target.checked = !enable;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al cambiar bloqueo de transferencia');
+        event.target.checked = !enable;
+    });
+}
+
+// Obtener AuthCode
+function getDomainAuthcode(domainName) {
+    const formData = new FormData();
+    formData.append('action', 'get-domain-authcode');
+    formData.append('domain_name', domainName);
+    
+    fetch(window.location.href, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.code) {
+            prompt('AuthCode para ' + domainName + ':', data.code);
+        } else {
+            alert('Error: ' + (data.message || 'No se pudo obtener el AuthCode'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al obtener AuthCode');
+    });
+}
+</script>
+
+<style>
+    .form-check-input {
+        cursor: pointer;
+    }
+    
+    .form-check-input:checked {
+        background-color: #198754;
+        border-color: #198754;
+    }
+    
+    code {
+        font-size: 0.875em;
+        background-color: #f8f9fa;
+        padding: 2px 6px;
+        border-radius: 3px;
+    }
+    
+    .card-header.bg-primary {
+        background-color: #0d6efd !important;
+    }
+    
+    .btn-link {
+        text-decoration: none !important;
+    }
+    
+    .input-group-text {
+        font-size: 0.875rem;
+    }
+</style>

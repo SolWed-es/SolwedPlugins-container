@@ -1,0 +1,162 @@
+{% set domains = fsc.domains %}
+
+{% if domains is empty %}
+    <div class="alert alert-info">
+        <i class="fa-solid fa-info-circle me-1"></i>
+        {{ trans('dondominio-no-domains') }}
+    </div>
+{% else %}
+    <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle text-center">
+            <thead class="table-light">
+            <tr>
+                <th scope="col"><i class="fa-solid fa-globe me-1"></i>{{ trans('dondominio-domain') }}</th>
+                <th scope="col"><i class="fa-solid fa-circle-notch me-1"></i>{{ trans('dondominio-status') }}</th>
+                <th scope="col"><i class="fa-solid fa-calendar me-1"></i>{{ trans('dondominio-expires-at') }}</th>
+                <th scope="col"><i class="fa-solid fa-rotate me-1"></i>{{ trans('dondominio-autorenew') }}</th>
+                <th scope="col"></th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for domain in domains %}
+                <tr>
+                    <td>
+                        {% if domain.domain %}
+                            {% set url = 'https://' ~ domain.domain %}
+                            <a href="{{ url }}" target="_blank" rel="noopener noreferrer">{{ domain.domain }}</a>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% set rawStatus = domain.status ?: '' %}
+                        {% set normalizedStatus = rawStatus|lower %}
+                        {% set statusClass = 'text-warning' %}
+                        {% if normalizedStatus == 'active' %}
+                            {% set statusClass = 'text-success' %}
+                        {% elseif normalizedStatus in ['inactive', 'expired', 'caducado', 'cancelled', 'cancelado'] %}
+                            {% set statusClass = 'text-danger' %}
+                        {% endif %}
+                        {% if rawStatus %}
+                            <span class="{{ statusClass }}" title="{{ rawStatus }}">
+                                <i class="fa-solid fa-circle"></i>
+                                <span class="visually-hidden">{{ rawStatus }}</span>
+                            </span>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>{{ domain.expires_at ?: '-' }}</td>
+                    <td>
+                        {% if domain.autorenew %}
+                            <span class="badge bg-success">{{ trans('yes') }}</span>
+                        {% else %}
+                            <span class="badge bg-secondary me-2">{{ trans('no') }}</span>
+                            <a href="#"
+                               class="btn btn-sm btn-outline-warning d-inline-flex align-items-center download-autorenew-contract"
+                               data-domain="{{ domain.id }}"
+                               data-contact="{{ fsc.contact.idcontacto }}"
+                               data-token="{{ formToken(false)|e('html_attr') }}">
+                                <i class="fa-solid fa-file-arrow-down me-1"></i>
+                                {{ trans('dondominio-autorenew-contract') }}
+                            </a>
+                        {% endif %}
+                    </td>
+                    <td></td>
+                </tr>
+                <tr class="domain-actions bg-dark text-light">
+                    <td colspan="5" class="text-center py-4">
+                        <div class="d-inline-flex flex-wrap justify-content-center gap-4">
+                            {% if domain.domain %}
+                                {% set whoisUrl = 'https://www.dondominio.com/whois/?domain=' ~ domain.domain %}
+                                <a class="btn btn-sm btn-outline-info d-inline-flex align-items-center"
+                                   href="{{ whoisUrl }}"
+                                   target="_blank" rel="noopener">
+                                    <i class="fa-solid fa-search me-1"></i>
+                                    {{ trans('dondominio-whois') }}
+                                </a>
+                            {% endif %}
+                            <a href="#"
+                               class="btn btn-sm btn-outline-warning d-inline-flex align-items-center domain-transferlock-button"
+                               data-domain="{{ domain.id }}"
+                               data-contact="{{ fsc.contact.idcontacto }}"
+                               data-confirm-enable="{{ trans('dondominio-transfer-lock-confirm-enable')|e('html_attr') }}"
+                               data-confirm-disable="{{ trans('dondominio-transfer-lock-confirm-disable')|e('html_attr') }}"
+                               data-enabled-label="{{ trans('dondominio-transfer-lock-enabled-label')|e('html_attr') }}"
+                               data-disabled-label="{{ trans('dondominio-transfer-lock-disabled-label')|e('html_attr') }}"
+                               data-token="{{ formToken(false)|e('html_attr') }}">
+                                <i class="fa-solid fa-lock me-1"></i>
+                                <span class="transfer-lock-label">{{ trans('dondominio-transfer-lock') }}</span>
+                            </a>
+                            <a href="#"
+                               class="btn btn-sm btn-outline-primary d-inline-flex align-items-center domain-authcode-button"
+                               data-domain="{{ domain.id }}"
+                               data-contact="{{ fsc.contact.idcontacto }}"
+                               data-token="{{ formToken(false)|e('html_attr') }}">
+                                <i class="fa-solid fa-key me-1"></i>
+                                {{ trans('dondominio-authcode') }}
+                            </a>
+                            <a class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center"
+                               href="{{ domain.web_link|default('https://ns5.solwed-hosting.es') }}"
+                               target="_blank" rel="noopener">
+                                <i class="fa-solid fa-globe me-1"></i>
+                                {{ trans('dondominio-web-server') }}
+                            </a>
+                            <a class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center"
+                               href="{{ domain.mail_link|default('https://serverdata.solwed-hosting.es') }}"
+                               target="_blank" rel="noopener">
+                                <i class="fa-solid fa-envelope me-1"></i>
+                                {{ trans('dondominio-mail-server') }}
+                            </a>
+                            {% set erpReady = domain.erp_action and domain.erp_user and domain.erp_pass %}
+                            {% set erpFormId = 'erpAutoLoginForm-' ~ domain.id %}
+                            <form id="{{ erpFormId }}" action="{{ domain.erp_action|default('') }}" method="post" target="_blank" class="d-inline">
+                                <input type="hidden" name="{{ domain.erp_user_field|default('username') }}" value="{{ domain.erp_user|default('') }}">
+                                <input type="hidden" name="{{ domain.erp_pass_field|default('password') }}" value="{{ domain.erp_pass|default('') }}">
+                                <button type="submit" class="btn btn-sm d-inline-flex align-items-center"
+                                        style="background-color:#f2e500;color:#1f1f1f;text-transform:uppercase;font-weight:600;"
+                                        {% if not erpReady %}disabled title="{{ trans('dondominio-erp-missing') }}"{% endif %}>
+                                    <i class="fa-solid fa-house-laptop me-1"></i>
+                                    ERP
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <p class="text-muted small mb-0">
+        <i class="fa-solid fa-circle-info me-1"></i>
+        {{ trans('dondominio-help') }}
+    </p>
+    
+    <!-- Modal para mostrar el código de autorización -->
+    <div class="modal fade" id="authcodeModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fa-solid fa-key me-2"></i>{{ trans('dondominio-authcode-modal-title') }}
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ trans('close') }}"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small mb-3">{{ trans('dondominio-authcode-modal-description') }}</p>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="authcodeValue" readonly>
+                        <button class="btn btn-outline-secondary" type="button" id="authcodeCopy">{{ trans('copy') }}</button>
+                    </div>
+                    <div class="alert alert-danger d-none mt-3" id="authcodeAlert" role="alert"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ trans('close') }}</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Incluir el archivo JavaScript -->
+    <script src="{{ asset('Dinamic/Assets/JS/DonDominioPortalDomains.js') }}"></script>
+{% endif %}
