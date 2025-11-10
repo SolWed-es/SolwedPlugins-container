@@ -7,6 +7,18 @@
             <h3 class="mb-1"><i class="fa-solid fa-address-book me-2"></i>Contactos y Dominios DonDominio</h3>
             <p class="text-muted mb-0">Gestión completa de contactos y dominios del cliente</p>
 
+            <form id="dondominioSyncForm" method="post" class="d-flex flex-wrap gap-2 align-items-center mt-3 mb-3">
+                {{ formToken() }}
+                <input type="hidden" name="action" value="sync-dondominio-domains"/>
+                <input type="hidden" name="activetab" value="EditClienteDonDominio"/>
+                <button type="submit" class="btn btn-sm btn-outline-primary">
+                    <i class="fa-solid fa-sync-alt me-1"></i>{{ trans('dondominio-sync-domains') }}
+                </button>
+                <small class="text-muted mb-0">
+                    {{ trans('dondominio-sync-domains-help') }}
+                </small>
+            </form>
+
             {# Notificación de dominios próximos a expirar #}
             {% if view.expiring_count > 0 %}
             <div class="alert alert-danger d-flex align-items-center mt-3">

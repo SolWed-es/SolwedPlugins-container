@@ -23,6 +23,7 @@
     "dondominio-save-warning": "No se pudo guardar el ID de DonDominio del cliente %codcliente%.",
     "dondominio-domains": "Dominios (API)",
     "dondominio-sync-domains": "Sincronizar",
+    "dondominio-sync-domains-help": "Actualiza la lista de dominios desde DonDominio",
     "dondominio-contact-selection": "Contacto de DonDominio",
     "dondominio-provider": "Proveedor",
     "dondominio-status": "Estado",

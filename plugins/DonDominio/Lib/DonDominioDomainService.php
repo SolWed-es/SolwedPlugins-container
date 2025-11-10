@@ -8,6 +8,7 @@ use FacturaScripts\Core\Model\Cliente as BaseCliente;
 use FacturaScripts\Dinamic\Model\Cliente;
 use FacturaScripts\Core\Base\DataBase\DataBaseWhere;
 use FacturaScripts\Plugins\DonDominio\Model\ClienteDonDominio;
+use FacturaScripts\Plugins\DonDominio\Model\Domain;
 
 final class DonDominioDomainService
 {
@@ -78,15 +79,74 @@ final class DonDominioDomainService
         if (!($cliente instanceof \FacturaScripts\Core\Model\Cliente)) {
             throw new \InvalidArgumentException('Expected instance of Cliente or ClienteDonDominio');
         }
-        
-        $where = [
+
+        if (empty($cliente->codcliente)) {
+            return [];
+        }
+
+        try {
+            (new DomainSyncService())->syncClientIfNeeded($cliente->codcliente);
+        } catch (\Throwable $exception) {
+            Tools::log()->warning('dondominio-cache-sync-error', [
+                '%codcliente%' => $cliente->codcliente,
+                '%message%' => $exception->getMessage(),
+            ]);
+        }
+
+        $models = Domain::all([
             new DataBaseWhere('codcliente', $cliente->codcliente),
             new DataBaseWhere('provider', 'dondominio'),
-        ];
+        ], ['domain' => 'ASC']);
 
-        // TODO: Implementar la lógica para obtener los dominios del cliente
-        // Esto es un placeholder - necesitarás adaptarlo a tu estructura de datos actual
-        return [];
+        if (empty($models)) {
+            return [];
+        }
+
+        $extendedClient = $cliente instanceof ClienteDonDominio
+            ? $cliente
+            : self::loadClienteDonDominio($cliente->codcliente);
+        $accessInfo = self::buildAccessInfo($extendedClient);
+
+        $result = [];
+        foreach ($models as $domain) {
+            $result[] = self::mapStoredDomain($domain, $accessInfo);
+        }
+
+        return $result;
+    }
+
+    private static function loadClienteDonDominio(string $codcliente): ?ClienteDonDominio
+    {
+        if ('' === trim($codcliente)) {
+            return null;
+        }
+
+        $extended = new ClienteDonDominio();
+        return $extended->loadFromCode($codcliente) ? $extended : null;
+    }
+
+    private static function buildAccessInfo(?ClienteDonDominio $cliente): array
+    {
+        return [
+            'web_link' => $cliente?->web_server_url,
+            'mail_link' => $cliente?->mail_server_url,
+            'erp_action' => $cliente?->erp_url,
+            'erp_user' => $cliente?->erp_user,
+            'erp_pass' => $cliente?->erp_password,
+            'erp_user_field' => 'username',
+            'erp_pass_field' => 'password',
+        ];
+    }
+
+    private static function mapStoredDomain(Domain $domain, array $accessInfo): array
+    {
+        return array_merge([
+            'id' => $domain->id,
+            'domain' => $domain->domain,
+            'status' => $domain->status,
+            'expires_at' => $domain->expires_at,
+            'autorenew' => (bool)$domain->autorenew,
+        ], $accessInfo);
     }
 
     /**

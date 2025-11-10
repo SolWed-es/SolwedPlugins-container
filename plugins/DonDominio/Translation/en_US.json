@@ -21,6 +21,7 @@
     "dondominio-save-warning": "Could not save the DonDominio ID for customer %codcliente%",
     "dondominio-domains": "Domains",
     "dondominio-sync-domains": "Sync",
+    "dondominio-sync-domains-help": "Refresh the domain list from DonDominio",
     "dondominio-contact-selection": "DonDominio contact",
     "dondominio-provider": "Provider",
     "dondominio-status": "Status",
