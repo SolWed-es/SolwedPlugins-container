@@ -1,11 +1,26 @@
 {
     "metadata": {
-        "generated": "09-11-2025 01:39:14",
+        "generated": "10-11-2025 08:19:28",
         "repo": "https://github.com/SolWed-es/SolwedPlugins-container",
-        "plugin_count": 5,
-        "workflow_run": "19201520111"
+        "plugin_count": 6,
+        "workflow_run": "19225168601"
     },
     "plugins": [
+        {
+            "name": "DonDominio",
+            "description": "Integraci\u00f3n con la API de DonDominio para la gesti\u00f3n de dominios",
+            "version": 1,
+            "min_version": 2025.43,
+            "min_php": 8.1,
+            "require": [
+                ""
+            ],
+            "require_php": [
+                ""
+            ],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/DonDominio.zip",
+            "last_updated": "2025-11-10"
+        },
         {
             "name": "IeCRMFormularioElementor",
             "description": "IeCRMFormularioElementor",
