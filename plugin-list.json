@@ -1,9 +1,9 @@
 {
     "metadata": {
-        "generated": "11-11-2025 10:57:00",
+        "generated": "11-11-2025 11:11:00",
         "repo": "https://github.com/SolWed-es/SolwedPlugins-container",
         "plugin_count": 6,
-        "workflow_run": "19263386737"
+        "workflow_run": "19263732724"
     },
     "plugins": [
         {
@@ -48,7 +48,7 @@
         {
             "name": "SolwedTheme",
             "description": "Tema personalizado basado en Bootstrap 5 para FacturaScripts",
-            "version": 1.72,
+            "version": 1.73,
             "min_version": 2025,
             "min_php": 7.3,
             "require": [],
