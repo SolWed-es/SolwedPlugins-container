@@ -1,11 +1,22 @@
 {
     "metadata": {
-        "generated": "11-11-2025 12:52:23",
+        "generated": "11-11-2025 13:43:32",
         "repo": "https://github.com/SolWed-es/SolwedPlugins-container",
-        "plugin_count": 6,
-        "workflow_run": "19266211765"
+        "plugin_count": 7,
+        "workflow_run": "19267544198"
     },
     "plugins": [
+        {
+            "name": "DescuentoGlobal",
+            "description": "Permite usar margenes negativos en EditProducto",
+            "version": 1,
+            "min_version": 2025.43,
+            "min_php": 7.3,
+            "require": [],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/DescuentoGlobal.zip",
+            "last_updated": "2025-11-11"
+        },
         {
             "name": "DonDominio",
             "description": "Integraci\u00f3n con la API de DonDominio para la gesti\u00f3n de dominios",
