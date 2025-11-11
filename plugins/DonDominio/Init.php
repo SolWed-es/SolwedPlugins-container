@@ -10,6 +10,7 @@ namespace FacturaScripts\Plugins\DonDominio;
 
 use FacturaScripts\Core\Migrations;
 use FacturaScripts\Core\Tools;
+use FacturaScripts\Plugins\DonDominio\Lib\TableInstaller;
 use FacturaScripts\Plugins\DonDominio\Migrations\AddDomainContactIdColumn;
 use FacturaScripts\Plugins\DonDominio\Migrations\CreateDomainContactsTable;
 
@@ -119,10 +120,7 @@ class Init
             $domain = new \FacturaScripts\Plugins\DonDominio\Model\Domain();
             $domain->install();
 
-            $server = new \FacturaScripts\Plugins\DonDominio\Model\Server();
-            $server->install();
-
-             $server = new \FacturaScripts\Plugins\DonDominio\Model\ClienteERP();
+            $server = new \FacturaScripts\Plugins\DonDominio\Model\ClienteERP();
             $server->install();
         } catch (\Exception $e) {
             $errorMsg = 'Error instalando modelos de DonDominio: ' . $e->getMessage();
@@ -157,6 +155,10 @@ class Init
                 new \FacturaScripts\Plugins\DonDominio\Extension\Controller\PortalCliente()
             );
 
+            \FacturaScripts\Dinamic\Controller\PortalLogin::addExtension(
+                new \FacturaScripts\Plugins\DonDominio\Extension\Controller\PortalLogin()
+            );
+
             if ($this->isListClienteDomainsEnabled()) {
                 // Extensión para añadir pestaña de dominios a ListCliente
                 \FacturaScripts\Dinamic\Controller\ListCliente::addExtension(
@@ -173,6 +175,7 @@ class Init
     private function runMigrations(): void
     {
         try {
+            TableInstaller::ensureTables();
             Migrations::runPluginMigrations([
                 new CreateDomainContactsTable(),
                 new AddDomainContactIdColumn(),

@@ -83,6 +83,16 @@
                                                                 {% endif %}
                                                             </div>
 
+                                                            <div class="mb-2">
+                                                                <small class="text-muted d-block"><strong>TLD:</strong> {{ domain.tld ?: '-' }}</small>
+                                                                {% if domain.created %}
+                                                                <small class="text-muted d-block"><strong>Registrado:</strong> {{ domain.created|date('d/m/Y') }}</small>
+                                                                {% endif %}
+                                                                {% if domain.renewal_mode %}
+                                                                <small class="text-muted d-block"><strong>Modo de renovación:</strong> {{ domain.renewal_mode }}</small>
+                                                                {% endif %}
+                                                            </div>
+
                                                             {# Información de contactos (horizontal y pequeño) #}
                                                             <div class="mt-2">
                                                                 <small class="text-muted d-block mb-1"><strong>Contactos:</strong></small>
@@ -134,7 +144,7 @@
                                                         </div>
 
                                                         <div class="col-lg-3 col-md-6 mb-3">
-                                                            {# Auto-renovación #}
+                                                            {# Auto-renovación y flags #}
                                                             <div class="mb-2">
                                                                 {% if domain.autorenew %}
                                                                 <span class="badge bg-success">
@@ -143,6 +153,22 @@
                                                                 {% else %}
                                                                 <span class="badge bg-warning">
                                                                     <i class="fa-solid fa-rotate me-1"></i>Auto-renovación desactivada
+                                                                </span>
+                                                                {% endif %}
+                                                            </div>
+                                                            <div class="d-flex flex-wrap gap-1 mb-2">
+                                                                <span class="badge {{ domain.renewable ? 'bg-primary' : 'bg-secondary' }}">
+                                                                    <i class="fa-solid fa-calendar-check me-1"></i>Renovable
+                                                                </span>
+                                                                <span class="badge {{ domain.transfer_block ? 'bg-danger' : 'bg-success' }}">
+                                                                    <i class="fa-solid fa-ban me-1"></i>Transfer {{ domain.transfer_block ? 'bloqueada' : 'permitida' }}
+                                                                </span>
+                                                                <span class="badge {{ domain.whois_privacy ? 'bg-info' : 'bg-secondary' }}">
+                                                                    <i class="fa-solid fa-user-shield me-1"></i>Privacidad WHOIS {{ domain.whois_privacy ? 'ON' : 'OFF' }}
+                                                                </span>
+                                                                {% if domain.owner_verification %}
+                                                                <span class="badge bg-light text-dark">
+                                                                    <i class="fa-solid fa-check me-1"></i>{{ domain.owner_verification }}
                                                                 </span>
                                                                 {% endif %}
                                                             </div>
@@ -173,6 +199,19 @@
                                                                     <code class="d-block mb-1">{{ ns }}</code>
                                                                     {% endfor %}
                                                                 </div>
+                                                            </div>
+                                                            {% endif %}
+                                                            {% if domain.tag or domain.service_associated %}
+                                                            <div class="mt-2">
+                                                                <small class="text-muted d-block mb-1"><strong>Servicio asociado:</strong></small>
+                                                                {% if domain.service_associated %}
+                                                                <span class="badge bg-success"><i class="fa-solid fa-link me-1"></i>Con servicio</span>
+                                                                {% else %}
+                                                                <span class="badge bg-secondary">Sin servicio</span>
+                                                                {% endif %}
+                                                                {% if domain.tag %}
+                                                                <span class="badge bg-light text-dark ms-1">{{ domain.tag }}</span>
+                                                                {% endif %}
                                                             </div>
                                                             {% endif %}
                                                         </div>
@@ -211,3 +250,15 @@
         font-size: 0.75rem;
     }
 </style>
+
+<script>
+(function () {
+    try {
+        window.__portalDomainsData = {{ view.cursor|default([])|json_encode(constant('JSON_UNESCAPED_UNICODE'))|raw }};
+    } catch (error) {
+        console.error('DonDominio Portal: error al preparar los dominios.', error);
+    }
+})();
+</script>
+
+

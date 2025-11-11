@@ -13,9 +13,9 @@ class DomainAlertService
         return $service->countExpiringDomains($days);
     }
 
-    public static function getExpiringDomainsForClient(string $codcliente, int $days = 30): array
+    public static function getExpiringDomainsForClient(string $codcliente, int $days = 30, bool $syncBeforeFetch = true): array
     {
         $service = new DomainSyncService();
-        return $service->getExpiringDomainsForClient($codcliente, $days);
+        return $service->getExpiringDomainsForClient($codcliente, $days, $syncBeforeFetch);
     }
 }

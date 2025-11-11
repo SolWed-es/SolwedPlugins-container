@@ -1,21 +1,22 @@
 <?php
 /**
- * Extensión para añadir funcionalidad de dominios al PortalCliente
+ * Extension para anadir funcionalidad de dominios al PortalCliente
  */
 
 namespace FacturaScripts\Plugins\DonDominio\Extension\Controller;
 
 use Closure;
-use FacturaScripts\Core\Session;
 use FacturaScripts\Core\Tools;
 
 /**
- * Extensión del controlador PortalCliente para añadir funcionalidad de dominios
+ * Extension del controlador PortalCliente para anadir funcionalidad de dominios
  */
 class PortalCliente
 {
+    private const LOG_CHANNEL = 'dondominio_portal_domains';
+
     /**
-     * Añade la vista de dominios al crear las vistas
+     * Anade la vista de dominios al crear las vistas
      */
     public function createViews(): Closure
     {
@@ -30,7 +31,7 @@ class PortalCliente
     protected function createViewDomains(): Closure
     {
         return function (string $viewName = 'PortalDomains') {
-            $this->addHtmlView($viewName, 'Tab/PortalDomains', 'Cliente', 'domains', 'fa-solid fa-globe');
+            $this->addHtmlView($viewName, 'Tab/PortalDomains', 'Cliente', Tools::lang()->trans('dondominio-domains-tab'), 'fa-solid fa-globe');
         };
     }
 
@@ -39,7 +40,9 @@ class PortalCliente
      */
     public function loadData(): Closure
     {
-        return function ($viewName, $view) {
+        $logChannel = self::LOG_CHANNEL;
+
+        return function ($viewName, $view) use ($logChannel) {
             if ($viewName === 'PortalDomains') {
                 // Obtener el cliente del contacto
                 $cliente = $this->contact->getCustomer(false);
@@ -49,22 +52,14 @@ class PortalCliente
                     return;
                 }
 
-                // Cargar el modelo extendido para acceder a la configuración de autologin
+                // Cargar el modelo extendido para acceder a la configuracion de autologin
                 $clienteExtendido = new \FacturaScripts\Plugins\DonDominio\Model\ClienteDonDominio();
                 $clienteExtendido->loadFromCode($cliente->codcliente);
 
-                // Usar la caché local para evitar llamadas repetidas
+                // Usar los datos cacheados en base de datos
                 try {
                     $service = new \FacturaScripts\Plugins\DonDominio\Lib\DomainSyncService();
-                    $sessionKey = 'dondominio_portal_client_sync_' . $cliente->codcliente;
-                    $lastSync = Session::get($sessionKey);
-                    $shouldForceSync = empty($lastSync) || (time() - (int)$lastSync) >= 300;
-                    if ($shouldForceSync) {
-                        $service->syncClientIfNeeded($cliente->codcliente, true);
-                        Session::set($sessionKey, time());
-                    }
-
-                    $contacts = $service->getClientContacts($cliente->codcliente);
+                    $contacts = $service->getClientContacts($cliente->codcliente, false);
 
                     foreach ($contacts as &$contact) {
                         foreach ($contact['domains'] as &$domain) {
@@ -78,17 +73,26 @@ class PortalCliente
                     $view->count = count($contacts);
                     $view->setSettings('active', $view->count > 0);
 
-                    $expiringDomains = \FacturaScripts\Plugins\DonDominio\Lib\DomainAlertService::getExpiringDomainsForClient($cliente->codcliente);
+                    $expiringDomains = \FacturaScripts\Plugins\DonDominio\Lib\DomainAlertService::getExpiringDomainsForClient($cliente->codcliente, 30, false);
                     $view->expiring_domains = $expiringDomains;
                     $view->expiring_count = count($expiringDomains);
+
+                    Tools::log($logChannel)->notice('dondominio-portal-domains-loaded', [
+                        '%count%' => $view->count,
+                    ]);
                 } catch (\Exception $e) {
                     Tools::log()->error('Error cargando dominios en portal: ' . $e->getMessage());
                     $view->cursor = [];
                     $view->count = 0;
                     $view->expiring_domains = [];
                     $view->expiring_count = 0;
+
+                    Tools::log($logChannel)->warning('dondominio-portal-domains-error', [
+                        '%message%' => $e->getMessage(),
+                    ]);
                 }
             }
         };
     }
 }
+

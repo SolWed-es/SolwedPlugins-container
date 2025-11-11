@@ -46,16 +46,16 @@
     {# Recorrer contactos #}
     {% for contact in contacts %}
     <div class="card mb-4 shadow-sm">
-        <div class="card-header bg-primary text-white">
+        <div class="card-header bg-dark text-white">
             <div class="row align-items-center">
-                <div class="col-md-6">
-                    <h5 class="mb-0">
+                <div class="col-md-6 gap-2 ">
+                    <h5 class="mb-0 text-white gap-3">
                         <i class="fa-solid fa-user-circle me-2"></i>
                         {{ contact.name ?: 'Contacto ' ~ loop.index }}
                     </h5>
-                    <small>
-                        <i class="fa-solid fa-id-card me-1"></i>{{ contact.tax_number }}
-                        <i class="fa-solid fa-envelope ms-3 me-1"></i>{{ contact.email }}
+                    <small class="gap-3">
+                        <i class="fa-solid fa-id-card me-1 gap-3"></i>{{ contact.tax_number }}
+                        <i class="fa-solid fa-envelope ms-3 me-1 gap-3"></i>{{ contact.email }}
                     </small>
                 </div>
                 <div class="col-md-6 text-md-end">
@@ -99,10 +99,24 @@
                         {% endif %}
                     </span>
                 </div>
-                <div class="col-md-2">
-                    <small class="text-muted d-block">Teléfono</small>
-                    <span class="small">{{ contact.phone }}</span>
-                </div>
+                  <div class="col-md-2">
+                      <small class="text-muted d-block">Teléfono</small>
+                      <span class="small">{{ contact.phone ?: 'Sin teléfono' }}</span>
+                  </div>
+                  <div class="col-md-2">
+                      <small class="text-muted d-block">Email</small>
+                      <span class="small">{{ contact.email ?: 'Sin email' }}</span>
+                  </div>
+                  <div class="col-md-2">
+                      <small class="text-muted d-block">Verificación</small>
+                      <span class="small text-capitalize">
+                          {% if contact.verification_status %}
+                          {{ contact.verification_status }}
+                          {% else %}
+                          Desconocido
+                          {% endif %}
+                      </span>
+                  </div>
             </div>
             
             {# Dominios del contacto #}
@@ -213,18 +227,28 @@
                             
                             {# Vista de nameservers #}
                             <div id="ns-view-contact-{{ loop.parent.loop.index }}-domain-{{ loop.index }}">
-                                {% if domain.nameservers is not empty %}
-                                <ul class="list-unstyled small mb-0">
-                                    {% for ns in domain.nameservers %}
-                                    <li class="mb-1">
-                                        <i class="fa-solid fa-caret-right text-primary me-1"></i>
-                                        <code class="small">{{ ns }}</code>
-                                    </li>
-                                    {% endfor %}
-                                </ul>
-                                {% else %}
-                                <small class="text-muted">No configuradas</small>
-                                {% endif %}
+                              {% if domain.nameservers is not empty %}
+                              <ul class="list-unstyled small mb-0">
+                                 {% for ns in domain.nameservers %}
+                                  <li class="mb-1">
+                                      <i class="fa-solid fa-caret-right text-primary me-1"></i>
+                                      <code class="small">{{ ns }}</code>
+                                  </li>
+                                  {% endfor %}
+                              </ul>
+                              {% else %}
+                              <small class="text-muted">No configuradas</small>
+                              {% endif %}
+                              <div class="small text-muted mt-2">
+                                  Última sincronización:
+                                  {% if domain.synced_at %}
+                                  {{ domain.synced_at|date('d/m/Y H:i') }}
+                                  {% else %}
+                                  Nunca
+                                  {% endif %}
+                                  <br>
+                                  Total NS: {{ domain.nameservers ? domain.nameservers|length : 0 }}
+                              </div>
                             </div>
 
                             {# Formulario de edición de nameservers (oculto por defecto) #}

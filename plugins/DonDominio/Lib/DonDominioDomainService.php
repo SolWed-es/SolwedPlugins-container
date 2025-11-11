@@ -140,13 +140,42 @@ final class DonDominioDomainService
 
     private static function mapStoredDomain(Domain $domain, array $accessInfo): array
     {
-        return array_merge([
+        $webLink = $accessInfo['web_link'] ?? null;
+        if (empty($webLink)) {
+            $webLink = self::resolveWebLinkFromDomain($domain);
+        }
+
+        return [
             'id' => $domain->id,
             'domain' => $domain->domain,
             'status' => $domain->status,
             'expires_at' => $domain->expires_at,
             'autorenew' => (bool)$domain->autorenew,
-        ], $accessInfo);
+            'nameservers' => self::extractNameserversFromRaw($domain->raw_data),
+            'web_link' => $webLink,
+            'mail_link' => $accessInfo['mail_link'] ?? null,
+            'erp_action' => $accessInfo['erp_action'] ?? null,
+            'erp_user' => $accessInfo['erp_user'] ?? null,
+            'erp_pass' => $accessInfo['erp_pass'] ?? null,
+            'erp_user_field' => $accessInfo['erp_user_field'] ?? 'username',
+            'erp_pass_field' => $accessInfo['erp_pass_field'] ?? 'password',
+            'tld' => $domain->tld,
+            'created' => $domain->registered_at,
+            'renewal_mode' => $domain->renewal_mode,
+            'renewable' => (bool)$domain->renewable,
+            'transfer_block' => (bool)$domain->transfer_block,
+            'modify_block' => (bool)$domain->modify_block,
+            'whois_privacy' => (bool)$domain->whois_privacy,
+            'owner_verification' => $domain->owner_verification,
+            'service_associated' => (bool)$domain->service_associated,
+            'tag' => $domain->tag,
+            'authcode_check' => (bool)$domain->authcode_check,
+            'view_whois' => (bool)$domain->view_whois,
+            'registrant' => $domain->registrant_contact,
+            'admin' => $domain->admin_contact,
+            'tech' => $domain->tech_contact,
+            'billing' => $domain->billing_contact,
+        ];
     }
 
     /**
@@ -697,6 +726,119 @@ final class DonDominioDomainService
         return $result;
     }
 
+    private static function resolveWebLinkFromDomain(Domain $domain): ?string
+    {
+        $nameservers = self::extractNameserversFromRaw($domain->raw_data);
+        if (empty($nameservers)) {
+            return null;
+        }
+
+        $candidate = $nameservers[1] ?? $nameservers[0] ?? null;
+        if (empty($candidate)) {
+            return null;
+        }
+
+        $candidate = trim($candidate);
+        if ('' === $candidate) {
+            return null;
+        }
+
+        if (!preg_match('/^https?:\/\//i', $candidate)) {
+            $candidate = 'https://' . $candidate;
+        }
+
+        return $candidate;
+    }
+
+    private static function extractNameserversFromRaw(?string $rawData): array
+    {
+        if (empty($rawData)) {
+            return [];
+        }
+
+        $data = json_decode($rawData, true);
+        if (!is_array($data)) {
+            return [];
+        }
+
+        $candidates = [
+            $data['nameservers'] ?? null,
+            $data['list'] ?? null,
+            $data['items'] ?? null,
+            $data,
+        ];
+
+        $result = [];
+        foreach ($candidates as $candidate) {
+            if (!is_array($candidate)) {
+                continue;
+            }
+
+            foreach ($candidate as $entry) {
+                if (is_string($entry)) {
+                    $entry = trim($entry);
+                    if ('' !== $entry) {
+                        $result[] = $entry;
+                    }
+                    continue;
+                }
+
+                if (is_array($entry)) {
+                    $host = $entry['host'] ?? $entry['hostname'] ?? $entry['name'] ?? $entry['nameserver'] ?? null;
+                    if (is_string($host)) {
+                        $host = trim($host);
+                        if ('' !== $host) {
+                            $result[] = $host;
+                        }
+                    }
+                }
+            }
+
+            if (!empty($result)) {
+                break;
+            }
+        }
+
+        return array_values(array_unique($result));
+    }
+
+    public static function getNameservers(string ): array
+    {
+         = trim();
+        if ( === '') {
+            return [];
+        }
+
+         = DonDominioApiClient::get();
+        if (null === ) {
+            return [];
+        }
+
+        try {
+             = (, ['infoType' => 'nameservers']);
+            if ( instanceof \Dondominio\API\Response\Response) {
+                 = ();
+            } elseif (is_object() && method_exists(, 'getResponseData')) {
+                 = ();
+            } else {
+                 = ;
+            }
+
+            if (!is_array()) {
+                return [];
+            }
+
+             = json_encode();
+            return self::extractNameserversFromRaw();
+        } catch (\Throwable ) {
+            Tools::log()->warning('dondominio-domain-nameservers-error', [
+                '%domain%' => ,
+                '%message%' => (),
+            ]);
+        }
+
+        return [];
+    }
     private static function normalizeBoolean(mixed $value): bool
     {
         if (is_bool($value)) {

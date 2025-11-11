@@ -10,13 +10,16 @@ use FacturaScripts\Plugins\DonDominio\Model\Domain;
 use FacturaScripts\Plugins\DonDominio\Model\DomainContact;
 
 /**
- * Servicio que sincroniza dominios y contactos de DonDominio en caché local.
+ * Gestiona la caché local de contactos y dominios sincronizados desde DonDominio.
  */
 class DomainSyncService
 {
     private const TTL_SECONDS = 3600;
 
+    /** @var DataBase */
     private $dataBase;
+
+    /** @var \Dondominio\API\API|null */
     private $client;
 
     public function __construct(DataBase $dataBase = null, ?\Dondominio\API\API $client = null)
@@ -27,24 +30,29 @@ class DomainSyncService
     }
 
     /**
-     * Lista dominios almacenados aplicando filtros de consulta paginada.
+     * Lista los dominios almacenados en la caché con filtros y paginación.
+     *
+     * @param array{query?:string,status?:string} $filters
      */
-    public function listDomains(array $filters, int $offset, int $limit): array
+    public function listDomains(array $filters, int $offset, int $limit, bool $syncBeforeQuery = true): array
     {
         $offset = max(0, $offset);
         $limit = max(1, $limit);
+
         $items = $this->queryDomains($filters, $offset, $limit);
-        $clients = $this->collectClients($items);
         $refreshed = false;
 
-        foreach ($clients as $codcliente) {
-            if ($this->syncClientIfNeeded($codcliente)) {
-                $refreshed = true;
+        if ($syncBeforeQuery && $this->client) {
+            $clients = $this->collectClients($items);
+            foreach ($clients as $codcliente) {
+                if ($this->syncClientIfNeeded($codcliente)) {
+                    $refreshed = true;
+                }
             }
-        }
 
-        if ($refreshed) {
-            $items = $this->queryDomains($filters, $offset, $limit);
+            if ($refreshed) {
+                $items = $this->queryDomains($filters, $offset, $limit);
+            }
         }
 
         $total = $this->countDomains($filters);
@@ -57,7 +65,7 @@ class DomainSyncService
     }
 
     /**
-     * Sincroniza datos si están desactualizados o se fuerza.
+     * Sincroniza los datos de un cliente si la caché está caducada.
      */
     public function syncClientIfNeeded(string $codcliente, bool $force = false): bool
     {
@@ -65,7 +73,7 @@ class DomainSyncService
             return $this->refreshClientData($codcliente);
         }
 
-        if ($this->client === null) {
+        if (null === $this->client) {
             return false;
         }
 
@@ -77,11 +85,13 @@ class DomainSyncService
     }
 
     /**
-     * Obtiene los contactos cacheados para un cliente.
+     * Obtiene los contactos en caché con sus dominios.
      */
-    public function getClientContacts(string $codcliente): array
+    public function getClientContacts(string $codcliente, bool $syncBeforeFetch = true): array
     {
-        $this->syncClientIfNeeded($codcliente);
+        if ($syncBeforeFetch) {
+            $this->syncClientIfNeeded($codcliente);
+        }
 
         $contacts = $this->fetchCachedContacts($codcliente);
         if (empty($contacts)) {
@@ -107,7 +117,85 @@ class DomainSyncService
             ];
         }
 
+        if ($this->hasDomains($result)) {
+            return $result;
+        }
+
+        return [[
+            'id' => 'fallback',
+            'name' => Tools::lang()->trans('dondominio-contact-not-found'),
+            'email' => '',
+            'phone' => '',
+            'company' => '',
+            'tax_number' => '',
+            'country' => '',
+            'verification_status' => '',
+            'daaccepted' => false,
+            'domains_count' => 0,
+            'domains' => [],
+            'synced_at' => null,
+        ]];
+    }
+
+    /**
+     * Devuelve los dominios próximos a expirar para un cliente.
+     */
+    public function getExpiringDomainsForClient(string $codcliente, int $days = 30, bool $syncBeforeFetch = true): array
+    {
+        if ($syncBeforeFetch) {
+            $this->syncClientIfNeeded($codcliente);
+        }
+
+        $dateFrom = date('Y-m-d H:i:s');
+        $dateTo = date('Y-m-d H:i:s', strtotime("+{$days} days"));
+
+        $sql = sprintf(
+            "SELECT domain, expires_at FROM clientes_dondominio_dominios WHERE codcliente = '%s' AND provider = 'dondominio' AND expires_at BETWEEN '%s' AND '%s' ORDER BY expires_at ASC LIMIT 20;",
+            $this->escape($codcliente),
+            $dateFrom,
+            $dateTo
+        );
+
+        $rows = $this->dataBase->selectLimit($sql, 0, 0);
+        $result = [];
+        foreach ($rows as $row) {
+            if (empty($row['domain']) || empty($row['expires_at'])) {
+                continue;
+            }
+
+            $result[] = [
+                'name' => $row['domain'],
+                'expiration' => $row['expires_at'],
+            ];
+        }
+
         return $result;
+    }
+
+    /**
+     * Cuenta los dominios que expiran en el intervalo indicado.
+     */
+    public function countExpiringDomains(int $days = 30): int
+    {
+        $dateFrom = date('Y-m-d H:i:s');
+        $dateTo = date('Y-m-d H:i:s', strtotime("+{$days} days"));
+
+        $sql = sprintf(
+            "SELECT COUNT(*) AS total FROM clientes_dondominio_dominios WHERE provider = 'dondominio' AND expires_at BETWEEN '%s' AND '%s';",
+            $dateFrom,
+            $dateTo
+        );
+
+        $rows = $this->dataBase->selectLimit($sql, 0, 0);
+        return (int) ($rows[0]['total'] ?? 0);
+    }
+
+    /**
+     * Permite acceder a los nameservers reales de un dominio concreto.
+     */
+    public function getNameserversForDomain(string $domain): array
+    {
+        return $this->fetchNameserversForDomain($domain);
     }
 
     private function fetchCachedContacts(string $codcliente): array
@@ -157,56 +245,6 @@ class DomainSyncService
         ]];
     }
 
-    /**
-     * Devuelve los dominios próximos a expirar para un cliente.
-     */
-    public function getExpiringDomainsForClient(string $codcliente, int $days = 30): array
-    {
-        $this->syncClientIfNeeded($codcliente);
-
-        $dateFrom = date('Y-m-d H:i:s');
-        $dateTo = date('Y-m-d H:i:s', strtotime("+{$days} days"));
-
-        $sql = sprintf(
-            "SELECT domain, expires_at FROM clientes_dondominio_dominios WHERE codcliente = '%s' AND provider = 'dondominio' AND expires_at BETWEEN '%s' AND '%s' ORDER BY expires_at ASC LIMIT 20;",
-            $this->escape($codcliente),
-            $dateFrom,
-            $dateTo
-        );
-
-        $rows = $this->dataBase->selectLimit($sql, 0, 0);
-        $result = [];
-        foreach ($rows as $row) {
-            if (empty($row['domain']) || empty($row['expires_at'])) {
-                continue;
-            }
-            $result[] = [
-                'name' => $row['domain'],
-                'expiration' => $row['expires_at'],
-            ];
-        }
-
-        return $result;
-    }
-
-    /**
-     * Cuenta los dominios que expiran en el intervalo indicado.
-     */
-    public function countExpiringDomains(int $days = 30): int
-    {
-        $dateFrom = date('Y-m-d H:i:s');
-        $dateTo = date('Y-m-d H:i:s', strtotime("+{$days} days"));
-
-        $sql = sprintf(
-            "SELECT COUNT(*) AS total FROM clientes_dondominio_dominios WHERE provider = 'dondominio' AND expires_at BETWEEN '%s' AND '%s';",
-            $dateFrom,
-            $dateTo
-        );
-
-        $rows = $this->dataBase->selectLimit($sql, 0, 0);
-        return (int) ($rows[0]['total'] ?? 0);
-    }
-
     private function needsRefresh(string $codcliente): bool
     {
         $sql = sprintf(
@@ -230,7 +268,7 @@ class DomainSyncService
 
     private function refreshClientData(string $codcliente): bool
     {
-        if ($this->client === null) {
+        if (null === $this->client) {
             return false;
         }
 
@@ -240,13 +278,16 @@ class DomainSyncService
         }
 
         $taxNumber = trim((string) $cliente->cifnif);
-        if ($taxNumber === '') {
+        if ('' === $taxNumber) {
             return false;
         }
 
         $contacts = DonDominioContactService::findContactsByTaxNumber($taxNumber);
-        $syncedAt = Tools::dateTime();
+        if (empty($contacts)) {
+            return false;
+        }
 
+        $syncedAt = Tools::dateTime();
         $this->dataBase->beginTransaction();
         try {
             Domain::table()->whereEq('codcliente', $codcliente)->delete();
@@ -284,7 +325,7 @@ class DomainSyncService
 
     private function fetchDomainsForContact(string $contactId): array
     {
-        if ($this->client === null) {
+        if (null === $this->client) {
             return [];
         }
 
@@ -311,9 +352,8 @@ class DomainSyncService
                 '%contact%' => $contactId,
                 '%message%' => $exception->getMessage(),
             ]);
+            return [];
         }
-
-        return [];
     }
 
     private function loadDomainsForContact(string $codcliente, string $contactId): array
@@ -409,24 +449,107 @@ SQL;
         $model->expires_at = $this->normalizeExpiration($domainData['tsExpir'] ?? $domainData['expiration'] ?? null);
         $model->autorenew = $this->isAutoRenew($domainData);
         $model->provider = 'dondominio';
-        $model->raw_data = $this->encodeRaw($domainData);
+        $model->tld = $domainData['tld'] ?? null;
+        $model->registered_at = $this->normalizeExpiration($domainData['tsCreate'] ?? $domainData['created'] ?? null);
+        $model->renewal_mode = $domainData['renewalMode'] ?? null;
+        $model->renewable = $this->toBool($domainData['renewable'] ?? null);
+        $model->transfer_block = $this->toBool($domainData['transferBlock'] ?? null);
+        $model->modify_block = $this->toBool($domainData['modifyBlock'] ?? null);
+        $model->whois_privacy = $this->toBool($domainData['whoisPrivacy'] ?? null);
+        $model->owner_verification = $domainData['ownerverification'] ?? null;
+        $model->service_associated = $this->toBool($domainData['serviceAssociated'] ?? null);
+        $model->tag = $domainData['tag'] ?? null;
+        $model->authcode_check = $this->toBool($domainData['authcodeCheck'] ?? null);
+        $model->view_whois = $this->toBool($domainData['viewWhois'] ?? null);
+        $model->registrant_contact = $domainData['ownerContactID'] ?? $domainData['owner'] ?? null;
+        $model->admin_contact = $domainData['adminContactID'] ?? $domainData['admin'] ?? null;
+        $model->tech_contact = $domainData['techContactID'] ?? $domainData['tech'] ?? null;
+        $model->billing_contact = $domainData['billingContactID'] ?? $domainData['billing'] ?? null;
+
+        $enrichedData = $this->enrichDomainData($domainData, $model->domain);
+
+        $model->raw_data = $this->encodeRaw($enrichedData);
         $model->synced_at = $syncedAt;
         return $model;
+    }
+
+    private function enrichDomainData(array $domainData, ?string $domainName): array
+    {
+        if (!empty($domainData['nameservers'])) {
+            return $domainData;
+        }
+
+        $nameservers = $this->fetchNameserversForDomain($domainName);
+        if (!empty($nameservers)) {
+            $domainData['nameservers'] = $nameservers;
+        }
+
+        return $domainData;
     }
 
     private function mapDomainForPortal(Domain $domain): array
     {
         $raw = $this->decodeRaw($domain->raw_data);
+        $nameservers = $this->extractNameservers($raw);
+        if (empty($nameservers)) {
+            $nameservers = $this->fetchNameserversForDomain($domain->domain);
+        }
+
         return [
             'name' => $domain->domain,
             'domainID' => $domain->domain_id,
             'status' => $domain->status,
             'expiration' => $domain->expires_at,
             'tsExpir' => $this->toTimestamp($domain->expires_at),
-            'nameservers' => $this->extractNameservers($raw),
+            'nameservers' => $nameservers,
             'autorenew' => (bool) $domain->autorenew,
             'synced_at' => $domain->synced_at,
+            'tld' => $domain->tld,
+            'created' => $domain->registered_at,
+            'renewal_mode' => $domain->renewal_mode,
+            'renewable' => (bool) $domain->renewable,
+            'transfer_block' => (bool) $domain->transfer_block,
+            'modify_block' => (bool) $domain->modify_block,
+            'whois_privacy' => (bool) $domain->whois_privacy,
+            'owner_verification' => $domain->owner_verification,
+            'service_associated' => (bool) $domain->service_associated,
+            'tag' => $domain->tag,
+            'authcode_check' => (bool) $domain->authcode_check,
+            'view_whois' => (bool) $domain->view_whois,
+            'registrant' => $domain->registrant_contact,
+            'admin' => $domain->admin_contact,
+            'tech' => $domain->tech_contact,
+            'billing' => $domain->billing_contact,
         ];
+    }
+
+    private function toBool($value): bool
+    {
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        if (is_numeric($value)) {
+            return (int) $value !== 0;
+        }
+
+        if (is_string($value)) {
+            $normalized = strtolower(trim($value));
+            return in_array($normalized, ['1', 'true', 'yes', 'on'], true);
+        }
+
+        return false;
+    }
+
+    private function hasDomains(array $contacts): bool
+    {
+        foreach ($contacts as $contact) {
+            if (!empty($contact['domains'])) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function escape(string $value): string
@@ -495,6 +618,15 @@ SQL;
         return is_array($data) ? $data : [];
     }
 
+    private function unwrapResponse(mixed $response): mixed
+    {
+        if (is_object($response) && method_exists($response, 'getResponseData')) {
+            return $response->getResponseData();
+        }
+
+        return $response;
+    }
+
     private function extractList(mixed $data, array $keys): array
     {
         if (!is_array($data)) {
@@ -510,56 +642,153 @@ SQL;
         return [];
     }
 
-    private function unwrapResponse(mixed $response): mixed
-    {
-        if (is_object($response) && method_exists($response, 'getResponseData')) {
-            return $response->getResponseData();
-        }
-
-        return $response;
-    }
-
     private function extractNameservers(array $data): array
     {
-        $candidates = [
+        $candidateArrays = [
             $data['nameservers'] ?? null,
             $data['list'] ?? null,
             $data['items'] ?? null,
-            $data
         ];
 
-        $result = [];
-        foreach ($candidates as $candidate) {
-            if (!is_array($candidate)) {
-                continue;
+        foreach ($candidateArrays as $candidate) {
+            $parsed = $this->parseNameserverContainer($candidate);
+            if (!empty($parsed)) {
+                return $parsed;
             }
+        }
 
-            foreach ($candidate as $entry) {
+        foreach (['result', 'data', 'response'] as $nestedKey) {
+            if (isset($data[$nestedKey]) && is_array($data[$nestedKey])) {
+                $parsed = $this->extractNameservers($data[$nestedKey]);
+                if (!empty($parsed)) {
+                    return $parsed;
+                }
+            }
+        }
+
+        $nsCandidates = [];
+        foreach ($data as $key => $value) {
+            if (is_string($key) && preg_match('/^ns\\d+/i', $key)) {
+                $value = trim((string) $value);
+                if ($value !== '') {
+                    $nsCandidates[] = $value;
+                }
+            }
+        }
+
+        if (!empty($nsCandidates)) {
+            return array_values(array_unique($nsCandidates));
+        }
+
+        return [];
+    }
+
+    private function parseNameserverContainer(mixed $container): array
+    {
+        if (empty($container)) {
+            return [];
+        }
+
+        $result = [];
+
+        if (is_string($container)) {
+            $parts = preg_split('/[\\s,;]+/', $container);
+            foreach ($parts as $part) {
+                $part = trim($part);
+                if ($part !== '' && $this->looksLikeNameserver($part)) {
+                    $result[] = $part;
+                }
+            }
+            return array_values(array_unique($result));
+        }
+
+        if (is_array($container)) {
+            foreach ($container as $entry) {
                 if (is_string($entry)) {
                     $entry = trim($entry);
-                    if ($entry !== '') {
+                    if ($entry !== '' && $this->looksLikeNameserver($entry)) {
                         $result[] = $entry;
                     }
                     continue;
                 }
 
                 if (is_array($entry)) {
-                    $host = $entry['host'] ?? $entry['hostname'] ?? $entry['name'] ?? $entry['nameserver'] ?? null;
+                    $host = $entry['host']
+                        ?? $entry['hostname']
+                        ?? $entry['name']
+                        ?? $entry['nameserver']
+                        ?? $entry['value']
+                        ?? null;
                     if (is_string($host)) {
                         $host = trim($host);
-                        if ($host !== '') {
+                        if ($host !== '' && $this->looksLikeNameserver($host)) {
                             $result[] = $host;
+                        }
+                        continue;
+                    }
+
+                    foreach ($entry as $value) {
+                        if (is_string($value)) {
+                            $value = trim($value);
+                            if ($value !== '' && $this->looksLikeNameserver($value)) {
+                                $result[] = $value;
+                            }
                         }
                     }
                 }
             }
 
-            if (!empty($result)) {
-                return array_values(array_unique($result));
-            }
+            return array_values(array_unique($result));
         }
 
         return [];
+    }
+
+    private function looksLikeNameserver(string $value): bool
+    {
+        return str_contains($value, '.');
+    }
+
+    private function fetchNameserversForDomain(?string $domain): array
+    {
+        $domain = trim((string) $domain);
+        if ($domain === '' || null === $this->client) {
+            return [];
+        }
+
+        try {
+            $response = $this->client->domain_getinfo($domain, ['infoType' => 'nameservers']);
+            $data = $this->unwrapResponse($response);
+            if (!is_array($data)) {
+                return [];
+            }
+
+            $payload = isset($data['nameservers']) ? ['nameservers' => $data['nameservers']] : $data;
+            $this->storeLastNameserversDump($domain, $payload);
+
+            return $this->extractNameservers($payload);
+        } catch (\Throwable $exception) {
+            Tools::log()->warning('dondominio-domain-nameservers-error', [
+                '%domain%' => $domain,
+                '%message%' => $exception->getMessage(),
+            ]);
+            return [];
+        }
+    }
+
+    private function storeLastNameserversDump(string $domain, array $payload): void
+    {
+        try {
+            $path = Tools::folder('MyFiles', 'Tmp', 'dondominio_last_nameservers.json');
+            $content = json_encode([
+                'domain' => $domain,
+                'payload' => $payload,
+                'timestamp' => Tools::dateTime(),
+            ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+            file_put_contents($path, $content);
+        } catch (\Throwable $ignored) {
+            // ignore logging errors
+        }
     }
 
     private function toTimestamp(?string $value): ?int
@@ -571,5 +800,4 @@ SQL;
         $timestamp = strtotime($value);
         return $timestamp === false ? null : $timestamp;
     }
-
 }

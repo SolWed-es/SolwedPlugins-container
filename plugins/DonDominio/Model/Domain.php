@@ -41,6 +41,54 @@ class Domain extends ModelClass
     /** @var bool */
     public $autorenew;
 
+    /** @var string|null */
+    public $tld;
+
+    /** @var string|null */
+    public $registered_at;
+
+    /** @var string|null */
+    public $renewal_mode;
+
+    /** @var bool */
+    public $renewable;
+
+    /** @var bool */
+    public $transfer_block;
+
+    /** @var bool */
+    public $modify_block;
+
+    /** @var bool */
+    public $whois_privacy;
+
+    /** @var string|null */
+    public $owner_verification;
+
+    /** @var bool */
+    public $service_associated;
+
+    /** @var string|null */
+    public $tag;
+
+    /** @var bool */
+    public $authcode_check;
+
+    /** @var bool */
+    public $view_whois;
+
+    /** @var string|null */
+    public $registrant_contact;
+
+    /** @var string|null */
+    public $admin_contact;
+
+    /** @var string|null */
+    public $tech_contact;
+
+    /** @var string|null */
+    public $billing_contact;
+
     /** @var string */
     public $raw_data;
 

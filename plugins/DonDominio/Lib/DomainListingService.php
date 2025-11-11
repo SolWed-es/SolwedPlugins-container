@@ -34,8 +34,8 @@ class DomainListingService
         return $this->syncService->getExpiringDomainsForClient($codcliente, $days);
     }
 
-    public function getClientContacts(string $codcliente): array
+    public function getClientContacts(string $codcliente, bool $syncBeforeFetch = true): array
     {
-        return $this->syncService->getClientContacts($codcliente);
+        return $this->syncService->getClientContacts($codcliente, $syncBeforeFetch);
     }
 }
