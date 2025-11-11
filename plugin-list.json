@@ -1,11 +1,22 @@
 {
     "metadata": {
-        "generated": "11-11-2025 13:43:32",
+        "generated": "11-11-2025 17:30:45",
         "repo": "https://github.com/SolWed-es/SolwedPlugins-container",
-        "plugin_count": 7,
-        "workflow_run": "19267544198"
+        "plugin_count": 9,
+        "workflow_run": "19273643101"
     },
     "plugins": [
+        {
+            "name": "DescargarFacturasZIP",
+            "description": "Descargar PDF de facturas en archivo comprimido",
+            "version": 1,
+            "min_version": 2023,
+            "min_php": 7.3,
+            "require": [],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/DescargarFacturasZIP.zip",
+            "last_updated": "2025-11-11"
+        },
         {
             "name": "DescuentoGlobal",
             "description": "Permite usar margenes negativos en EditProducto",
@@ -15,6 +26,19 @@
             "require": [],
             "require_php": [],
             "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/DescuentoGlobal.zip",
+            "last_updated": "2025-11-11"
+        },
+        {
+            "name": "DocumentosProyectos",
+            "description": "Permite a\u00f1adir archivos a proyectos.",
+            "version": 1.1,
+            "min_version": 2025.43,
+            "min_php": 7.3,
+            "require": [
+                "Proyectos"
+            ],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/DocumentosProyectos.zip",
             "last_updated": "2025-11-11"
         },
         {
