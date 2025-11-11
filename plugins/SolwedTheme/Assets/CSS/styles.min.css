@@ -6,7 +6,7 @@
  * Licensed under MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE)
  */
 @import "../libs/simplebar/dist/simplebar.css";
-@import "../CSS/icons/tabler-icons/tabler-icons.css";
+/*@import "../CSS/icons/tabler-icons/tabler-icons.css";*/
 :root,
 [data-bs-theme=light] {
   --bs-blue: #1e4db7;
