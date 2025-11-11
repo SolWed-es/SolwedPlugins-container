@@ -1,9 +1,9 @@
 {
     "metadata": {
-        "generated": "11-11-2025 11:11:00",
+        "generated": "11-11-2025 12:52:23",
         "repo": "https://github.com/SolWed-es/SolwedPlugins-container",
         "plugin_count": 6,
-        "workflow_run": "19263732724"
+        "workflow_run": "19266211765"
     },
     "plugins": [
         {
@@ -19,7 +19,7 @@
                 ""
             ],
             "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/DonDominio.zip",
-            "last_updated": "2025-11-10"
+            "last_updated": "2025-11-11"
         },
         {
             "name": "IeCRMFormularioElementor",
