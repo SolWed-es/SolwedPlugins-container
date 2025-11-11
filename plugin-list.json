@@ -1,9 +1,9 @@
 {
     "metadata": {
-        "generated": "11-11-2025 17:30:45",
+        "generated": "11-11-2025 17:44:32",
         "repo": "https://github.com/SolWed-es/SolwedPlugins-container",
         "plugin_count": 9,
-        "workflow_run": "19273643101"
+        "workflow_run": "19273968349"
     },
     "plugins": [
         {
@@ -31,7 +31,7 @@
         {
             "name": "DocumentosProyectos",
             "description": "Permite a\u00f1adir archivos a proyectos.",
-            "version": 1.1,
+            "version": 1.2,
             "min_version": 2025.43,
             "min_php": 7.3,
             "require": [
