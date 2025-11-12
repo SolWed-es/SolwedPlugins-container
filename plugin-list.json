@@ -1,9 +1,9 @@
 {
     "metadata": {
-        "generated": "12-11-2025 07:58:02",
+        "generated": "12-11-2025 12:49:02",
         "repo": "https://github.com/SolWed-es/SolwedPlugins-container",
         "plugin_count": 9,
-        "workflow_run": "19290373702"
+        "workflow_run": "19297989657"
     },
     "plugins": [
         {
@@ -20,7 +20,7 @@
         {
             "name": "DescuentoProducto",
             "description": "Permite configurar descuentos por producto que se aplican autom\u00e1ticamente en documentos de venta",
-            "version": 1,
+            "version": 1.2,
             "min_version": 2025.43,
             "min_php": 7.3,
             "require": [],
