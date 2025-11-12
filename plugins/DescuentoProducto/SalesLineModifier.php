@@ -6,6 +6,7 @@ use FacturaScripts\Core\Contract\SalesLineModInterface;
 use FacturaScripts\Core\Model\Base\SalesDocument;
 use FacturaScripts\Core\Model\Base\SalesDocumentLine;
 use FacturaScripts\Dinamic\Model\Variante;
+use FacturaScripts\Core\Base\DataBase;
 
 class SalesLineModifier implements SalesLineModInterface
 {
@@ -82,21 +83,41 @@ class SalesLineModifier implements SalesLineModInterface
             return;
         }
 
-        // Buscar la variante del producto
-        $variante = new Variante();
-        if (!$variante->loadFromCode('', $line->referencia)) {
-            return;
-        }
+        // Obtener el descuento directamente desde la base de datos
+        $descuento = $this->getDescuentoFromDatabase($line->referencia);
 
         // Si no hay descuento configurado, no hacer nada
-        if ($variante->descuento <= 0) {
+        if ($descuento <= 0) {
             return;
         }
 
         // Aplicar el descuento en el campo dtopor (descuento porcentual)
-        $line->dtopor = $variante->descuento;
+        $line->dtopor = $descuento;
 
         // Recalcular el total de la línea con el descuento aplicado
         $line->pvptotal = $line->pvpunitario * $line->cantidad * (100 - $line->dtopor) / 100;
+    }
+
+    /**
+     * Obtiene el descuento de una variante directamente desde la base de datos
+     */
+    private function getDescuentoFromDatabase(string $referencia): float
+    {
+        try {
+            $db = new DataBase();
+            $db->connect();
+
+            $sql = "SELECT descuento FROM variantes WHERE referencia = " . $db->var2str($referencia);
+            $result = $db->select($sql);
+
+            if (!empty($result) && isset($result[0]['descuento'])) {
+                return (float) $result[0]['descuento'];
+            }
+        } catch (\Exception $e) {
+            // Log del error pero no interrumpir el proceso
+            error_log("DescuentoProducto: Error obteniendo descuento para {$referencia}: " . $e->getMessage());
+        }
+
+        return 0.0;
     }
 }
