@@ -1,9 +1,9 @@
 {
     "metadata": {
-        "generated": "11-11-2025 17:44:32",
+        "generated": "12-11-2025 07:58:02",
         "repo": "https://github.com/SolWed-es/SolwedPlugins-container",
         "plugin_count": 9,
-        "workflow_run": "19273968349"
+        "workflow_run": "19290373702"
     },
     "plugins": [
         {
@@ -18,15 +18,15 @@
             "last_updated": "2025-11-11"
         },
         {
-            "name": "DescuentoGlobal",
-            "description": "Permite usar margenes negativos en EditProducto",
+            "name": "DescuentoProducto",
+            "description": "Permite configurar descuentos por producto que se aplican autom\u00e1ticamente en documentos de venta",
             "version": 1,
             "min_version": 2025.43,
             "min_php": 7.3,
             "require": [],
             "require_php": [],
-            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/DescuentoGlobal.zip",
-            "last_updated": "2025-11-11"
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/DescuentoProducto.zip",
+            "last_updated": "2025-11-12"
         },
         {
             "name": "DocumentosProyectos",
