@@ -1,9 +1,9 @@
 {
     "metadata": {
-        "generated": "12-11-2025 12:49:02",
+        "generated": "13-11-2025 07:43:46",
         "repo": "https://github.com/SolWed-es/SolwedPlugins-container",
-        "plugin_count": 9,
-        "workflow_run": "19297989657"
+        "plugin_count": 10,
+        "workflow_run": "19324236700"
     },
     "plugins": [
         {
@@ -79,6 +79,21 @@
             "require_php": [],
             "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/IeWhatsapp.zip",
             "last_updated": "2025-11-04"
+        },
+        {
+            "name": "PleskServers",
+            "description": "Gesti\u00f3n de servidores Plesk con integraci\u00f3n completa en FacturaScript",
+            "version": 1,
+            "min_version": 2025.43,
+            "min_php": 8.1,
+            "require": [
+                ""
+            ],
+            "require_php": [
+                ""
+            ],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/PleskServers.zip",
+            "last_updated": "2025-11-13"
         },
         {
             "name": "SolwedTheme",
