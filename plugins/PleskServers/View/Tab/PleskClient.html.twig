@@ -1,0 +1,78 @@
+{% extends "Master/PanelController.html.twig" %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fa-solid fa-server"></i> Operaciones Plesk</h3>
+                </div>
+                <div class="card-body">
+                    <p>Desde aquí puedes gestionar los servicios Plesk asociados a este cliente.</p>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title">Servidores Disponibles</h5>
+                                </div>
+                                <div class="card-body">
+                                    <select class="form-control" id="plesk-server-select">
+                                        <option value="">Seleccionar servidor...</option>
+                                        {# Aquí se cargarían los servidores disponibles #}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title">Acciones</h5>
+                                </div>
+                                <div class="card-body">
+                                    <button class="btn btn-primary btn-block mb-2" id="btn-create-subscription">
+                                        <i class="fa-solid fa-plus"></i> Crear Suscripción
+                                    </button>
+                                    <button class="btn btn-secondary btn-block mb-2" id="btn-add-domain">
+                                        <i class="fa-solid fa-globe"></i> Agregar Dominio
+                                    </button>
+                                    <button class="btn btn-info btn-block mb-2" id="btn-create-database">
+                                        <i class="fa-solid fa-database"></i> Crear Base de Datos
+                                    </button>
+                                    <button class="btn btn-success btn-block" id="btn-test-connection">
+                                        <i class="fa-solid fa-plug"></i> Probar Conexión
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title">Servicios Plesk Asociados</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="plesk-services-list">
+                                        {# Aquí se mostrarían los servicios asociados al cliente #}
+                                        <p class="text-muted">No hay servicios Plesk asociados a este cliente.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Aquí iría el JavaScript para manejar las interacciones
+    console.log('Plesk client tab loaded');
+});
+</script>
+{% endblock %}

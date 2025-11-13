@@ -1,0 +1,21 @@
+{
+  "pleskservers-title": "Servidores Plesk",
+  "pleskservers-description": "Configura y gestiona tus servidores Plesk",
+  "pleskservers-timeout-label": "Timeout de conexión",
+  "pleskservers-timeout-help": "Tiempo máximo de espera en segundos para conexiones API",
+  "pleskservers-verify-ssl-label": "Verificar SSL",
+  "pleskservers-verify-ssl-help": "Activar verificación de certificados SSL",
+  "pleskservers-cache-ttl-label": "TTL de caché",
+  "pleskservers-cache-ttl-help": "Tiempo de vida del caché en segundos",
+  "manage-plesk-servers": "Gestionar Servidores Plesk",
+  "test-connection": "Probar Conexión",
+  "connection-ok": "Conexión exitosa con el servidor %server%",
+  "connection-error": "Error de conexión con el servidor %server%",
+  "no-server-selected": "No se ha seleccionado ningún servidor",
+  "pleskservers-settings-saved": "Configuración de PleskServers guardada correctamente",
+  "auth-type": "Tipo de Autenticación",
+  "API Key": "Clave API",
+  "Username/Password": "Usuario/Contraseña",
+  "active": "Activo",
+  "created-at": "Fecha de Creación"
+}

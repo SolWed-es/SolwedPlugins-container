@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view>
+    <columns>
+        <column name="name" title="name" order="100">
+            <widget type="text" fieldname="name" icon="fa-solid fa-tag" required="true"/>
+        </column>
+        <column name="description" title="description" order="110">
+            <widget type="text" fieldname="description" icon="fa-solid fa-info"/>
+        </column>
+        <column name="host" title="host" order="120">
+            <widget type="text" fieldname="host" icon="fa-solid fa-globe" required="true"/>
+        </column>
+        <column name="port" title="port" order="130">
+            <widget type="number" fieldname="port" icon="fa-solid fa-plug" min="1" max="65535" required="true"/>
+        </column>
+        <column name="auth_type" title="auth-type" order="140">
+            <widget type="select" fieldname="auth_type" icon="fa-solid fa-key" required="true">
+                <values>
+                    <value key="api_key" title="API Key"/>
+                    <value key="password" title="Username/Password"/>
+                </values>
+            </widget>
+        </column>
+        <column name="active" title="active" order="150">
+            <widget type="checkbox" fieldname="active" icon="fa-solid fa-check"/>
+        </column>
+        <column name="created_at" title="created-at" order="160">
+            <widget type="datetime" fieldname="created_at" icon="fa-solid fa-calendar" readonly="true"/>
+        </column>
+    </columns>
+</view>

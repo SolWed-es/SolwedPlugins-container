@@ -1,0 +1,21 @@
+{
+  "pleskservers-title": "Plesk Servers",
+  "pleskservers-description": "Configure and manage your Plesk servers",
+  "pleskservers-timeout-label": "Connection Timeout",
+  "pleskservers-timeout-help": "Maximum wait time in seconds for API connections",
+  "pleskservers-verify-ssl-label": "Verify SSL",
+  "pleskservers-verify-ssl-help": "Enable SSL certificate verification",
+  "pleskservers-cache-ttl-label": "Cache TTL",
+  "pleskservers-cache-ttl-help": "Cache time to live in seconds",
+  "manage-plesk-servers": "Manage Plesk Servers",
+  "test-connection": "Test Connection",
+  "connection-ok": "Successful connection to server %server%",
+  "connection-error": "Connection error to server %server%",
+  "no-server-selected": "No server selected",
+  "pleskservers-settings-saved": "PleskServers configuration saved successfully",
+  "auth-type": "Authentication Type",
+  "API Key": "API Key",
+  "Username/Password": "Username/Password",
+  "active": "Active",
+  "created-at": "Created At"
+}

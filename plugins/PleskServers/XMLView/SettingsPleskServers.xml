@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view>
+    <columns>
+        <group name="pleskservers" title="pleskservers-title" icon="fa-solid fa-server" numcolumns="12" description="pleskservers-description">
+            <column name="name" display="none" order="0">
+                <widget type="text" fieldname="name" readonly="true" required="true"/>
+            </column>
+
+            <column name="timeout" title="pleskservers-timeout-label" numcolumns="4" order="100" description="pleskservers-timeout-help">
+                <widget type="number" fieldname="pleskservers_timeout" min="5" max="300" step="1" icon="fa-solid fa-stopwatch" required="true" default="30"/>
+            </column>
+
+            <column name="verify-ssl" title="pleskservers-verify-ssl-label" numcolumns="4" order="110" description="pleskservers-verify-ssl-help">
+                <widget type="checkbox" fieldname="pleskservers_verify_ssl" default="1"/>
+            </column>
+
+            <column name="cache-ttl" title="pleskservers-cache-ttl-label" numcolumns="4" order="120" description="pleskservers-cache-ttl-help">
+                <widget type="number" fieldname="pleskservers_cache_ttl" min="0" max="3600" step="10" icon="fa-solid fa-clock" required="true" default="300"/>
+            </column>
+        </group>
+    </columns>
+</view>
