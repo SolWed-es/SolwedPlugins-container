@@ -1,9 +1,9 @@
 {
     "metadata": {
-        "generated": "16-11-2025 01:41:48",
+        "generated": "17-11-2025 11:43:32",
         "repo": "https://github.com/SolWed-es/SolwedPlugins-container",
-        "plugin_count": 10,
-        "workflow_run": "19398544985"
+        "plugin_count": 11,
+        "workflow_run": "19428413318"
     },
     "plugins": [
         {
@@ -55,6 +55,19 @@
             ],
             "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/DonDominio.zip",
             "last_updated": "2025-11-11"
+        },
+        {
+            "name": "HumanResourcesSolwed",
+            "description": "Ampliaci\u00f3n plugin HumanResources con geolocalizaci\u00f3n, botones empleado, asistencias sin bot\u00f3n borrado, archivos por pesta\u00f1as, localizacion autom\u00e1tica .",
+            "version": 0,
+            "min_version": 2025.43,
+            "min_php": 7.4,
+            "require": [
+                "HumanResources"
+            ],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/HumanResourcesSolwed.zip",
+            "last_updated": "2025-11-17"
         },
         {
             "name": "IeCRMFormularioElementor",
