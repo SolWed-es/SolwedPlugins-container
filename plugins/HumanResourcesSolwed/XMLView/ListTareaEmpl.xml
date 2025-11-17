@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view>
+    <columns>
+        <column name="id" titleurl="ListTareaEmpl" order="100">
+            <widget type="text" fieldname="idtareaempl" onclick="EditTareaEmpl" />
+        </column>
+        <column name="name" order="110">
+            <widget type="text" fieldname="nombre" />
+        </column>
+        <column name="address" order="120">
+            <widget type="text" fieldname="direccion" />
+        </column>
+        <column name="status" order="130">
+            <widget type="select" fieldname="estado">
+                <values title="Pendiente">pendiente</values>
+                <values title="En Proceso">en_proceso</values>
+                <values title="Completada">completada</values>
+            </widget>
+        </column>
+        <column name="date" order="140">
+            <widget type="date" fieldname="fecha" />
+        </column>
+    </columns>
+    <rows>
+        <row type="status">
+            <option color="warning" fieldname="estado">pendiente</option>
+            <option color="info" fieldname="estado">en_proceso</option>
+            <option color="success" fieldname="estado">completada</option>
+        </row>
+    </rows>
+</view>

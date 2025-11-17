@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<table>
+    <column>
+        <name>idtareaempl</name>
+        <type>serial</type>
+        <null>NO</null>
+        <default>nextval('tareasempl_idtareaempl_seq'::regclass)</default>
+    </column>
+    <column>
+        <name>nombre</name>
+        <type>varchar(100)</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>direccion</name>
+        <type>varchar(200)</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>estado</name>
+        <type>varchar(50)</type>
+        <null>YES</null>
+    </column>
+    <column>
+        <name>fecha</name>
+        <type>date</type>
+        <null>YES</null>
+    </column>
+    <constraint>
+        <name>tareasempl_pkey</name>
+        <type>PRIMARY KEY (idtareaempl)</type>
+    </constraint>
+</table>

@@ -1,0 +1,91 @@
+{#
+/**
+ * Custom yearly holiday board for administrators.
+ */
+#}
+{% set currentView = fsc.getCurrentView() %}
+{% set employee = fsc.getModel() %}
+{% set groupedHolidays = fsc.holidayGroups ?? {} %}
+{% set selectedYear = fsc.holidayYearFilter %}
+{% set selectedOrder = (fsc.holidayOrder ?? 'ASC')|lower %}
+{% set availableYears = fsc.holidayAvailableYears ?? groupedHolidays|keys %}
+
+<div class="card border-info shadow-sm mb-3">
+    <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-sun mr-2"></i>{{ trans('holidays') }} · {{ trans('yearly-summary')|default('Resumen anual') }}</span>
+        <small class="text-white-50">{{ employee.nombre }}</small>
+    </div>
+    <div class="card-body">
+        <form method="get" class="form-row align-items-end mb-3">
+            <input type="hidden" name="code" value="{{ employee.id }}">
+            <input type="hidden" name="activetab" value="{{ currentView.getViewName() }}">
+            <div class="form-group col-md-6">
+                <label class="small text-muted">{{ trans('filter-by-year')|default('Filtrar por año') }}</label>
+                <select name="holidayYear" class="form-control">
+                    <option value="all" {% if selectedYear is null %}selected{% endif %}>{{ trans('all') }}</option>
+                    {% for year in availableYears %}
+                        <option value="{{ year }}" {% if selectedYear is not null and year == selectedYear %}selected{% endif %}>{{ year }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group col-md-4">
+                <label class="small text-muted">{{ trans('order') }}</label>
+                <select name="holidayOrder" class="form-control">
+                    <option value="asc" {% if selectedOrder == 'asc' %}selected{% endif %}>{{ trans('ascending') }}</option>
+                    <option value="desc" {% if selectedOrder == 'desc' %}selected{% endif %}>{{ trans('descending') }}</option>
+                </select>
+            </div>
+            <div class="form-group col-md-2 text-right">
+                <button type="submit" class="btn btn-primary btn-block">
+                    <i class="fas fa-filter"></i> {{ trans('apply')|default('Aplicar') }}
+                </button>
+            </div>
+        </form>
+
+        {% if groupedHolidays|length == 0 %}
+            <p class="text-center text-muted mb-0">{{ trans('no-data-available') }}</p>
+        {% else %}
+            {% for year, dataset in groupedHolidays %}
+                {% set totals = dataset.totals ?? {'total':0,'enjoyed':0,'pending':0} %}
+                {% set collapseId = 'adminHolidayYear' ~ year ~ '-' ~ loop.index %}
+                <div class="mb-3 border rounded">
+                    <button class="btn btn-link w-100 text-left d-flex justify-content-between align-items-center"
+                            type="button" data-toggle="collapse" data-target="#{{ collapseId }}" aria-expanded="true">
+                        <span class="font-weight-bold">{{ year }}</span>
+                        <span class="badge badge-light text-dark">
+                            {{ trans('total') }}: {{ totals.total }} ·
+                            {{ trans('enjoyed') }}: {{ totals.enjoyed }} ·
+                            {{ trans('pending') }}: {{ totals.pending }}
+                        </span>
+                    </button>
+                    <div id="{{ collapseId }}" class="collapse show">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped mb-0">
+                                <thead>
+                                <tr>
+                                    <th>{{ trans('starting-date') }}</th>
+                                    <th>{{ trans('end-date') }}</th>
+                                    <th>{{ trans('days') }}</th>
+                                    <th>{{ trans('status') }}</th>
+                                    <th>{{ trans('notes') }}</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for holiday in dataset.items %}
+                                    <tr>
+                                        <td>{{ holiday.startdate }}</td>
+                                        <td>{{ holiday.enddate }}</td>
+                                        <td>{{ holiday.totaldays }}</td>
+                                        <td>{{ holiday.holidaystatus }}</td>
+                                        <td>{{ holiday.note }}</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+</div>
