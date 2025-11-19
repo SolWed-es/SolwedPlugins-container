@@ -7,7 +7,7 @@ use FacturaScripts\Core\Tools;
 final class DonDominioConfig
 {
     private const DEFAULT_ENDPOINT = 'https://simple-api.dondominio.net';
-    private const DEFAULT_TIMEOUT = 15;
+    private const DEFAULT_TIMEOUT = 8;
     private const DEFAULT_PORT = 443;
     private const PLUGIN_ID = 'dondominio';
     

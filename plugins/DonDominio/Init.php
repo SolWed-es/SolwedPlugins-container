@@ -8,17 +8,18 @@
 
 namespace FacturaScripts\Plugins\DonDominio;
 
-use FacturaScripts\Core\Migrations;
 use FacturaScripts\Core\Tools;
-use FacturaScripts\Plugins\DonDominio\Lib\TableInstaller;
-use FacturaScripts\Plugins\DonDominio\Migrations\AddDomainContactIdColumn;
-use FacturaScripts\Plugins\DonDominio\Migrations\CreateDomainContactsTable;
 
+/**
+ * Plugin initialization for DonDominio.
+ * Provides domain management integration with DonDominio API.
+ * No database persistence - all data is fetched directly from API.
+ */
 class Init
 {
-    private $autoloadPath;
-    private $pluginId = 'dondominio';
-    private static $extensionsRegistered = false;
+    private string $autoloadPath;
+    private string $pluginId = 'dondominio';
+    private static bool $extensionsRegistered = false;
 
     public function __construct()
     {
@@ -29,9 +30,6 @@ class Init
     {
         $this->loadSdk();
         $this->initializeSettings();
-        $this->initGlobalVars();
-        $this->installModels();
-        $this->runMigrations();
         $this->registerControllerExtensions();
     }
 
@@ -39,16 +37,17 @@ class Init
     {
         $this->loadSdk();
         $this->initializeSettings();
-        $this->installModels();
-        $this->runMigrations();
         $this->registerControllerExtensions();
     }
 
     public function uninstall(): void
     {
-        // nothing to do on uninstall
+        // No cleanup required - no database tables created
     }
 
+    /**
+     * Carga el SDK de DonDominio.
+     */
     private function loadSdk(): void
     {
         if (is_file($this->autoloadPath)) {
@@ -56,78 +55,43 @@ class Init
         }
     }
 
+    /**
+     * Inicializa la configuración del plugin.
+     */
     private function initializeSettings(): void
     {
         try {
             $settingsChanged = false;
 
-            // Aseguramos una IP válida del servidor
-            $serverIp = $this->detectServerIp();
-            $settingsChanged = $this->ensureSettingValue('dondominio_serverip', $serverIp) || $settingsChanged;
+            // Configuración del endpoint
+            $settingsChanged = $this->ensureSettingValue(
+                'dondominio_endpoint',
+                'https://simple-api.dondominio.net'
+            ) || $settingsChanged;
 
-            // Valores por defecto si el usuario aún no ha configurado nada
-            $settingsChanged = $this->ensureSettingValue('dondominio_endpoint', 'https://simple-api.dondominio.net') || $settingsChanged;
+            // Configuración del puerto
             $settingsChanged = $this->ensureSettingValue('dondominio_port', '443') || $settingsChanged;
+
+            // Configuración del timeout
             $settingsChanged = $this->ensureSettingValue('dondominio_timeout', '15') || $settingsChanged;
+
+            // Configuración de verificación SSL
             $settingsChanged = $this->ensureSettingValue('dondominio_verifyssl', '1') || $settingsChanged;
-            $settingsChanged = $this->ensureSettingValue('dondominio_enable_listcliente', '0') || $settingsChanged;
 
             if ($settingsChanged) {
                 Tools::settingsSave();
                 Tools::settingsClear();
             }
         } catch (\Exception $e) {
-            Tools::log()->error('Error en initializeSettings: ' . $e->getMessage());
+            Tools::log()->error('dondominio-init-settings-error', [
+                '%message%' => $e->getMessage(),
+            ]);
         }
     }
 
-    private function initGlobalVars(): void
-    {
-        try {
-            $ipAddress = $this->detectServerIp();
-            $GLOBALS['ip_address'] = $ipAddress;
-        } catch (\Exception $e) {
-            Tools::log()->error('Error en initGlobalVars: ' . $e->getMessage());
-        }
-    }
-
-    private function detectServerIp(): string
-    {
-        if (!empty($_SERVER['SERVER_ADDR'])) {
-            return $_SERVER['SERVER_ADDR'];
-        }
-
-        if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
-            return $_SERVER['HTTP_CLIENT_IP'];
-        }
-
-        if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-            $ips = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
-            return trim($ips[0]);
-        }
-
-        return '127.0.0.1';
-    }
-
-    private function installModels(): void
-    {
-        try {
-            // Instalar el modelo extendido de Cliente
-            $clienteDonDominio = new \FacturaScripts\Plugins\DonDominio\Model\ClienteDonDominio();
-            $clienteDonDominio->install();
-
-            // Instalar el modelo de dominios
-            $domain = new \FacturaScripts\Plugins\DonDominio\Model\Domain();
-            $domain->install();
-
-            $server = new \FacturaScripts\Plugins\DonDominio\Model\ClienteERP();
-            $server->install();
-        } catch (\Exception $e) {
-            $errorMsg = 'Error instalando modelos de DonDominio: ' . $e->getMessage();
-            Tools::log()->error($errorMsg);
-        }
-    }
-
+    /**
+     * Establece un valor de configuración si no existe.
+     */
     private function ensureSettingValue(string $key, string $default): bool
     {
         $currentValue = Tools::settings($this->pluginId, $key, null);
@@ -139,6 +103,9 @@ class Init
         return false;
     }
 
+    /**
+     * Registra las extensiones de controladores.
+     */
     private function registerControllerExtensions(): void
     {
         if (self::$extensionsRegistered) {
@@ -146,53 +113,21 @@ class Init
         }
 
         try {
-            \FacturaScripts\Dinamic\Controller\EditSettings::addExtension(
-                new \FacturaScripts\Plugins\DonDominio\Extension\Controller\EditSettingsExtension()
-            );
-
-            // Extensión para añadir funcionalidad de dominios al PortalCliente
+            // Extensión para el portal del cliente (mostrar dominios)
             \FacturaScripts\Dinamic\Controller\PortalCliente::addExtension(
                 new \FacturaScripts\Plugins\DonDominio\Extension\Controller\PortalCliente()
             );
 
-            \FacturaScripts\Dinamic\Controller\PortalLogin::addExtension(
-                new \FacturaScripts\Plugins\DonDominio\Extension\Controller\PortalLogin()
+            // Extensión para EditCliente (mostrar dominios en edición de cliente)
+            \FacturaScripts\Dinamic\Controller\EditCliente::addExtension(
+                new \FacturaScripts\Plugins\DonDominio\Extension\Controller\EditCliente()
             );
-
-            if ($this->isListClienteDomainsEnabled()) {
-                // Extensión para añadir pestaña de dominios a ListCliente
-                \FacturaScripts\Dinamic\Controller\ListCliente::addExtension(
-                    new \FacturaScripts\Plugins\DonDominio\Extension\Controller\ListCliente()
-                );
-            }
 
             self::$extensionsRegistered = true;
         } catch (\Throwable $e) {
-            Tools::log()->error('Error registrando extensiones: ' . $e->getMessage());
-        }
-    }
-
-    private function runMigrations(): void
-    {
-        try {
-            TableInstaller::ensureTables();
-            Migrations::runPluginMigrations([
-                new CreateDomainContactsTable(),
-                new AddDomainContactIdColumn(),
+            Tools::log()->error('dondominio-extension-error', [
+                '%message%' => $e->getMessage(),
             ]);
-        } catch (\Throwable $e) {
-            Tools::log()->error('Error ejecutando migraciones de DonDominio: ' . $e->getMessage());
         }
-    }
-
-    private function isListClienteDomainsEnabled(): bool
-    {
-        $value = Tools::settings($this->pluginId, 'dondominio_enable_listcliente', '0');
-        if (is_bool($value)) {
-            return $value;
-        }
-
-        $normalized = strtolower((string) $value);
-        return in_array($normalized, ['1', 'true', 'yes', 'on'], true);
     }
 }

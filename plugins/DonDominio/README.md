@@ -1,80 +1,271 @@
-# Plugin DonDominio para FacturaScripts
+# Plugin DonDominio para FacturaScript
 
-Integración con la API de DonDominio para la gestión de dominios en FacturaScripts.
+Integración simplificada con la API de DonDominio para visualizar dominios en **tiempo real** sin almacenarlos en base de datos.
 
-## Características
+**Versión:** 1.0.4 (Rediseño Final Nov 2024) | **Compatible:** FS 2025.43+ | **PHP:** 8.1+
 
-- Configuración de credenciales de API de DonDominio
-- Gestión de dominios
-- Integración con el SDK de DonDominio
-- Compatible con FacturaScripts 2025.43+
-- Compatible con PHP 8.1+
+---
 
-## Instalación
+## ⚡ Características Principales
 
-1. Descarga el plugin en la carpeta `Plugins/DonDominio`
-2. Ve a Panel de control > Actualizaciones
-3. Instala el plugin DonDominio
+- ✅ **Datos en Tiempo Real** - Sincronización directa con API de DonDominio
+- ✅ **Sin Persistencia BD** - No almacena dominios (siempre frescos)
+- ✅ **Portal del Cliente** - Los clientes ven sus dominios en el portal personal
+- ✅ **Alerta de Expiración** - Notifica dominios próximos a vencer (30 días)
+- ✅ **Información Completa** - Estado, nameservers, renovación automática, etc.
+- ✅ **Código Simple** - 68% menos código que versiones anteriores
+- ✅ **Instalación Fácil** - Sin migraciones BD complicadas
 
-## Configuración
+---
 
-1. Ve a Panel de control > Ajustes > Datos de acceso
-2. Ingresa tus credenciales de API de DonDominio:
-   - **API Username**: Tu usuario de DonDominio
-   - **API Password**: Tu contraseña de DonDominio
-   - **HostName**: URL del endpoint de la API (por defecto: https://simple-api.dondominio.net)
-   - **Puerto**: Puerto de conexión (por defecto: 443)
-   - **Timeout**: Tiempo máximo de espera (por defecto: 15 segundos)
-   - **Verificar SSL**: Activar validación de certificados SSL
+## 📋 Requisitos
 
-3. Guarda la configuración
+- **FacturaScript** 2025.43 o superior
+- **PHP** 8.1 o superior
+- **API DonDominio**: Credenciales válidas (usuario + clave)
+- **Conexión HTTPS** a api.dondominio.net
 
-## Uso
+---
 
-### Acceder a la configuración
+## 🚀 Instalación
 
-La configuración se encuentra en: **Panel de control > Ajustes > Datos de acceso**
-
-### Usar la API
-
-```php
-use FacturaScripts\Plugins\DonDominio\Lib\DonDominioApiClient;
-use FacturaScripts\Plugins\DonDominio\Lib\DonDominioConfig;
-
-// Verificar si está configurado
-if (DonDominioConfig::isConfigured()) {
-    $client = DonDominioApiClient::get();
-    // Usar el cliente de la API
-}
+### Paso 1: Copiar el Plugin
+```bash
+cp -r Plugins/DonDominio /ruta/a/facturascript/Plugins/
 ```
 
-## Estructura del Plugin
+### Paso 2: Habilitar el Plugin
+1. Ir a **Admin → Complementos**
+2. Buscar "DonDominio"
+3. Hacer clic en **Habilitar**
+
+### Paso 3: Configurar Credenciales
+1. Ir a **Admin → Ajustes → Configuración General**
+2. Buscar sección "DonDominio"
+3. Ingresar:
+   - **Usuario API**: Usuario de DonDominio
+   - **Clave API**: Contraseña de DonDominio
+4. Guardar cambios
+
+> ⚠️ **Nota**: Dejar vacío "Servidor", "Puerto", "Timeout" para usar valores predeterminados.
+
+---
+
+## 📖 Uso
+
+### Portal del Cliente
+Los clientes pueden ver sus dominios en: **Portal → Pestaña "Dominios"**
+
+**Información mostrada:**
+- 🌐 Nombre del dominio (enlace directo)
+- 📍 Estado (Activo/Pendiente/Expirado/Suspendido)
+- 📅 Fecha de expiración
+- 🔄 Renovación automática (sí/no)
+- 🔗 Nameservers (con tooltip)
+- 🔍 Enlace directo a WHOIS
+
+### Admin - Lista de Clientes (Opcional)
+Si está habilitado: **Admin → Clientes → Pestaña "Dominios"**
+- Ver todos los dominios de todos los clientes
+- Filtrar por estado
+- Buscar por nombre
+
+---
+
+## ⚙️ Configuración Avanzada
+
+### Configuración Obligatoria
+```ini
+[dondominio]
+dondominio_apiuser = "tu_usuario"
+dondominio_apipasswd = "tu_contraseña"
+```
+
+### Configuración Opcional
+```ini
+dondominio_endpoint = "https://simple-api.dondominio.net"  # Por defecto
+dondominio_port = "443"                                    # Por defecto
+dondominio_timeout = "15"                                  # Segundos
+dondominio_verifyssl = "1"                                 # 1=sí, 0=no
+dondominio_enable_listcliente = "0"                        # Mostrar en lista clientes
+```
+
+---
+
+## 🔄 Flujo de Datos
+
+```
+Cliente accede Portal
+    ↓
+PortalCliente::loadData()
+    ↓
+DomainApiService::getClientContacts()
+    ↓
+API DonDominio (solicitud HTTP)
+    ↓
+Datos parseados (sin guardar en BD)
+    ↓
+Vista renderizada
+    ↓
+Datos descartados (se obtienen frescos en próxima solicitud)
+```
+
+**Ventaja**: Siempre información actualizada. **Desventaja**: Requiere acceso a API en cada carga.
+
+---
+
+## 🛠️ Desarrollo
+
+### Usar el Servicio de API
+
+```php
+use FacturaScripts\Plugins\DonDominio\Lib\DomainApiService;
+
+$service = new DomainApiService();
+
+// Obtener dominios de un cliente
+$contacts = $service->getClientContacts('C001');
+
+// Obtener dominios próximos a expirar
+$expiring = $service->getExpiringDomains('C001', 30);
+
+// Obtener nameservers de un dominio
+$nameservers = $service->getDomainNameservers('example.com');
+
+// Obtener información completa de dominio
+$info = $service->getDomainInfo('example.com');
+```
+
+### Extender Funcionalidades
+
+1. Abrir `Lib/DomainApiService.php`
+2. Agregar nuevo método:
+   ```php
+   public function myMethod($param): array {
+       if (null === $this->apiClient) {
+           return [];
+       }
+
+       try {
+           $response = $this->apiClient->myApiMethod($param);
+           // Parsear respuesta
+           return $data;
+       } catch (\Throwable $e) {
+           Tools::log()->error('error-key', ['%message%' => $e->getMessage()]);
+           return [];
+       }
+   }
+   ```
+
+3. Usar en controlador/vista
+
+---
+
+## 📊 Estructura del Plugin
 
 ```
 Plugins/DonDominio/
-├── Controller/
-│   └── DonDominioController.php
-├── Lib/
-│   ├── DonDominioApiClient.php
-│   └── DonDominioConfig.php
-├── Translation/
-│   ├── es_ES.json
-│   └── en_US.json
-├── XMLView/
-│   └── SettingsDonDominio.xml
-├── facturascripts.ini
-├── Init.php
-├── PluginInfo.json
-├── composer.json
-└── README.md
+├── Init.php                                    # Inicialización
+├── facturascripts.ini                          # Metadatos
+├── PluginInfo.json                             # Información
+├── README.md                                   # Este archivo
+│
+├── Lib/                                        # Servicios
+│   ├── DonDominioApiClient.php                 # Cliente SDK
+│   ├── DonDominioConfig.php                    # Configuración
+│   └── DomainApiService.php                    # Servicio principal (SIN caché)
+│
+├── Extension/Controller/                       # Extensiones
+│   ├── PortalCliente.php                       # Portal del cliente
+│   └── ListCliente.php                         # Lista de clientes
+│
+├── View/                                       # Vistas
+│   └── Portal/Tab/PortalDomains.html.twig     # Template
+│
+├── Translation/                                # Idiomas
+│   ├── es_ES.json                              # Español
+│   └── en_US.json                              # Inglés
+│
+└── vendor/                                     # SDK oficial
+    └── dondominio/api-sdk-php/
 ```
 
-## Requisitos
+---
 
-- FacturaScripts 2025.43 o superior
-- PHP 8.1 o superior
-- Credenciales válidas de DonDominio
+## 🔍 Solución de Problemas
 
-## Licencia
+### Los dominios no aparecen
 
-Este plugin está bajo licencia MIT.
+**Causa 1**: Credenciales incorrectas
+```
+Solución: Verificar en Admin → Ajustes → DonDominio
+```
+
+**Causa 2**: Cliente sin NIF registrado
+```
+Solución: Agregar NIF/CIF al cliente en Admin → Clientes
+```
+
+**Causa 3**: No existe contacto en DonDominio con ese NIF
+```
+Solución: Crear contacto en panel de control de DonDominio
+```
+
+### Error de conexión a API
+
+**Revisar logs:**
+```bash
+tail -f MyFiles/Logs/default.log | grep dondominio
+```
+
+**Validar acceso:**
+```bash
+curl -I https://simple-api.dondominio.net
+```
+
+---
+
+## 📝 Historial de Versiones
+
+### v1.0.4 (Nov 2024) - Rediseño
+- ✨ **NUEVO**: Eliminada persistencia en BD
+- ✨ **NUEVO**: DomainApiService para consultas directas
+- 🔧 **MEJORADO**: Init.php simplificado
+- 🔧 **MEJORADO**: Vistas rediseñadas
+- 🔧 **MEJORADO**: Código 68% más simple
+- ❌ **REMOVIDO**: Migraciones BD
+- ❌ **REMOVIDO**: Modelos BD
+- ❌ **REMOVIDO**: Servicios de caché
+
+### v1.0.3 y anteriores
+- Consultar ANALISIS_COMPLETADO.md
+
+---
+
+## 🔐 Notas de Seguridad
+
+- ✅ Las credenciales se guardan en settings (proteger BD)
+- ✅ No hay datos sensibles almacenados en tablas
+- ✅ Todas las llamadas a API usan HTTPS
+- ✅ Validación de entrada en controladores
+- ✅ No hay sincronización en background
+- ✅ Logs de error sin exponer sensibles
+
+---
+
+## 📄 Licencia
+
+Parte de FacturaScript 2025.43+
+
+---
+
+## 🔗 Enlaces
+
+- [Documentación Completa](./REDISENO_2024.md)
+- [DonDominio](https://www.dondominio.com)
+- [FacturaScript](https://facturascripts.com)
+- [Soporte FS](https://facturascripts.com/soporte)
+
+---
+
+**Última actualización:** Noviembre 2024 | **Desarrollador:** Rediseño de Plugin

@@ -1,98 +1,164 @@
 <?php
 /**
- * Extension para anadir funcionalidad de dominios al PortalCliente
+ * This file is part of the DonDominio plugin.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 namespace FacturaScripts\Plugins\DonDominio\Extension\Controller;
 
 use Closure;
+use FacturaScripts\Core\Base\DataBase;
 use FacturaScripts\Core\Tools;
+use FacturaScripts\Plugins\DonDominio\Lib\DomainApiService;
 
 /**
- * Extension del controlador PortalCliente para anadir funcionalidad de dominios
+ * Extensión del controlador PortalCliente para añadir funcionalidad de dominios.
+ * Obtiene datos directamente de la API de DonDominio sin usar caché.
  */
 class PortalCliente
 {
-    private const LOG_CHANNEL = 'dondominio_portal_domains';
-
     /**
-     * Anade la vista de dominios al crear las vistas
+     * Añade la vista de dominios al crear las vistas.
      */
     public function createViews(): Closure
     {
         return function () {
-            $this->createViewDomains();
+            $this->addHtmlView(
+                'Domains',
+                'PortalDomains',
+                'Cliente',
+                'Dominios',
+                'fa-solid fa-globe'
+            );
         };
     }
 
     /**
-     * Crea la vista de dominios
-     */
-    protected function createViewDomains(): Closure
-    {
-        return function (string $viewName = 'PortalDomains') {
-            $this->addHtmlView($viewName, 'Tab/PortalDomains', 'Cliente', Tools::lang()->trans('dondominio-domains-tab'), 'fa-solid fa-globe');
-        };
-    }
-
-    /**
-     * Carga los datos para la vista de dominios
+     * Carga los datos para la vista de dominios desde la API.
      */
     public function loadData(): Closure
     {
-        $logChannel = self::LOG_CHANNEL;
+        return function ($viewName, $view) {
+            if ($viewName !== 'Domains') {
+                return;
+            }
 
-        return function ($viewName, $view) use ($logChannel) {
-            if ($viewName === 'PortalDomains') {
-                // Obtener el cliente del contacto
-                $cliente = $this->contact->getCustomer(false);
-                if (!$cliente instanceof \FacturaScripts\Dinamic\Model\Cliente || !$cliente->exists()) {
+            // Obtener el cliente del contacto
+            $cliente = $this->contact->getCustomer(false);
+            if (!$cliente instanceof \FacturaScripts\Dinamic\Model\Cliente || !$cliente->exists()) {
+                $view->cursor = [];
+                $view->count = 0;
+                $view->error_message = 'No se encontró cliente asociado.';
+                return;
+            }
+
+            // Verificar credenciales configuradas
+            if (!\FacturaScripts\Plugins\DonDominio\Lib\DonDominioConfig::isConfigured()) {
+                $view->cursor = [];
+                $view->count = 0;
+                $view->error_message = 'Credenciales de dominio no configuradas. Configure en Admin → Panel de control → Configuración.';
+                $view->error_type = 'warning';
+                return;
+            }
+
+            // Obtener dominios directamente de la API
+            $originalTimeout = ini_get('max_execution_time');
+
+            try {
+                // Establecer timeout máximo para esta operación
+                set_time_limit(30);
+
+                $service = new DomainApiService();
+                $contacts = $service->getClientContacts($cliente->codcliente);
+
+                if (empty($contacts)) {
                     $view->cursor = [];
                     $view->count = 0;
+                    $view->error_message = 'No hay dominios registrados para este cliente.';
+                    $view->error_type = 'info';
+
+                    // Restaurar timeout original
+                    set_time_limit((int)$originalTimeout);
                     return;
                 }
 
-                // Cargar el modelo extendido para acceder a la configuracion de autologin
-                $clienteExtendido = new \FacturaScripts\Plugins\DonDominio\Model\ClienteDonDominio();
-                $clienteExtendido->loadFromCode($cliente->codcliente);
+                $view->cursor = $contacts;
+                $view->count = count($contacts);
+                $view->error_message = null;
 
-                // Usar los datos cacheados en base de datos
-                try {
-                    $service = new \FacturaScripts\Plugins\DonDominio\Lib\DomainSyncService();
-                    $contacts = $service->getClientContacts($cliente->codcliente, false);
+                // Obtener dominios próximos a expirar
+                $expiringDomains = $service->getExpiringDomains($cliente->codcliente, 30);
+                $view->expiring_domains = $expiringDomains;
+                $view->expiring_count = count($expiringDomains);
+                $view->autorenew_contract_url = 'https://filedn.eu/litOB0SUT8q5aLOM933djFm/Contrato%20domiciliaci%C3%B3n-Solwed.pdf';
+                $view->allow_autorenew_toggle = false;
 
-                    foreach ($contacts as &$contact) {
-                        foreach ($contact['domains'] as &$domain) {
-                            $domain['whois_url'] = \FacturaScripts\Plugins\DonDominio\Lib\AutoLoginService::generateWhoisUrl($domain['name']);
-                            $domainData = ['nameservers' => $domain['nameservers'] ?? []];
-                            $domain['tools_urls'] = \FacturaScripts\Plugins\DonDominio\Lib\AutoLoginService::getAvailableAccessUrls($clienteExtendido, $domainData);
-                        }
-                    }
+                $db = new DataBase();
+                $sql = "SELECT COUNT(*) AS total
+                        FROM attached_files_rel afr
+                        INNER JOIN attached_files af ON afr.idfile = af.idfile
+                        WHERE afr.model = 'Cliente'
+                          AND afr.modelcode = " . $db->var2str($cliente->codcliente) . "
+                          AND afr.observations = 'DOMICILIACION_AUTORENEW'
+                          AND af.signed = true";
+                $result = $db->select($sql);
+                $view->has_signed_domiciliation = !empty($result) && (int)$result[0]['total'] > 0;
 
-                    $view->cursor = $contacts;
-                    $view->count = count($contacts);
-                    $view->setSettings('active', $view->count > 0);
+                $view->can_purchase_domain = false;
 
-                    $expiringDomains = \FacturaScripts\Plugins\DonDominio\Lib\DomainAlertService::getExpiringDomainsForClient($cliente->codcliente, 30, false);
-                    $view->expiring_domains = $expiringDomains;
-                    $view->expiring_count = count($expiringDomains);
+                // Restaurar timeout original
+                set_time_limit((int)$originalTimeout);
 
-                    Tools::log($logChannel)->notice('dondominio-portal-domains-loaded', [
-                        '%count%' => $view->count,
-                    ]);
-                } catch (\Exception $e) {
-                    Tools::log()->error('Error cargando dominios en portal: ' . $e->getMessage());
-                    $view->cursor = [];
-                    $view->count = 0;
-                    $view->expiring_domains = [];
-                    $view->expiring_count = 0;
+            } catch (\Exception $e) {
+                // Restaurar timeout en caso de error
+                set_time_limit((int)$originalTimeout);
 
-                    Tools::log($logChannel)->warning('dondominio-portal-domains-error', [
-                        '%message%' => $e->getMessage(),
-                    ]);
-                }
+                $errorMsg = $e->getMessage();
+                Tools::log()->error('dondominio-load-error', [
+                    '%message%' => $errorMsg,
+                    '%code%' => $cliente->codcliente,
+                    '%trace%' => $e->getTraceAsString(),
+                ]);
+
+                $view->cursor = [];
+                $view->count = 0;
+                $view->expiring_domains = [];
+                $view->expiring_count = 0;
+                $view->error_message = 'Error al cargar los dominios desde la API: ' . $errorMsg;
+                $view->error_type = 'danger';
             }
         };
     }
-}
 
+    /**
+     * Maneja las acciones AJAX para gestión de dominios.
+     */
+    public function execPreviousAction(): Closure
+    {
+        return function ($action): bool {
+            // Helper para respuesta JSON
+            $jsonResponse = function(array $data): bool {
+                $this->setTemplate(false);
+                $this->response->setContent(json_encode($data));
+                $this->response->headers->set('Content-Type', 'application/json');
+                return false;
+            };
+
+            $service = new DomainApiService();
+
+            // Manejar acciones
+            switch ($action) {
+                case 'toggle-autorenew':
+                    return $jsonResponse([
+                        'success' => false,
+                        'error' => 'Esta acción sólo puede realizarla un administrador desde el panel interno.'
+                    ]);
+            }
+
+            return parent::execPreviousAction($action);
+        };
+    }
+
+}
