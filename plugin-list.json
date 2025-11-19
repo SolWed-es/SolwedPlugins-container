@@ -1,9 +1,9 @@
 {
     "metadata": {
-        "generated": "17-11-2025 11:43:32",
+        "generated": "19-11-2025 08:37:20",
         "repo": "https://github.com/SolWed-es/SolwedPlugins-container",
         "plugin_count": 11,
-        "workflow_run": "19428413318"
+        "workflow_run": "19495006309"
     },
     "plugins": [
         {
@@ -111,13 +111,13 @@
         {
             "name": "SolwedTheme",
             "description": "Tema personalizado basado en Bootstrap 5 para FacturaScripts",
-            "version": 1.73,
-            "min_version": 2025,
+            "version": 1.72,
+            "min_version": 2025.42,
             "min_php": 7.3,
             "require": [],
             "require_php": [],
             "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/SolwedTheme.zip",
-            "last_updated": "2025-11-11"
+            "last_updated": "2025-11-19"
         },
         {
             "name": "SolwedTiendaWeb",
