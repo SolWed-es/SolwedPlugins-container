@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<view>
+    <columns>
+        <group name="localizacion" numcolumns="12" title="Localización" icon="fas fa-location">
+            <column name="localizacion" numcolumns="8" order="110" >
+                <widget type="text" fieldname="localizacion" />
+            </column>
+        </group>
+    </columns>
+</view>

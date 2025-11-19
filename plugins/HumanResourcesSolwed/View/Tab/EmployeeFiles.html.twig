@@ -1,0 +1,274 @@
+{#
+/**
+ * This file is part of HumanResources plugin for FacturaScripts.
+ * FacturaScripts Copyright (C) 2015-2022 Carlos Garcia Gomez <carlos@facturascripts.com>
+ * HumanResources Copyright (C) 2018-2025 Jose Antonio Cuello Principal <yopli2000@gmail.com>
+ *
+ * This program and its files are under the terms of the license specified in the LICENSE file.
+ *
+ * @author Jose Antonio Cuello Principal <yopli2000@gmail.com>
+*/
+#}
+{% set employeeView = fsc.views | first %}
+{% set employee = employeeView.model %}
+{% set currentView = fsc.getCurrentView() %}
+{% set docsTypes = fsc.codeModel.all('rrhh_documentstypes', 'id', 'name', false) %}
+
+<div class="container-fluid">
+    {# -- Contador de documentos por tipo -- #}
+{% set fileCounters = fsc.employeeFileCounters ?? {'documents': 0, 'payroll': 0, 'cae': 0} %}
+{% set fileGroups = fsc.employeeFileGroups ?? {'documents': {}, 'payroll': {}, 'cae': {}} %}
+{% set filesOrder = (fsc.filesOrder ?? 'DESC')|lower %}
+{% set documentsCount = fileCounters.documents %}
+{% set payrollCount = fileCounters.payroll %}
+{% set caeCount = fileCounters.cae %}
+
+    {# -- Tabs Navigation -- #}
+    <ul class="nav nav-tabs mb-3" id="documentTabs" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" id="documents-tab" data-bs-toggle="tab" href="#documents" role="tab" 
+               aria-controls="documents" aria-selected="true">
+                <i class="fas fa-file-alt fa-fw"></i> {{ trans('documents') }}
+                <span class="badge badge-secondary">{{ documentsCount }}</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="payroll-tab" data-bs-toggle="tab" href="#payroll" role="tab" 
+               aria-controls="payroll" aria-selected="false">
+                <i class="fas fa-money-check-alt fa-fw"></i> {{ trans('payroll') }}
+                <span class="badge badge-secondary">{{ payrollCount }}</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="cae-tab" data-bs-toggle="tab" href="#cae" role="tab" 
+               aria-controls="cae" aria-selected="false">
+                <i class="fas fa-certificate fa-fw"></i> CAE
+                <span class="badge badge-secondary">{{ caeCount }}</span>
+            </a>
+        </li>
+    </ul>
+
+    {# -- Tabs Content -- #}
+    <div class="d-flex justify-content-end align-items-center mb-2">
+        <form method="get" class="form-inline">
+            <input type="hidden" name="code" value="{{ employee.id }}" />
+            <input type="hidden" name="activetab" value="{{ currentView.getViewName() }}" />
+            <label class="mr-2 text-muted small">{{ trans('order') }}</label>
+            <select name="filesorder" class="form-control form-control-sm" onchange="this.form.submit()">
+                <option value="desc" {% if filesOrder == 'desc' %}selected{% endif %}>{{ trans('newer-first')|default('Desc ↓') }}</option>
+                <option value="asc" {% if filesOrder == 'asc' %}selected{% endif %}>{{ trans('older-first')|default('Asc ↑') }}</option>
+            </select>
+        </form>
+    </div>
+    <div class="tab-content" id="documentTabsContent">
+        {% for tabId, tabTitle in {
+            'documents': 'documents',
+            'payroll': 'payroll',
+            'cae': 'cae'
+        } %}
+            <div class="tab-pane fade {% if tabId == 'documents' %}show active{% endif %}" 
+                 id="{{ tabId }}" role="tabpanel" aria-labelledby="{{ tabId }}-tab">
+                {# -- New form -- #}
+                <div class="row">
+                    <div class="col">
+                        <form id="{{ 'form' ~ currentView.getViewName() ~ '0' }}" action="{{ employee.url() }}" method="post" enctype="multipart/form-data">
+                            <input type="hidden" name="activetab" value="{{ currentView.getViewName() }}" />
+                            <input type="hidden" name="action" value="add-file" />
+                            <input type="hidden" name="multireqtoken" value="{{ fsc.multiRequestProtection.newToken() }}"/>
+                            <div class="card border-success shadow mb-2">
+                                <div class="card-body p-2">
+                                    <button class="btn btn-sm btn-outline-success" type="button" data-bs-toggle="collapse" data-bs-target="#NewFileCollapse{{ tabId }}" aria-expanded="false">
+                                        <i class="fas fa-plus-square fa-fw" aria-hidden="true"></i>
+                                        {{ trans('add') }}
+                                    </button>
+                                    &nbsp;
+                                    {{ trans(tabTitle) }}
+                                </div>
+                                <div class="collapse" id="NewFileCollapse{{ tabId }}">
+                                    <div class="card-body border-top">
+                                        <div class="form-row align-items-end">
+                                            {{ _self.inputNumber('now' | date('Y'), fsc, 0) }}
+                                            {{ _self.selectDocumentTypes((tabId == 'payroll' ? '3' : (tabId == 'cae' ? '6' : '')), docsTypes, fsc, 0) }}
+                                            {{ _self.inputDate('', fsc, 0) }}
+                                            {{ _self.inputBool('', fsc, 0) }}
+                                        </div>
+                                        {{ _self.inputTextArea('', fsc) }}
+                                        <div class="form-row align-items-end">
+                                            <div class="col">
+                                                <input type="file" name="new-files[]" class="form-control-file" multiple required="" />
+                                                <p class="text-muted mb-0">{{ trans('help-server-accepts-filesize', {'%size%': currentView.model.getMaxFileUpload()}) }}</p>
+                                            </div>
+                                            <div class="col text-right">
+                                                <button type="submit" class="btn btn-sm btn-success">
+                                                    <i class="fas fa-save fa-fw" aria-hidden="true"></i> {{ trans('save') }}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                {# -- Document List -- #}
+                <div class="row">
+                    <div class="col">
+                        {% set groupsForTab = fileGroups[tabId]|default({}) %}
+                        {% if groupsForTab|length == 0 %}
+                            <p class="text-center text-muted">{{ trans('no-data-available') }}</p>
+                        {% else %}
+                            {% for year, docs in groupsForTab %}
+                                {{ _self.fileYearAccordion(year, docs, docsTypes, fsc, currentView, tabId, loop.index, employee) }}
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+{# -- Original Macros -- #}
+{% macro selectDocumentTypes(iddoctype, options, fsc, adjustment) %}
+    <div class="form-group col-{{3 + adjustment}}">
+        <label>{{ trans('type') }}</label>
+        <select name="iddoctype" class="form-control">
+            {% for row in options %}
+                {% set selected = (row.code == iddoctype) ? ' selected' %}
+                <option value="{{ row.code }}"{{ selected }}>{{ row.description }}</option>
+            {%  endfor %}
+        </select>
+    </div>
+{% endmacro %}
+
+{% macro inputBool(value, fsc, adjustment) %}
+    <div class="form-group col-{{1 + adjustment}} pl-4">
+        <input type="checkbox" name="downloadable" class="form-check-input" value="1" {% if value %}checked{% endif %}>
+        <label>{{ trans('public') }}</label>
+    </div>
+{% endmacro %}
+
+{% macro inputDate(value, fsc, adjustment) %}
+    <div class="form-group col-{{2 + adjustment}}">
+        <label class="mb-0">{{ trans('expires') }}</label>
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <span class="input-group-text"><i class="far fa-calendar-times fa-fw"></i></span>
+            </div>
+            <input type="date" name="expires" class="form-control" autocomplete="off" value="{{ value }}">
+        </div>
+    </div>
+{% endmacro %}
+
+{% macro inputNumber(value, fsc, adjustment) %}
+    <div class="form-group col-{{2 + adjustment}}">
+        <label>{{ trans('year') }}</label>
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <span class="input-group-text"><i class="far fa-calendar fa-fw"></i></span>
+            </div>
+            <input type="number" name="year_group" class="form-control" placeholder="{{ trans('year') }}" value="{{ value }}" step="1" min="2000" autocomplete="off">
+        </div>
+    </div>
+{% endmacro %}
+
+{% macro inputTextArea(text, fsc) %}
+    <div class="form-group">
+        <textarea name="note" class="form-control col-12" placeholder="{{ trans('notes') }}">{{ text }}</textarea>
+    </div>
+{% endmacro %}
+
+{% macro previewFile(url, filename, extFile, fsc) %}
+    <style>
+        .preview-fit { width: inherit; height: 215px; max-width: 100%; max-height: 100%; object-fit: contain; }
+    </style>
+    {% if extFile in ['gif','jpg', 'jpeg','png', 'svg', 'webp'] %}
+        <img src="{{ asset(url) }}" class="preview-fit img-thumbnail border-info" alt="{{ filename }}">
+    {% elseif extFile in ['mp4', 'ogg', 'webm'] %}
+        <div class="embed-responsive embed-responsive-16by9">
+            <video class="preview-fit" controls><source src="{{ asset(url) }}" type="video/{{ extFile }}" /></video>
+        </div>
+    {% elseif extFile == 'pdf' %}
+        <embed class="preview-fit" src="{{ asset(url) }}" type="application/pdf">
+    {% else %}
+        <p class="card-text">{{ trans('preview-file-type-not-soported') }}</p>
+    {% endif %}
+{% endmacro %}
+
+{% macro buttonDelete(formName, fsc) %}
+    {% set label = trans('delete-file') %}
+    {% set text = trans('are-you-sure') %}
+    {% set cancel = trans('cancel') %}
+    {% set confirm = trans('confirm') %}
+    <button type="button" class="btn btn-sm btn-danger"
+            onclick="confirmAction('{{ formName }}','delete-file','{{ label }}','{{ text }}','{{ cancel }}','{{ confirm }}');">
+        <i class="fas fa-trash-alt fa-fw" aria-hidden="true"></i>
+        <span class="d-none d-sm-inline-block">{{ trans('delete') }}</span>
+    </button>
+{% endmacro %}
+
+{% macro fileYearAccordion(year, documents, docsTypes, fsc, currentView, tabId, position, employee) %}
+    {% set collapseId = tabId ~ '-year-' ~ year ~ '-' ~ position %}
+    <div class="card mb-2 border-secondary">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <button class="btn btn-link text-left" type="button" data-toggle="collapse" data-target="#{{ collapseId }}" aria-expanded="true">
+                <strong>{{ year }}</strong> · {{ documents|length }} {{ trans('documents') }}
+            </button>
+            <span class="badge badge-secondary">{{ documents|length }}</span>
+        </div>
+        <div id="{{ collapseId }}" class="collapse show">
+            <div class="card-body">
+                {% for doc in documents %}
+                    {% set formName = currentView.getViewName() ~ '-' ~ tabId ~ '-' ~ position ~ '-' ~ loop.index %}
+                    {% set urlFile = doc.getUrlDownload() %}
+                    <form id="{{ 'form' ~ formName }}" action="{{ employee.url() }}" method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="activetab" value="{{ currentView.getViewName() }}" />
+                        <input type="hidden" name="id" value="{{ doc.id }}" />
+                        <input type="hidden" name="action" value="edit-file"/>
+                        <input type="hidden" name="multireqtoken" value="{{ fsc.multiRequestProtection.newToken() }}"/>
+                        <div class="card shadow-sm mb-3">
+                            <div class="card-body">
+                                <div class="form-row">
+                                    <div class="col-md-9">
+                                        <h5 class="card-title"><i class="far fa-file mb-3"></i> &nbsp;{{ doc.filename }}</h5>
+                                        <div class="form-row align-items-end">
+                                            {{ _self.inputNumber(doc.year_group, fsc, 1) }}
+                                            {{ _self.selectDocumentTypes(doc.iddoctype, docsTypes, fsc, 1) }}
+                                            {{ _self.inputDate(doc.expires, fsc, 1) }}
+                                            {{ _self.inputBool(doc.downloadable, fsc, 1) }}
+                                        </div>
+                                        {{ _self.inputTextArea(doc.note, fsc) }}
+                                        <div class="form-row">
+                                            <div class="col">
+                                                {{ _self.buttonDelete(formName, fsc) }}
+                                            </div>
+                                            <div class="col text-center">
+                                                <small>
+                                                    <i class="fas fa-user"></i> {{ doc.nick }} &nbsp;
+                                                    <i class="fas fa-calendar-alt"></i> {{ doc.creationdate }}
+                                                </small>
+                                            </div>
+                                            <div class="col text-right">
+                                                <a class="btn btn-sm btn-outline-info" target="_blank" href="{{ asset(urlFile) }}">
+                                                    <i class="fas fa-cloud-download-alt"></i>
+                                                    <span class="d-none d-sm-inline-block">{{ trans('download') }}</span>
+                                                </a>
+                                                <button class="btn btn-sm btn-primary" type="submit" name="action" value="edit-file">
+                                                    <i class="fas fa-save fa-fw" aria-hidden="true"></i>
+                                                    <span class="d-none d-sm-inline-block">{{ trans('save') }}</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 text-center">
+                                        {{ _self.previewFile(urlFile, doc.filename, doc.getExtension(), fsc) }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endmacro %}
