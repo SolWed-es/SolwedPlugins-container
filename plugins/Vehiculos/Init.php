@@ -56,7 +56,7 @@ final class Init extends InitClass
         SalesHeaderHTML::addMod(new Mod\SalesHeaderHTMLMod());
 
         // PlantillasPDF integration for vehicle information in PDFs
-        if (Plugins::isEnabled('PlantillasPDF')) {
+        /*if (Plugins::isEnabled('PlantillasPDF')) {
             // Register extension for all PlantillasPDF templates using the official hook system
             $extension = new Extension\PlantillasPDF\BaseTemplateExtension();
 
@@ -68,7 +68,7 @@ final class Init extends InitClass
                     $templateClass::addExtension($extension, 200);
                 }
             }
-        }
+        }*/
     }
 
     public function uninstall(): void

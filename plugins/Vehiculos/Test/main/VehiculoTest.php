@@ -273,37 +273,6 @@ final class VehiculoTest extends TestCase
         $cliente2->delete();
     }
 
-    /**
-     * Test de fabricante
-     */
-    public function testFabricante(): void
-    {
-        // Crear un fabricante de prueba
-        $fabricante = new \FacturaScripts\Dinamic\Model\Fabricante();
-        if (!$fabricante->loadFromCode('TEST')) {
-            $fabricante->codfabricante = 'TEST';
-            $fabricante->nombre = 'Fabricante Test';
-            $fabricante->save();
-        }
-
-        $vehiculo = new Vehiculo();
-        $vehiculo->marca = 'Test';
-        $vehiculo->modelo = 'Model X';
-        $vehiculo->matricula = 'BCD1234';
-        $vehiculo->codcliente = 'TEST001';
-        $vehiculo->codfabricante = 'TEST';
-        $this->assertTrue($vehiculo->save());
-
-        // Test: getFabricante()
-        $fabResult = $vehiculo->getFabricante();
-        $this->assertNotNull($fabResult);
-        $this->assertEquals('TEST', $fabResult->codfabricante);
-        $this->assertEquals('Fabricante Test', $fabResult->nombre);
-
-        $vehiculo->delete();
-        $fabricante->delete();
-    }
-
     protected function tearDown(): void
     {
         $this->logErrors();

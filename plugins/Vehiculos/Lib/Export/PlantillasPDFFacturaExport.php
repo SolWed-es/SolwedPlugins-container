@@ -218,7 +218,7 @@ class PlantillasPDFFacturaExport extends PDFExport
     protected function setTemplate()
     {
         // Obtener la plantilla configurada en el sistema
-        $templateName = $this->toolBox()->appSettings()->get('plantillaspdf', 'template', 'template1');
+        $templateName = Tools::settings('plantillaspdf', 'template', 'template1');
 
         // Construir el nombre de clase de la extensión del plugin para esta plantilla
         $className = '\\FacturaScripts\\Plugins\\Vehiculos\\Lib\\PlantillasPDF\\' . ucfirst($templateName);

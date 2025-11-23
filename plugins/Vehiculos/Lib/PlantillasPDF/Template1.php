@@ -24,39 +24,6 @@ use FacturaScripts\Core\Base\DataBase;
 class Template1 extends OriginalTemplate1
 {
     /**
-     * Helper para obtener configuraciones de vehículos desde Tools::settings
-     * Si no encuentra la configuración de vehículo, usa el get() del template original
-     */
-    protected function get($key)
-    {
-        // Si es una configuración específica de vehículos, buscarla en plantillaspdf
-        $vehicleConfigs = [
-            'showvehiclenexttocustomer', 'vehicleposition', 'vehiclemaxdisplay',
-            'showvehiclecompact', 'showvehiclespecifications', 'vehicletextsize',
-            'showlicenseplate', 'showvin', 'showmanufacturer', 'showcolor',
-            'showfueltype', 'showkilometers', 'showregistrationdate', 'showserialnumber',
-            'showdescription', 'vehiclebordercolor', 'vehiclebackgroundcolor',
-            'vehicleheadercolor', 'vehicletextcolor'
-        ];
-        
-        if (in_array($key, $vehicleConfigs)) {
-            return Tools::settings('plantillaspdf', $key, null);
-        }
-        
-        // Para otras configuraciones (color1, color2, etc.), usar el método del padre
-        return parent::get($key);
-    }
-
-    /**
-     * Helper para obtener configuraciones con valores por defecto
-     */
-    private function getVehicleConfig($key, $default = null)
-    {
-        $value = Tools::settings('plantillaspdf', $key, $default);
-        return $value !== null ? $value : $default;
-    }
-
-    /**
      * Sobreescribe addInvoiceHeader para incluir información de vehículo junto al cliente
      */
     public function addInvoiceHeader($model): void
@@ -153,10 +120,10 @@ class Template1 extends OriginalTemplate1
             return;
         }
 
-        $i18n = $this->toolBox()->i18n();
+        $i18n = Tools::lang();
 
         // Render en una fila horizontal usando clases existentes
-        $html = '<table class="table-big table-border"><tr>';
+        $html = '<table class="table-big table-border"><tr><th> Vehículo: </th>';
         $html .= '<td><b>' . $i18n->trans('brand') . ':</b> ' . htmlspecialchars($brand, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</td>';
         $html .= '<td><b>' . $i18n->trans('model') . ':</b> ' . htmlspecialchars($modelName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</td>';
         $html .= '<td><b>' . $i18n->trans('license-plate') . ':</b> ' . htmlspecialchars(strtoupper($plate), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</td>';

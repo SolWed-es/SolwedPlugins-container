@@ -19,10 +19,6 @@
         <type>character varying(10)</type>
     </column>
     <column>
-        <name>codfabricante</name>
-        <type>character varying(8)</type>
-    </column>
-    <column>
         <name>fecha</name>
         <type>date</type>
     </column>
@@ -115,10 +111,6 @@
     <constraint>
         <name>ca_vehiculos_clientes</name>
         <type>FOREIGN KEY (codcliente) REFERENCES clientes (codcliente) ON DELETE RESTRICT ON UPDATE CASCADE</type>
-    </constraint>
-    <constraint>
-        <name>ca_vehiculos_fabricantes</name>
-        <type>FOREIGN KEY (codfabricante) REFERENCES fabricantes (codfabricante) ON DELETE SET NULL ON UPDATE CASCADE</type>
     </constraint>
     <constraint>
         <name>unique_matricula_cliente</name>

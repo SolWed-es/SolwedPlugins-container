@@ -14,6 +14,7 @@ use FacturaScripts\Plugins\Vehiculos\Model\Vehiculo;
 use FacturaScripts\Core\Base\DataBase\DataBaseWhere;
 use FacturaScripts\Plugins\PlantillasPDF\Lib\PlantillasPDF\Template2 as OriginalTemplate2;
 use FacturaScripts\Core\Base\DataBase;
+use FacturaScripts\Core\Tools;
 
 /**
  * Extensión de Template2 para incluir información de vehículos en facturas
@@ -119,7 +120,7 @@ class Template2 extends OriginalTemplate2
             return;
         }
 
-        $i18n = $this->toolBox()->i18n();
+        $i18n = Tools::lang();
 
         // Render en una fila horizontal usando clases existentes
         $html = '<table class="table-big table-border"><tr>';

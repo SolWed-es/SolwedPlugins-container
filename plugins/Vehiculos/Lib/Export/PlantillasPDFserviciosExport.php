@@ -83,7 +83,6 @@ class PlantillasPDFserviciosExport extends PDFExport
             Tools::lang()->trans('name'),
             Tools::lang()->trans('license-plate'),
             Tools::lang()->trans('vin'),
-            Tools::lang()->trans('manufacturer'),
             Tools::lang()->trans('kilometers'),
             Tools::lang()->trans('fuel-type'),
             Tools::lang()->trans('color'),
@@ -91,12 +90,10 @@ class PlantillasPDFserviciosExport extends PDFExport
 
         $rows = [];
         foreach ($model->getMachines() as $machine) {
-            $fabricante = $machine->getFabricante();
             $rows[] = [
                 $machine->nombre ?? '',
                 $machine->matricula ?? '',
                 $machine->bastidor ?? '',
-                $fabricante->nombre ?? '',
                 $machine->kilometros ? number_format($machine->kilometros, 0, ',', '.') . ' km' : '',
                 $machine->combustible ?? '',
                 $machine->color ?? '',

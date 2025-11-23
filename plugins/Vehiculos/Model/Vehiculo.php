@@ -26,7 +26,6 @@ class Vehiculo extends ModelClass {
     // === Campos de propietario ===
     public $codcliente;          // Código del cliente propietario
     public $codagente;           // Agente comercial asignado
-    public $codfabricante;       // Código del fabricante
 
     // === Campos de vehículo ===
     public $descripcion;                 // Descripción adicional
@@ -75,7 +74,6 @@ class Vehiculo extends ModelClass {
         // Campos de propietario
         $this->codcliente = '';
         $this->codagente = '';
-        $this->codfabricante = '';
 
         // Campos de vehículo
         $this->descripcion = '';
@@ -121,18 +119,6 @@ class Vehiculo extends ModelClass {
         }
         $cliente = new \FacturaScripts\Dinamic\Model\Cliente();
         return $cliente->loadFromCode($this->codcliente) ? $cliente : null;
-    }
-
-    /**
-     * Obtiene el fabricante del vehículo (con caché para optimización).
-     */
-    public function getFabricante(): ?\FacturaScripts\Dinamic\Model\Fabricante
-    {
-        if (empty($this->codfabricante)) {
-            return null;
-        }
-        $fabricante = new \FacturaScripts\Dinamic\Model\Fabricante();
-        return $fabricante->loadFromCode($this->codfabricante) ? $fabricante : null;
     }
 
     /**
@@ -261,7 +247,7 @@ class Vehiculo extends ModelClass {
     {
         $camposVehiculo = [
             'marca', 'modelo', 'matricula', 'bastidor', 'numserie', 'kilometros', 'nombre',
-            'codcliente', 'codagente', 'codfabricante',
+            'codcliente', 'codagente',
             'carroceria', 'motor', 'potencia', 'procedencia_matricula',
             'fecha', 'fecha_primera_matriculacion', 'descripcion',
             'color', 'combustible', 'codmotor',
