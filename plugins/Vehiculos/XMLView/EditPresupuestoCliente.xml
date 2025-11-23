@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ * Extension for EditPresupuestoCliente to add vehicle selector
+ * This file is part of Vehiculos plugin for FacturaScripts
+-->
+<view>
+    <columns>
+        <group name="header-data" numcolumns="12">
+            <column name="vehicle" title="vehiculo" numcolumns="6" order="105">
+                <widget type="select" fieldname="idmaquina" onclick="EditVehiculo" required="false" icon="fa-solid fa-car">
+                    <values>
+                        <value key="" text="-- seleccionar --" />
+                    </values>
+                </widget>
+            </column>
+        </group>
+    </columns>
+</view>

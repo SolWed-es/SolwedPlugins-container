@@ -19,6 +19,18 @@
         <type>character varying(10)</type>
     </column>
     <column>
+        <name>codfabricante</name>
+        <type>character varying(8)</type>
+    </column>
+    <column>
+        <name>fecha</name>
+        <type>date</type>
+    </column>
+    <column>
+        <name>nombre</name>
+        <type>character varying(100)</type>
+    </column>
+    <column>
         <name>marca</name>
         <type>character varying(50)</type>
     </column>
@@ -84,6 +96,18 @@
         <name>fecha_primera_matriculacion</name>
         <type>date</type>
     </column>
+    <column>
+        <name>color</name>
+        <type>character varying(50)</type>
+    </column>
+    <column>
+        <name>combustible</name>
+        <type>character varying(20)</type>
+    </column>
+    <column>
+        <name>codmotor</name>
+        <type>character varying(50)</type>
+    </column>
     <constraint>
         <name>vehiculos_pkey</name>
         <type>PRIMARY KEY (idmaquina)</type>
@@ -91,6 +115,10 @@
     <constraint>
         <name>ca_vehiculos_clientes</name>
         <type>FOREIGN KEY (codcliente) REFERENCES clientes (codcliente) ON DELETE RESTRICT ON UPDATE CASCADE</type>
+    </constraint>
+    <constraint>
+        <name>ca_vehiculos_fabricantes</name>
+        <type>FOREIGN KEY (codfabricante) REFERENCES fabricantes (codfabricante) ON DELETE SET NULL ON UPDATE CASCADE</type>
     </constraint>
     <constraint>
         <name>unique_matricula_cliente</name>

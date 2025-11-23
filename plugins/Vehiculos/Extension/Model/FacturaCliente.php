@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is part of Vehiculos plugin for FacturaScripts
  * Copyright (C) 2025 Carlos Garcia Gomez <carlos@facturascripts.com>
@@ -38,7 +39,7 @@ class FacturaCliente
 
     public function loadFromData(array $data = [], array $exclude = []): Closure
     {
-        return function(array $data = [], array $exclude = []) {
+        return function (array $data = [], array $exclude = []) {
             // Asegurar que idmaquina se carga desde los datos de la BD
             if (isset($data['idmaquina'])) {
                 $this->idmaquina = empty($data['idmaquina']) ? null : (int)$data['idmaquina'];
@@ -50,7 +51,7 @@ class FacturaCliente
 
     public function clear(): Closure
     {
-        return function() {
+        return function () {
             $this->idmaquina = null;
         };
     }
@@ -58,11 +59,11 @@ class FacturaCliente
     /**
      * Get the vehicle associated with this invoice
      *
-    * @return Vehiculo|null
+     * @return Vehiculo|null
      */
     public function getVehiculo(): Closure
     {
-        return function() {
+        return function () {
             if (empty($this->idmaquina)) {
                 return null;
             }
@@ -78,11 +79,11 @@ class FacturaCliente
 
     public function test(): Closure
     {
-        return function() {
+        return function () {
             // Requerir vehículo sólo si está configurado
             $vehicleRequired = Tools::settings('vehiculos', 'vehicle_required_in_invoice', false);
             if ($vehicleRequired && empty($this->idmaquina) && !empty($this->codcliente)) {
-                $this->toolBox()->i18nLog()->warning('vehicle-required');
+                Tools::log()->warning('vehicle-required');
                 return false;
             }
 
@@ -91,12 +92,12 @@ class FacturaCliente
                 $vehiculo = new Vehiculo();
                 if ($vehiculo->loadFromCode($this->idmaquina)) {
                     if (!empty($vehiculo->codcliente) && $vehiculo->codcliente !== $this->codcliente) {
-                        $this->toolBox()->i18nLog()->warning('vehicle-does-not-belong-to-customer');
+                        Tools::log()->warning('vehicle-does-not-belong-to-customer');
                         $this->idmaquina = null;
                         return false;
                     }
                 } else {
-                    $this->toolBox()->i18nLog()->warning('vehicle-not-found');
+                    Tools::log()->warning('vehicle-not-found');
                     $this->idmaquina = null;
                     return false;
                 }

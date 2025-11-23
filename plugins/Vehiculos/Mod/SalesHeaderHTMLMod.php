@@ -1,7 +1,7 @@
 <?php
 /**
- * This file is part of Servicios plugin for FacturaScripts
- * Copyright (C) 2022-2025 Carlos Garcia Gomez <carlos@facturascripts.com>
+ * This file is part of Vehiculos plugin for FacturaScripts
+ * Copyright (C) 2024-2025 Carlos Garcia Gomez <carlos@facturascripts.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
@@ -19,98 +19,35 @@
 
 namespace FacturaScripts\Plugins\Vehiculos\Mod;
 
-use FacturaScripts\Core\Base\Contract\SalesModInterface;
-use FacturaScripts\Core\Base\DataBase;
-use FacturaScripts\Core\Base\DataBase\DataBaseWhere;
-use FacturaScripts\Core\Base\Translator;
+use FacturaScripts\Core\Contract\SalesModInterface;
 use FacturaScripts\Core\Model\Base\SalesDocument;
-use FacturaScripts\Core\Model\User;
 use FacturaScripts\Core\Tools;
-// Modelo de vehículo actualizado
+use FacturaScripts\Core\Base\DataBase\DataBaseWhere;
 use FacturaScripts\Plugins\Vehiculos\Model\Vehiculo;
 
 /**
- * Sales header modification to add vehicle selector in banner
- * Optimized for PHP 8.1+ with performance improvements
+ * Mod to add vehicle selector to sales documents
+ *
+ * @author Carlos Garcia Gomez <carlos@facturascripts.com>
  */
 class SalesHeaderHTMLMod implements SalesModInterface
 {
-    private static array $vehicleCache = [];
-    private const MAX_CACHE_SIZE = 50; // Limitar tamaño del caché
-    public function apply(SalesDocument &$model, array $formData, User $user): void
+    public function apply(SalesDocument &$model, array $formData): void
     {
-        // Apply after saving - ensure idmaquina persistence
+        // Aplicar el idmaquina desde el formulario
         if (isset($formData['idmaquina'])) {
-            $idmaquina = empty($formData['idmaquina']) ? null : (int) $formData['idmaquina'];
-            $model->idmaquina = $idmaquina;
-
-            // Guardar usando SQL seguro con var2str y añadir línea informativa si procede
-            if ($idmaquina !== null && $model->primaryColumnValue()) {
-                $this->saveVehicleId($model, $idmaquina);
-                if (Tools::settings('vehiculos', 'document_vehicle_line', true)) {
-                    $this->addVehicleInfoLine($model);
-                }
-            }
+            $model->idmaquina = empty($formData['idmaquina']) ? null : (int)$formData['idmaquina'];
         }
     }
 
-    public function applyBefore(SalesDocument &$model, array $formData, User $user): void
+    public function applyBefore(SalesDocument &$model, array $formData): void
     {
-        // Assign idmaquina before saving
-        if (isset($formData['idmaquina'])) {
-            if (!property_exists($model, 'idmaquina')) {
-                $model->idmaquina = null;
-            }
-            $model->idmaquina = empty($formData['idmaquina']) ? null : (int) $formData['idmaquina'];
-        }
-    }
-
-    /**
-     * Add vehicle information line to document
-     */
-    private function addVehicleInfoLine(SalesDocument &$model): void
-    {
-        // Check if vehicle info line already exists
-        foreach ($model->getLines() as $line) {
-            if (str_contains($line->descripcion, '[VEHICULO]')) {
-                return; // Already exists, don't duplicate
-            }
-        }
-
-        $vehiculo = new Vehiculo();
-        if (!$vehiculo->loadFromCode($model->idmaquina)) {
-            return;
-        }
-
-        // Create informative line at the beginning
-        $newLine = $model->getNewLine();
-        $newLine->cantidad = 0;
-        $newLine->pvpunitario = 0;
-        $newLine->codimpuesto = null;
-        $newLine->iva = 0;
-
-        $i18n = new Translator();
-        $newLine->descripcion = '[VEHICULO] ' . $i18n->trans('vehicle') . ': ' . $vehiculo->getDisplayInfo();
-        if (!empty($vehiculo->kilometros)) {
-            $newLine->descripcion .= ' - ' . $i18n->trans('kilometers') . ': ' . number_format($vehiculo->kilometros, 0, ',', '.');
-        }
-
-        $newLine->orden = 0; // Put at the beginning
-        $newLine->save();
-
-        // Reorder other lines
-        $orden = 1;
-        foreach ($model->getLines() as $line) {
-            if ($line->idlinea != $newLine->idlinea) {
-                $line->orden = $orden++;
-                $line->save();
-            }
-        }
+        // No se necesita procesar nada antes
     }
 
     public function assets(): void
     {
-        // No additional assets required
+        // No se necesitan assets adicionales
     }
 
     public function newBtnFields(): array
@@ -118,12 +55,10 @@ class SalesHeaderHTMLMod implements SalesModInterface
         return [];
     }
 
-    /**
-     * Add vehicle field to header banner (top row)
-     */
     public function newFields(): array
     {
-        return ['vehiculo'];
+        // Agregar el campo de vehículo en la primera fila del header
+        return ['idmaquina'];
     }
 
     public function newModalFields(): array
@@ -131,126 +66,100 @@ class SalesHeaderHTMLMod implements SalesModInterface
         return [];
     }
 
-    /**
-     * Render vehicle selector field for banner
-     */
-    public function renderField(Translator $i18n, SalesDocument $model, string $field): ?string
+    public function renderField(SalesDocument $model, string $field): ?string
     {
-        if ($field === 'vehiculo') {
-            return $this->renderVehicleSelector($i18n, $model);
+        return match ($field) {
+            'idmaquina' => $this->vehicleSelector($model),
+            default => null,
+        };
+    }
+
+    private function vehicleSelector(SalesDocument $model): string
+    {
+        // Si no hay cliente seleccionado, no mostrar el selector
+        if (empty($model->codcliente)) {
+            return '';
         }
-        return null;
+
+        // Atributos del campo
+        $attributes = $model->editable ? '' : 'disabled';
+
+        // Cargar vehículos del cliente
+        $vehicles = $this->getCustomerVehicles($model->codcliente);
+
+        // Crear las opciones del selector
+        $options = '<option value="">-- ' . Tools::lang()->trans('select') . ' --</option>';
+        foreach ($vehicles as $vehicle) {
+            $selected = ($model->idmaquina == $vehicle->idmaquina) ? 'selected' : '';
+            $display = $this->getVehicleDisplay($vehicle);
+            $options .= '<option value="' . $vehicle->idmaquina . '" ' . $selected . '>'
+                      . htmlspecialchars($display, ENT_QUOTES, 'UTF-8')
+                      . '</option>';
+        }
+
+        // URL para crear/editar vehículo
+        $editUrl = 'EditVehiculo';
+        if ($model->idmaquina) {
+            $editUrl .= '?code=' . $model->idmaquina;
+        }
+
+        // Generar HTML del campo
+        return '<div class="col-sm-6">'
+            . '<div class="mb-3">'
+            . '<a href="' . $editUrl . '" target="_blank">'
+            . '<i class="fa-solid fa-car fa-fw"></i> ' . Tools::lang()->trans('vehiculo')
+            . '</a>'
+            . '<select name="idmaquina" class="form-select" ' . $attributes . '>'
+            . $options
+            . '</select>'
+            . '</div>'
+            . '</div>';
     }
 
     /**
-     * Render optimized vehicle selector with caching and modern styling
+     * Obtener vehículos del cliente
      */
-    private function renderVehicleSelector(Translator $i18n, SalesDocument $model): string
+    private function getCustomerVehicles(string $codcliente): array
     {
-        $codcliente = $model->codcliente ?? '';
-        $idmaquina = property_exists($model, 'idmaquina') ? ($model->idmaquina ?? '') : '';
-
-        // Use cache for performance con límite de tamaño
-        $cacheKey = $codcliente;
-        if (!isset(self::$vehicleCache[$cacheKey])) {
-            if (count(self::$vehicleCache) >= self::MAX_CACHE_SIZE) {
-                self::$vehicleCache = array_slice(self::$vehicleCache, -self::MAX_CACHE_SIZE + 1, null, true);
-            }
-            self::$vehicleCache[$cacheKey] = $this->loadVehicleOptions($codcliente, $i18n);
+        if (empty($codcliente)) {
+            return [];
         }
 
-        $options = self::$vehicleCache[$cacheKey];
-        
-        $html = '<div class="col-sm-3">';
-        $html .= '<div class="form-group">';
-        $html .= '<label for="doc-vehicle-select" class="text-info font-weight-bold">';
-        $html .= '<i class="fas fa-car"></i> ' . $i18n->trans('vehicle');
-        $html .= '</label>';
-        
-        $disabled = empty($codcliente) ? ' disabled' : '';
-        $html .= '<select name="idmaquina" id="doc-vehicle-select" class="form-control form-control-sm"' . $disabled . '>';
-        
-        foreach ($options as $value => $text) {
-            $selected = ($value == $idmaquina) ? ' selected' : '';
-            $html .= '<option value="' . htmlspecialchars($value) . '"' . $selected . '>' . htmlspecialchars($text) . '</option>';
-        }
-        
-        $html .= '</select>';
-        $html .= '</div>';
-        $html .= '</div>';
-
-        // Add optimized JavaScript for dynamic loading
-        $html .= $this->renderVehicleScript($codcliente);
-
-        return $html;
-    }
-
-    /**
-     * Load vehicle options with caching
-     */
-    private function loadVehicleOptions(string $codcliente, Translator $i18n): array
-    {
-        $options = ['' => '-- ' . $i18n->trans('select') . ' --'];
-
-        if (!empty($codcliente)) {
-            $vehiculoModel = new Vehiculo();
+        try {
+            $vehicleModel = new Vehiculo();
             $where = [new DataBaseWhere('codcliente', $codcliente)];
-            $orderBy = ['matricula' => 'ASC', 'marca' => 'ASC', 'modelo' => 'ASC'];
-            foreach ($vehiculoModel->all($where, $orderBy, 0, 50) as $vehiculo) {
-                $options[$vehiculo->idmaquina] = $vehiculo->getDisplayInfo();
-            }
+            return $vehicleModel->all($where, ['matricula' => 'ASC', 'marca' => 'ASC', 'modelo' => 'ASC'], 0, 0);
+        } catch (\Throwable $e) {
+            Tools::log()->warning('Error loading vehicles: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Obtener texto de visualización del vehículo
+     */
+    private function getVehicleDisplay(Vehiculo $vehicle): string
+    {
+        // Usar el método getDisplayInfo si existe
+        if (method_exists($vehicle, 'getDisplayInfo')) {
+            return $vehicle->getDisplayInfo();
         }
 
-        return $options;
-    }
+        // Construir manualmente
+        $parts = [];
 
-    /**
-     * Render optimized JavaScript for vehicle selector
-     */
-    private function renderVehicleScript(string $currentCustomer): string
-    {
-        return '<script>
-document.addEventListener("DOMContentLoaded", function() {
-    const vehicleSelect = document.getElementById("doc-vehicle-select");
-    const customerSelect = document.querySelector("select[name=codcliente]");
-    let originalCustomer = "' . addslashes($currentCustomer) . '";
-    
-    if (customerSelect && vehicleSelect) {
-        customerSelect.addEventListener("change", function() {
-            const newCustomer = this.value;
-            if (newCustomer !== originalCustomer) {
-                vehicleSelect.value = "";
-                vehicleSelect.disabled = !newCustomer;
-                
-                // Trigger form recalculation to update vehicle list
-                if (newCustomer && typeof salesFormAction === "function") {
-                    salesFormAction("set-customer", "0");
-                }
-            }
-        });
-        
-        // Enable/disable based on current customer
-        vehicleSelect.disabled = !originalCustomer;
-    }
-});
-</script>';
-    }
+        if (!empty($vehicle->matricula)) {
+            $parts[] = strtoupper($vehicle->matricula);
+        }
 
-    /**
-     * Guardar ID de vehículo con escaping seguro.
-     */
-    private function saveVehicleId(SalesDocument $model, int $idmaquina): bool
-    {
-        $db = new DataBase();
-        $tableName = $model->tableName();
-        $primaryColumn = $model->primaryColumn();
-        $primaryValue = $model->primaryColumnValue();
-        $sql = sprintf('UPDATE %s SET idmaquina = %s WHERE %s = %s',
-            $tableName,
-            $db->var2str($idmaquina),
-            $primaryColumn,
-            $db->var2str($primaryValue)
-        );
-        return $db->exec($sql);
+        if (!empty($vehicle->marca)) {
+            $parts[] = $vehicle->marca;
+        }
+
+        if (!empty($vehicle->modelo)) {
+            $parts[] = $vehicle->modelo;
+        }
+
+        return !empty($parts) ? implode(' - ', $parts) : 'ID: ' . $vehicle->idmaquina;
     }
 }

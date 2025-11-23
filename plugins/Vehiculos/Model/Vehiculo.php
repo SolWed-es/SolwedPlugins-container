@@ -21,18 +21,24 @@ class Vehiculo extends ModelClass {
     public $bastidor;            // Número de bastidor (VIN)
     public $numserie;            // Código del modelo
     public $kilometros;          // Kilometraje actual
+    public $nombre;              // Nombre del vehículo
 
     // === Campos de propietario ===
     public $codcliente;          // Código del cliente propietario
     public $codagente;           // Agente comercial asignado
+    public $codfabricante;       // Código del fabricante
 
     // === Campos de vehículo ===
     public $descripcion;                 // Descripción adicional
+    public $fecha;                       // Fecha de alta del vehículo
     public $fecha_primera_matriculacion; // Fecha de matriculación
     public $carroceria;                  // Carrocería y tracción del vehículo
     public $motor;                       // Información completa del motor
     public $potencia;                    // Potencia completa (ej: "2.0 TFSI 200CV")
     public $procedencia_matricula;       // Procedencia de la matrícula
+    public $color;                       // Color del vehículo
+    public $combustible;                 // Tipo de combustible
+    public $codmotor;                    // Código del motor
 
     // === Campos TecDoc (IDs de catálogo de piezas) ===
     public $idmarca_api;                 // ID de marca / Código Marca
@@ -64,18 +70,24 @@ class Vehiculo extends ModelClass {
         $this->bastidor = '';
         $this->numserie = '';
         $this->kilometros = 0;
+        $this->nombre = '';
 
         // Campos de propietario
         $this->codcliente = '';
         $this->codagente = '';
+        $this->codfabricante = '';
 
         // Campos de vehículo
         $this->descripcion = '';
+        $this->fecha = \FacturaScripts\Core\Tools::date();
         $this->fecha_primera_matriculacion = null;
         $this->carroceria = '';
         $this->motor = '';
         $this->potencia = '';
         $this->procedencia_matricula = '';
+        $this->color = '';
+        $this->combustible = '';
+        $this->codmotor = '';
 
         // Campos TecDoc
         $this->idmarca_api = null;
@@ -109,6 +121,18 @@ class Vehiculo extends ModelClass {
         }
         $cliente = new \FacturaScripts\Dinamic\Model\Cliente();
         return $cliente->loadFromCode($this->codcliente) ? $cliente : null;
+    }
+
+    /**
+     * Obtiene el fabricante del vehículo (con caché para optimización).
+     */
+    public function getFabricante(): ?\FacturaScripts\Dinamic\Model\Fabricante
+    {
+        if (empty($this->codfabricante)) {
+            return null;
+        }
+        $fabricante = new \FacturaScripts\Dinamic\Model\Fabricante();
+        return $fabricante->loadFromCode($this->codfabricante) ? $fabricante : null;
     }
 
     /**
@@ -236,9 +260,11 @@ class Vehiculo extends ModelClass {
     private function loadFromPost(): void
     {
         $camposVehiculo = [
-            'marca', 'modelo', 'matricula', 'bastidor', 'numserie', 'kilometros', 'codcliente',
-            'codagente', 'carroceria', 'motor', 'potencia', 'procedencia_matricula',
-            'fecha_primera_matriculacion', 'descripcion',
+            'marca', 'modelo', 'matricula', 'bastidor', 'numserie', 'kilometros', 'nombre',
+            'codcliente', 'codagente', 'codfabricante',
+            'carroceria', 'motor', 'potencia', 'procedencia_matricula',
+            'fecha', 'fecha_primera_matriculacion', 'descripcion',
+            'color', 'combustible', 'codmotor',
             'idmarca_api', 'id_marca_tecdoc', 'id_modelo_tecdoc', 'id_ktype'
         ];
 

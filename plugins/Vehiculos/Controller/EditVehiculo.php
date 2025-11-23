@@ -1,7 +1,9 @@
 <?php
+
 namespace FacturaScripts\Plugins\Vehiculos\Controller;
 
 use FacturaScripts\Core\Lib\ExtendedController\EditController;
+use FacturaScripts\Core\Tools;
 
 /**
  * Controlador de edición de vehículos optimizado.
@@ -111,21 +113,21 @@ class EditVehiculo extends EditController
             // Mensajes de éxito/error
             if ($action === 'save') {
                 if ($result) {
-                    $this->toolBox()->i18nLog()->notice('vehicle-saved');
+                    Tools::log()->notice('vehicle-saved');
                 } else {
-                    $this->toolBox()->i18nLog()->error('vehicle-save-error');
+                    Tools::log()->error('vehicle-save-error');
                 }
             } elseif ($action === 'delete') {
                 if ($result) {
-                    $this->toolBox()->i18nLog()->notice('vehicle-deleted');
+                    Tools::log()->notice('vehicle-deleted');
                 } else {
-                    $this->toolBox()->i18nLog()->error('vehicle-delete-error');
+                    Tools::log()->error('vehicle-delete-error');
                 }
             }
 
             return $result;
         } catch (\Throwable $e) {
-            $this->toolBox()->i18nLog()->error('Error: ' . $e->getMessage());
+            Tools::log()->error('Error: ' . $e->getMessage());
             return false;
         }
     }
@@ -160,7 +162,7 @@ class EditVehiculo extends EditController
                 // Limpiar la sesión después de cargar los datos
                 unset($_SESSION['vehiculo_api_data']);
 
-                $this->toolBox()->i18nLog()->info('api-data-loaded');
+                Tools::log()->info('api-data-loaded');
             }
         }
 
@@ -198,7 +200,7 @@ class EditVehiculo extends EditController
     private function loadCustomerInfo($model): void
     {
         $cliente = new \FacturaScripts\Dinamic\Model\Cliente();
-        
+
         if (!$cliente->loadFromCode($model->codcliente)) {
             $this->clearCustomerFields($model);
             return;
@@ -221,7 +223,7 @@ class EditVehiculo extends EditController
     {
         try {
             $direccion = $cliente->getDefaultAddress();
-            
+
             if ($direccion) {
                 $model->cliente_direccion = trim(($direccion->direccion ?? '') . ' ' . ($direccion->codpostal ?? ''));
                 $model->cliente_poblacion = $direccion->ciudad ?? '';
@@ -248,7 +250,16 @@ class EditVehiculo extends EditController
         $matricula = $this->request->request->get('matricula', '');
 
         if (empty($matricula)) {
-            $this->toolBox()->i18nLog()->warning('enter-license-plate');
+            Tools::log()->warning('enter-license-plate');
+            return false;
+        }
+
+        // Obtener API key desde configuración
+        $apiKey = Tools::settings('Vehiculos', 'rapidapi-key', '34ce5bd069mshfdf966fb464a1cdp1f09dbjsn496339bf2821');
+
+        if (empty($apiKey)) {
+            Tools::log()->error('rapidapi-key-not-configured');
+            Tools::log()->warning('configure-rapidapi-key-in-settings');
             return false;
         }
 
@@ -261,7 +272,7 @@ class EditVehiculo extends EditController
 
             $headers = [
                 'x-rapidapi-host: api-license-plate-spain.p.rapidapi.com',
-                'x-rapidapi-key: 34ce5bd069mshfdf966fb464a1cdp1f09dbjsn496339bf2821'
+                'x-rapidapi-key: ' . $apiKey
             ];
 
             // Realizar la llamada
@@ -278,24 +289,36 @@ class EditVehiculo extends EditController
             curl_close($ch);
 
             if ($curlError) {
-                $this->toolBox()->i18nLog()->error('api-connection-error: ' . $curlError);
+                Tools::log()->error('api-connection-error: ' . $curlError);
                 return false;
             }
 
             if ($httpCode === 404) {
-                $this->toolBox()->i18nLog()->warning('license-plate-not-found: ' . $matricula);
+                Tools::log()->warning('license-plate-not-found: ' . $matricula);
+                return false;
+            }
+
+            if ($httpCode === 403) {
+                Tools::log()->error('api-forbidden-error');
+                Tools::log()->warning('check-rapidapi-key-quota-or-permissions');
+                return false;
+            }
+
+            if ($httpCode === 429) {
+                Tools::log()->error('api-rate-limit-exceeded');
+                Tools::log()->warning('wait-before-retrying-api-request');
                 return false;
             }
 
             if ($httpCode !== 200) {
-                $this->toolBox()->i18nLog()->warning('api-error (HTTP ' . $httpCode . ')');
+                Tools::log()->warning('api-error (HTTP ' . $httpCode . ')');
                 return false;
             }
 
             $data = json_decode($response, true);
 
             if (json_last_error() !== JSON_ERROR_NONE) {
-                $this->toolBox()->i18nLog()->error('api-response-error');
+                Tools::log()->error('api-response-error');
                 return false;
             }
 
@@ -337,15 +360,14 @@ class EditVehiculo extends EditController
                 'codcliente' => $vehiculo->codcliente
             ];
 
-            $this->toolBox()->i18nLog()->notice('api-data-success');
+            Tools::log()->notice('api-data-success');
 
             // Redirigir a la pestaña de datos del vehículo
             $this->redirect($this->url() . '?activetab=EditVehiculo');
 
             return false;
-
         } catch (\Throwable $e) {
-            $this->toolBox()->i18nLog()->error('Error: ' . $e->getMessage());
+            Tools::log()->error('Error: ' . $e->getMessage());
             return false;
         }
     }

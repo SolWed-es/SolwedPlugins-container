@@ -7,34 +7,27 @@
 $(document).ready(function() {
     'use strict';
 
-    // Elementos del DOM
-    var $customerSelect = $('select[name="codcliente"]');
-    var $vehicleSelect = $('select[name="idmaquina"]');
+    var updating = false;
 
-    if ($customerSelect.length === 0 || $vehicleSelect.length === 0) {
-        return; // No hay selectores en esta página
+    function getElements() {
+        return {
+            customer: $('select[name="codcliente"]'),
+            banner: $('[data-role="vehicle-selector"]'),
+            formField: $('select[name="idmaquina"], input[name="idmaquina"]').not('[data-role="vehicle-selector"]')
+        };
     }
 
-    // Guardar cliente original
-    var originalCustomer = $customerSelect.val();
-
-    /**
-     * Carga los vehículos del cliente seleccionado
-     */
-    function loadCustomerVehicles(codcliente) {
+    function loadCustomerVehicles(codcliente, $vehicleSelect, currentValue) {
         if (!codcliente) {
             $vehicleSelect.html('<option value="">-- ' + i18next.t('select') + ' --</option>');
-            $vehicleSelect.prop('disabled', true);
+            syncBodyValue('');
             return;
         }
 
-        // Deshabilitar mientras carga
-        $vehicleSelect.prop('disabled', true);
         $vehicleSelect.html('<option value="">' + i18next.t('loading') + '...</option>');
 
-        // Hacer petición AJAX
         $.ajax({
-            url: 'index.php',
+            url: 'AjaxVehiculos',
             type: 'POST',
             dataType: 'json',
             data: {
@@ -43,7 +36,7 @@ $(document).ready(function() {
             },
             success: function(response) {
                 if (response.ok) {
-                    updateVehicleSelect(response.vehicles);
+                    updateVehicleSelect(response.vehicles, $vehicleSelect, currentValue);
                 } else {
                     console.error('Error loading vehicles:', response.message);
                     $vehicleSelect.html('<option value="">-- ' + i18next.t('error') + ' --</option>');
@@ -52,18 +45,11 @@ $(document).ready(function() {
             error: function() {
                 console.error('AJAX error loading vehicles');
                 $vehicleSelect.html('<option value="">-- ' + i18next.t('error') + ' --</option>');
-            },
-            complete: function() {
-                $vehicleSelect.prop('disabled', false);
             }
         });
     }
 
-    /**
-     * Actualiza las opciones del selector de vehículos
-     */
-    function updateVehicleSelect(vehicles) {
-        var currentValue = $vehicleSelect.val();
+    function updateVehicleSelect(vehicles, $vehicleSelect, currentValue) {
         var html = '<option value="">-- ' + i18next.t('select') + ' --</option>';
 
         if (vehicles && vehicles.length > 0) {
@@ -73,7 +59,7 @@ $(document).ready(function() {
                     displayName += ' (' + vehicle.matricula + ')';
                 }
                 html += '<option value="' + vehicle.idmaquina + '">' +
-                        escapeHtml(displayName) + '</option>';
+                    escapeHtml(displayName) + '</option>';
             });
         } else {
             html = '<option value="">' + i18next.t('no-vehicles-for-customer') + '</option>';
@@ -81,15 +67,14 @@ $(document).ready(function() {
 
         $vehicleSelect.html(html);
 
-        // Restaurar valor si existe
         if (currentValue && $vehicleSelect.find('option[value="' + currentValue + '"]').length > 0) {
             $vehicleSelect.val(currentValue);
+        } else {
+            $vehicleSelect.val('');
+            syncBodyValue('');
         }
     }
 
-    /**
-     * Escapa HTML para prevenir XSS
-     */
     function escapeHtml(text) {
         var map = {
             '&': '&amp;',
@@ -101,30 +86,75 @@ $(document).ready(function() {
         return text.replace(/[&<>"']/g, function(m) { return map[m]; });
     }
 
-    /**
-     * Evento: Cambio de cliente
-     */
-    $customerSelect.on('change', function() {
-        var newCustomer = $(this).val();
+    function syncBodyValue(value) {
+        updating = true;
+        $('select[name="idmaquina"], input[name="idmaquina"]').not('[data-role="vehicle-selector"]').each(function() {
+            $(this).val(value);
+        });
+        updating = false;
+    }
 
-        // Si cambió el cliente, limpiar vehículo seleccionado
-        if (newCustomer !== originalCustomer) {
-            $vehicleSelect.val('');
+    function initializeState() {
+        var elems = getElements();
+        if (elems.banner.length === 0) {
+            return;
         }
 
-        // Cargar vehículos del nuevo cliente
-        loadCustomerVehicles(newCustomer);
+        var value = elems.formField.first().val() || '';
+        if (value && elems.banner.find('option[value="' + value + '"]').length) {
+            elems.banner.val(value);
+        } else if (!value) {
+            elems.banner.val('');
+        }
 
-        // Actualizar cliente original
-        originalCustomer = newCustomer;
+        if (elems.customer.val()) {
+            loadCustomerVehicles(elems.customer.val(), elems.banner, value);
+        } else {
+            elems.banner.html('<option value="">-- ' + i18next.t('select') + ' --</option>');
+            syncBodyValue('');
+        }
+    }
+
+    $(document).on('change', 'select[name="codcliente"]', function() {
+        var codcliente = $(this).val();
+        var elems = getElements();
+
+        if (elems.banner.length === 0) {
+            return;
+        }
+
+        if (!codcliente) {
+            elems.banner.html('<option value="">-- ' + i18next.t('select') + ' --</option>');
+            syncBodyValue('');
+            return;
+        }
+
+        loadCustomerVehicles(codcliente, elems.banner, elems.formField.first().val() || '');
     });
 
-    // Cargar vehículos al iniciar si hay cliente
-    if (originalCustomer) {
-        // El selector ya viene con las opciones desde el servidor
-        // Solo habilitarlo
-        $vehicleSelect.prop('disabled', false);
-    } else {
-        $vehicleSelect.prop('disabled', true);
+    $(document).on('change', '[data-role="vehicle-selector"]', function() {
+        if (updating) {
+            return;
+        }
+        var value = $(this).val() || '';
+        syncBodyValue(value);
+    });
+
+    $(document).on('change', 'select[name="idmaquina"], input[name="idmaquina"]', function() {
+        if (updating) {
+            return;
+        }
+        var value = $(this).val() || '';
+        $('[data-role="vehicle-selector"]').val(value);
+    });
+
+    initializeState();
+
+    var header = document.getElementById('salesFormHeader');
+    if (header) {
+        var observer = new MutationObserver(function() {
+            setTimeout(initializeState, 0);
+        });
+        observer.observe(header, {childList: true});
     }
 });

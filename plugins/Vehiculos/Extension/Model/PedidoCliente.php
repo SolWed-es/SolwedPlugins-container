@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is part of Vehiculos plugin for FacturaScripts
  * Copyright (C) 2025 Carlos Garcia Gomez <carlos@facturascripts.com>
@@ -21,6 +22,7 @@ namespace FacturaScripts\Plugins\Vehiculos\Extension\Model;
 
 use Closure;
 use FacturaScripts\Plugins\Vehiculos\Model\Vehiculo;
+use FacturaScripts\Core\Tools;
 
 /**
  * Extension for PedidoCliente model to add vehicle/machine support
@@ -29,9 +31,15 @@ use FacturaScripts\Plugins\Vehiculos\Model\Vehiculo;
  */
 class PedidoCliente
 {
+    /**
+     * Identificador del vehículo asociado
+     * @var int|null
+     */
+    public ?int $idmaquina = null;
+
     public function loadFromData(array $data = [], array $exclude = []): Closure
     {
-        return function(array $data = [], array $exclude = []) {
+        return function (array $data = [], array $exclude = []) {
             if (isset($data['idmaquina'])) {
                 $this->idmaquina = empty($data['idmaquina']) ? null : (int)$data['idmaquina'];
             } else {
@@ -42,7 +50,7 @@ class PedidoCliente
 
     public function clear(): Closure
     {
-        return function() {
+        return function () {
             $this->idmaquina = null;
         };
     }
@@ -50,11 +58,11 @@ class PedidoCliente
     /**
      * Get the vehicle/machine associated with this order
      *
-    * @return Vehiculo|null
+     * @return Vehiculo|null
      */
     public function getVehiculo(): Closure
     {
-        return function() {
+        return function () {
             if (empty($this->idmaquina)) {
                 return null;
             }
@@ -70,13 +78,13 @@ class PedidoCliente
 
     public function test(): Closure
     {
-        return function() {
+        return function () {
             // Validar que el vehículo pertenezca al cliente seleccionado
             if (!empty($this->idmaquina) && !empty($this->codcliente)) {
                 $maquina = new Vehiculo();
                 if ($maquina->loadFromCode($this->idmaquina)) {
                     if (!empty($maquina->codcliente) && $maquina->codcliente !== $this->codcliente) {
-                        $this->toolBox()->i18nLog()->warning('vehicle-does-not-belong-to-customer');
+                        Tools::log()->warning('vehicle-does-not-belong-to-customer');
                         $this->idmaquina = null;
                         return false;
                     }

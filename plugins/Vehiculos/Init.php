@@ -1,6 +1,6 @@
 <?php
 /**
- * This file is part of Servicios plugin for FacturaScripts
+ * This file is part of Vehiculos plugin for FacturaScripts
  * Copyright (C) 2020-2024 Carlos Garcia Gomez <carlos@facturascripts.com>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,21 +19,14 @@
 
 namespace FacturaScripts\Plugins\Vehiculos;
 
-use FacturaScripts\Core\Base\AjaxForms\SalesHeaderHTML;
 use FacturaScripts\Core\Base\DataBase;
 use FacturaScripts\Core\Base\DataBase\DataBaseWhere;
+use FacturaScripts\Core\Lib\AjaxForms\SalesHeaderHTML;
 use FacturaScripts\Core\Model\Role;
 use FacturaScripts\Core\Model\RoleAccess;
 use FacturaScripts\Core\Plugins;
 use FacturaScripts\Core\Template\InitClass;
-use FacturaScripts\Core\Tools;
-use FacturaScripts\Dinamic\Controller\SendTicket;
-use FacturaScripts\Dinamic\Lib\ExportManager;
-use FacturaScripts\Dinamic\Lib\StockMovementManager;
-use FacturaScripts\Dinamic\Model\AlbaranCliente;
-use FacturaScripts\Dinamic\Model\EmailNotification;
 use FacturaScripts\Dinamic\Model\FacturaCliente;
-use FacturaScripts\Dinamic\Model\PresupuestoCliente;
 
 /**
  * Description of Init
@@ -46,25 +39,35 @@ final class Init extends InitClass
 
     public function init(): void
     {
-        // Vehicle management extensions
+        // Vehicle management extensions - CONTROLLERS
         $this->loadExtension(new Extension\Controller\EditCliente());
         $this->loadExtension(new Extension\Controller\EditFacturaCliente());
-        $this->loadExtension(new Extension\Model\FacturaCliente());
+        $this->loadExtension(new Extension\Controller\EditAlbaranCliente());
+        $this->loadExtension(new Extension\Controller\EditPedidoCliente());
+        $this->loadExtension(new Extension\Controller\EditPresupuestoCliente());
 
-        // Register vehicle selector in sales header (banner)
+        // Vehicle management extensions - MODELS
+        $this->loadExtension(new Extension\Model\FacturaCliente());
+        $this->loadExtension(new Extension\Model\AlbaranCliente());
+        $this->loadExtension(new Extension\Model\PedidoCliente());
+        $this->loadExtension(new Extension\Model\PresupuestoCliente());
+
+        // Register vehicle selector in sales header
         SalesHeaderHTML::addMod(new Mod\SalesHeaderHTMLMod());
 
         // PlantillasPDF integration for vehicle information in PDFs
         if (Plugins::isEnabled('PlantillasPDF')) {
-            // Integración con PlantillasPDF: añadir export con datos de vehículo en documentos de venta
-            // Usar Dinamic para resolver dinámicamente la clase del plugin
-            $exportClass = '\\FacturaScripts\\Dinamic\\Lib\\Export\\VehiculosPlantillasPDFFacturaExport';
+            // Register extension for all PlantillasPDF templates using the official hook system
+            $extension = new Extension\PlantillasPDF\BaseTemplateExtension();
 
-            // Registrar el export personalizado para cada tipo de documento
-            ExportManager::addOptionModel($exportClass, 'PDF', 'FacturaCliente');
-            ExportManager::addOptionModel($exportClass, 'PDF', 'AlbaranCliente');
-            ExportManager::addOptionModel($exportClass, 'PDF', 'PedidoCliente');
-            ExportManager::addOptionModel($exportClass, 'PDF', 'PresupuestoCliente');
+            // Register for each template (Template1 through Template5)
+            foreach (['Template1', 'Template2', 'Template3', 'Template4', 'Template5'] as $templateName) {
+                $templateClass = '\\FacturaScripts\\Dinamic\\Lib\\PlantillasPDF\\' . $templateName;
+                if (class_exists($templateClass)) {
+                    // Priority 200 to ensure Vehiculos extension runs with high priority
+                    $templateClass::addExtension($extension, 200);
+                }
+            }
         }
     }
 
@@ -77,7 +80,6 @@ final class Init extends InitClass
         new Model\Vehiculo();
         new FacturaCliente();
 
-        $this->setupSettings();
         $this->createRoleForPlugin();
     }
 
@@ -126,23 +128,4 @@ final class Init extends InitClass
         // without problems = Commit
         $dataBase->commit();
     }
-
-    private function setupSettings(): void
-    {
-        $defaults = [
-            'print_vehicle_in_invoice' => true,
-            'print_vehicle_kilometers' => true,
-            'print_vehicle_fuel' => true,
-            'print_vehicle_color' => false,
-            'vehicle_required_in_invoice' => false,
-            'document_vehicle_line' => true
-        ];
-
-        foreach ($defaults as $key => $value) {
-            Tools::settings('vehiculos', $key, $value);
-        }
-
-        Tools::settingsSave();
-    }
-
 }
