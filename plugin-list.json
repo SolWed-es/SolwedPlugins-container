@@ -1,9 +1,9 @@
 {
     "metadata": {
-        "generated": "23-11-2025 21:42:12",
+        "generated": "24-11-2025 16:42:39",
         "repo": "https://github.com/SolWed-es/SolwedPlugins-container",
         "plugin_count": 11,
-        "workflow_run": "19617713232"
+        "workflow_run": "19641975155"
     },
     "plugins": [
         {
@@ -141,7 +141,7 @@
             ],
             "require_php": [],
             "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/Vehiculos.zip",
-            "last_updated": "2025-11-23"
+            "last_updated": "2025-11-24"
         }
     ]
 }
