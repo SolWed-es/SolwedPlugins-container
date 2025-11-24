@@ -110,13 +110,14 @@ class Template5 extends OriginalTemplate5
             $vehicle = $vehicles[0];
         }
 
-        // Preparar datos principales: Marca, Modelo, Matrícula
+        // Preparar datos principales: Marca, Modelo, Matrícula, Kilómetros
         $brand = trim((string)($vehicle->marca ?? ''));
         $modelName = trim((string)($vehicle->modelo ?? ''));
         $plate = trim((string)($vehicle->matricula ?? ''));
+        $kilometers = $vehicle->kilometros ?? null;
 
         // Si no hay ningún dato, no mostrar nada
-        if ($brand === '' && $modelName === '' && $plate === '') {
+        if ($brand === '' && $modelName === '' && $plate === '' && $kilometers === null) {
             return;
         }
 
@@ -127,6 +128,9 @@ class Template5 extends OriginalTemplate5
         $html .= '<td><b>' . $i18n->trans('brand') . ':</b> ' . htmlspecialchars($brand, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</td>';
         $html .= '<td><b>' . $i18n->trans('model') . ':</b> ' . htmlspecialchars($modelName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</td>';
         $html .= '<td><b>' . $i18n->trans('license-plate') . ':</b> ' . htmlspecialchars(strtoupper($plate), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</td>';
+        if ($kilometers !== null) {
+            $html .= '<td><b>' . $i18n->trans('kilometers') . ':</b> ' . number_format($kilometers, 0, ',', '.') . ' km</td>';
+        }
         $html .= '</tr></table>';
 
         $this->writeHTML($html);

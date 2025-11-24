@@ -171,6 +171,11 @@ class PlantillasPDFFacturaExport extends PDFExport
             $data['Matrícula'] = ['title' => 'Matrícula', 'value' => strtoupper($matricula)];
         }
 
+        // Añadir kilómetros si existen
+        if (!empty($vehicle->kilometros) || $vehicle->kilometros === 0) {
+            $data['Kilómetros'] = ['title' => 'Kilómetros', 'value' => number_format($vehicle->kilometros, 0, ',', '.') . ' km'];
+        }
+
         return $data;
     }
 
@@ -192,9 +197,9 @@ class PlantillasPDFFacturaExport extends PDFExport
      */
     private function addVehicleTable(array $vehicleData): void
     {
-        // Construir una única fila horizontal Marca | Modelo | Matrícula
+        // Construir una única fila horizontal Marca | Modelo | Matrícula | Kilómetros
         // con clases ya definidas: table-big y table-border
-        $order = ['Marca', 'Modelo', 'Matrícula'];
+        $order = ['Marca', 'Modelo', 'Matrícula', 'Kilómetros'];
         $cells = [];
         foreach ($order as $key) {
             if (isset($vehicleData[$key]) && $vehicleData[$key]['value'] !== '') {

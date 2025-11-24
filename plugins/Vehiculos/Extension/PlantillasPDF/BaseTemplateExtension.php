@@ -89,6 +89,10 @@ class BaseTemplateExtension
                 $vehicleParts[] = $lang->trans('brand') . ': ' . $make . ' ' . $lang->trans('model') . ': ' . $modelStr;
             }
 
+            if (!empty($vehiculo->kilometros) || $vehiculo->kilometros === 0) {
+                $vehicleParts[] = $lang->trans('kilometers') . ': ' . number_format($vehiculo->kilometros, 0, ',', '.') . ' km';
+            }
+
             if (empty($vehicleParts)) {
                 return null; // No vehicle info to display
             }
