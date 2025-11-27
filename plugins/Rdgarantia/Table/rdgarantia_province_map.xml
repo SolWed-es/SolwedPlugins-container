@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ * Rdgarantia Province Mapping Table
+ * Maps Rdgarantia province IDs to FacturaScripts province names
+ *
+ * @author  Solwed
+ * @package Rdgarantia Plugin
+ -->
+<table>
+    <column>
+        <name>rdg_province_id</name>
+        <type>integer</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>fs_province_name</name>
+        <type>character varying(100)</type>
+        <null>NO</null>
+    </column>
+    <constraint>
+        <name>rdgarantia_province_map_pkey</name>
+        <type>PRIMARY KEY (rdg_province_id)</type>
+    </constraint>
+</table>

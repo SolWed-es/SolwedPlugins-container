@@ -1,0 +1,20 @@
+{
+    "action-not-allowed": "Action not allowed",
+    "additional-info": "Additional Information",
+    "agent": "Agent",
+    "amounts": "Amounts",
+    "client": "Client",
+    "client-and-agent": "Client and Agent",
+    "date": "Date",
+    "id": "ID",
+    "id-agent": "Agent ID",
+    "invoice-data": "Invoice Data",
+    "num-concepts": "Concepts",
+    "rdgarantia": "Rdgarantia",
+    "rdgarantia-pending-invoice": "RDGarantia Pending Invoice",
+    "rdgarantia-pending-invoices": "RDGarantia Pending Invoices",
+    "total": "Total",
+    "total-numeric": "Total (numeric)",
+    "type": "Type",
+    "unix-timestamp": "Unix Timestamp"
+}

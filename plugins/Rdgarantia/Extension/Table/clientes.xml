@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ * FacturaScripts table extension for Clientes
+ * Adds Rdgarantia-specific fields to the clientes table
+ *
+ * @author  Solwed
+ * @package Rdgarantia Plugin
+ -->
+<table>
+    <column>
+        <name>rdg_import_ref</name>
+        <type>character varying(100)</type>
+    </column>
+    <column>
+        <name>rdg_multibrand</name>
+        <type>character varying(10)</type>
+    </column>
+    <column>
+        <name>rdg_owner</name>
+        <type>character varying(100)</type>
+    </column>
+    <column>
+        <name>rdg_sales_responsible</name>
+        <type>character varying(100)</type>
+    </column>
+    <column>
+        <name>rdg_admin_responsible</name>
+        <type>character varying(100)</type>
+    </column>
+    <column>
+        <name>rdg_workshop_responsible</name>
+        <type>character varying(100)</type>
+    </column>
+    <column>
+        <name>rdg_admin_email</name>
+        <type>character varying(100)</type>
+    </column>
+    <column>
+        <name>rdg_workshop_phone</name>
+        <type>character varying(50)</type>
+    </column>
+    <column>
+        <name>rdg_iva_percent</name>
+        <type>integer</type>
+        <default>21</default>
+    </column>
+    <column>
+        <name>rdg_latitude</name>
+        <type>character varying(100)</type>
+    </column>
+    <column>
+        <name>rdg_longitude</name>
+        <type>character varying(100)</type>
+    </column>
+    <column>
+        <name>rdg_last_sync</name>
+        <type>timestamp</type>
+    </column>
+</table>

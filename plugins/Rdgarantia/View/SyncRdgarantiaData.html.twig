@@ -1,0 +1,188 @@
+{% extends "Master/PanelController.html.twig" %}
+
+{% block body %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow mb-4">
+                    <div class="card-header">
+                        <h3><i class="fas fa-sync"></i> Rdgarantia Data Synchronization</h3>
+                    </div>
+                    <div class="card-body">
+                        {% set stats = fsc.getSyncStats() %}
+
+                        {# Sync Statistics #}
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title"><i class="fas fa-user-tie"></i> Agents</h5>
+                                        <p class="card-text">
+                                            <strong>Synced:</strong> {{ stats.agents_synced }}<br>
+                                            <strong>Last Sync:</strong> {{ stats.last_agent_sync|default('Never') }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title"><i class="fas fa-users"></i> Clients</h5>
+                                        <p class="card-text">
+                                            <strong>Synced:</strong> {{ stats.clients_synced }}<br>
+                                            <strong>Last Sync:</strong> {{ stats.last_client_sync|default('Never') }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title"><i class="fas fa-box"></i> Products</h5>
+                                        <p class="card-text">
+                                            <strong>Synced:</strong> {{ stats.products_synced }}<br>
+                                            <strong>Last Sync:</strong> {{ stats.last_product_sync|default('Never') }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title"><i class="fas fa-file-invoice"></i> Invoices</h5>
+                                        <p class="card-text">
+                                            <strong>Synced:</strong> {{ stats.invoices_synced }}<br>
+                                            <strong>Last Sync:</strong> {{ stats.last_invoice_sync|default('Never') }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# Sync Actions #}
+                        <div class="row">
+                            <div class="col-12">
+                                <h5>Manual Sync Actions</h5>
+                                <p class="text-muted">Click below to synchronize data from Rdgarantia. Only new records will be imported (existing records are skipped).</p>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-3 mb-2">
+                                <form action="{{ fsc.url() }}" method="post">
+                                    <input type="hidden" name="action" value="sync-agents"/>
+                                    {{ formToken() }}
+                                    <button type="submit" class="btn btn-primary btn-block">
+                                        <i class="fas fa-user-tie"></i> Sync Agents
+                                    </button>
+                                </form>
+                                <form action="{{ fsc.url() }}" method="post" class="mt-1">
+                                    <input type="hidden" name="action" value="force-resync-agents"/>
+                                    {{ formToken() }}
+                                    <button type="submit" class="btn btn-outline-primary btn-block btn-sm">
+                                        <i class="fas fa-sync"></i> Force Re-sync
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <form action="{{ fsc.url() }}" method="post">
+                                    <input type="hidden" name="action" value="sync-clients"/>
+                                    {{ formToken() }}
+                                    <button type="submit" class="btn btn-success btn-block">
+                                        <i class="fas fa-users"></i> Sync Clients
+                                    </button>
+                                </form>
+                                <form action="{{ fsc.url() }}" method="post" class="mt-1">
+                                    <input type="hidden" name="action" value="force-resync-clients"/>
+                                    {{ formToken() }}
+                                    <button type="submit" class="btn btn-outline-success btn-block btn-sm">
+                                        <i class="fas fa-sync"></i> Force Re-sync
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <form action="{{ fsc.url() }}" method="post">
+                                    <input type="hidden" name="action" value="sync-products"/>
+                                    {{ formToken() }}
+                                    <button type="submit" class="btn btn-warning btn-block">
+                                        <i class="fas fa-box"></i> Sync Products
+                                    </button>
+                                </form>
+                                <form action="{{ fsc.url() }}" method="post" class="mt-1">
+                                    <input type="hidden" name="action" value="force-resync-products"/>
+                                    {{ formToken() }}
+                                    <button type="submit" class="btn btn-outline-warning btn-block btn-sm">
+                                        <i class="fas fa-sync"></i> Force Re-sync
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <form action="{{ fsc.url() }}" method="post">
+                                    <input type="hidden" name="action" value="sync-invoices"/>
+                                    {{ formToken() }}
+                                    <button type="submit" class="btn btn-danger btn-block">
+                                        <i class="fas fa-file-invoice"></i> Sync Invoices
+                                    </button>
+                                </form>
+                                <form action="{{ fsc.url() }}" method="post" class="mt-1">
+                                    <input type="hidden" name="action" value="force-resync-invoices"/>
+                                    {{ formToken() }}
+                                    <button type="submit" class="btn btn-outline-danger btn-block btn-sm">
+                                        <i class="fas fa-sync"></i> Force Re-sync
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <form action="{{ fsc.url() }}" method="post">
+                                    <input type="hidden" name="action" value="sync-all"/>
+                                    {{ formToken() }}
+                                    <button type="submit" class="btn btn-info btn-block">
+                                        <i class="fas fa-sync-alt"></i> Sync All
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        {# Province Mapping #}
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <hr>
+                                <h5>Setup</h5>
+                            </div>
+                            <div class="col-md-4 mb-2">
+                                <form action="{{ fsc.url() }}" method="post">
+                                    <input type="hidden" name="action" value="load-provinces"/>
+                                    {{ formToken() }}
+                                    <button type="submit" class="btn btn-warning btn-block">
+                                        <i class="fas fa-map-marked-alt"></i> Load Province Mappings
+                                    </button>
+                                </form>
+                                <small class="text-muted">Run once to initialize province data</small>
+                            </div>
+                        </div>
+
+                        {# Instructions #}
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <h6><i class="fas fa-info-circle"></i> Instructions</h6>
+                                    <ol class="mb-0">
+                                        <li>First, click "Load Province Mappings" (only needed once)</li>
+                                        <li>Sync Agents first (Clients may reference Agents)</li>
+                                        <li>Then sync Clients and Products</li>
+                                        <li>Or use "Sync All" to sync everything at once</li>
+                                        <li><strong>Normal Sync:</strong> Only imports new records (skips existing)</li>
+                                        <li><strong>Force Re-sync:</strong> Updates existing records with latest RDG data (safe, won't affect manually created FS records)</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
