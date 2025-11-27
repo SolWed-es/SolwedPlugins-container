@@ -1,9 +1,9 @@
 {
     "metadata": {
-        "generated": "24-11-2025 16:42:39",
+        "generated": "27-11-2025 14:05:51",
         "repo": "https://github.com/SolWed-es/SolwedPlugins-container",
-        "plugin_count": 11,
-        "workflow_run": "19641975155"
+        "plugin_count": 12,
+        "workflow_run": "19738877285"
     },
     "plugins": [
         {
@@ -107,6 +107,17 @@
             ],
             "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/PleskServers.zip",
             "last_updated": "2025-11-13"
+        },
+        {
+            "name": "Rdgarantia",
+            "description": "Rdgarantia",
+            "version": 2,
+            "min_version": 2025,
+            "min_php": 7.3,
+            "require": [],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/Rdgarantia.zip",
+            "last_updated": "2025-11-27"
         },
         {
             "name": "SolwedTheme",
