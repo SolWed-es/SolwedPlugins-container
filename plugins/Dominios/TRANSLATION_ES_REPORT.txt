@@ -1,0 +1,109 @@
+╔══════════════════════════════════════════════════════════════╗
+║                                                              ║
+║    REPORTE: LIMPIEZA Y ACTUALIZACIÓN DE TRADUCCIONES        ║
+║              Plugin Dominios - es_ES.json                    ║
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝
+
+FECHA: 2025-11-30 16:50:00
+ARCHIVO: /var/www/html/fs/Plugins/Dominios/Translation/es_ES.json
+
+════════════════════════════════════════════════════════════════
+
+📊 RESUMEN DE CAMBIOS
+
+ANTES:
+  • 177 claves de traducción
+  • ~15 claves duplicadas
+  • Sin organización por secciones
+  • Nomenclatura inconsistente
+
+DESPUÉS:
+  • 193 claves de traducción (+16 claves netas)
+  • 0 duplicados ✅
+  • 17 secciones organizadas ✅
+  • Nomenclatura estandarizada ✅
+  • JSON válido ✅
+
+════════════════════════════════════════════════════════════════
+
+✂️ DUPLICADOS ELIMINADOS (~15 claves)
+
+1. domain-authcode (línea 82) - Duplicado exacto
+2. domain-erp-tab - Unificado a "Integración"
+3-5. domain-domain-autorenew-* (3 duplicados)
+6-8. domain-domain-dns-* (3 duplicados)
+9. domain-contact-not-found - Unificado
+10-11. domain-transfer-lock-*-label (2 duplicados)
+12-15. Otros duplicados menores
+
+════════════════════════════════════════════════════════════════
+
+➕ NUEVAS CLAVES AÑADIDAS (33 claves)
+
+Listas para refactorización futura del código PHP/Twig:
+
+✅ Mensajes de error (15 claves):
+   - domain-no-customer
+   - domain-load-domains-error
+   - domain-required
+   - domain-authcode-failed
+   - domain-invalid-params
+   - ...
+
+✅ Operaciones exitosas (10 claves):
+   - domain-nameservers-updated
+   - domain-renewed-success
+   - domain-purchased-success
+   - domain-autorenew-activated
+   - ...
+
+✅ Mensajes técnicos (8 claves):
+   - curl-required
+   - domain-column-added
+   - domain-credentials-not-configured
+   - ...
+
+════════════════════════════════════════════════════════════════
+
+📁 ORGANIZACIÓN POR SECCIONES (17 secciones)
+
+1. CONFIGURACIÓN Y CREDENCIALES
+2. CONFIGURACIÓN - Archivos config.php
+3. OPERACIONES Y SINCRONIZACIÓN
+4. INSTALACIÓN (Legacy)
+5. INTERFAZ - Campos y etiquetas
+6. CONTACTOS Y CLIENTES
+7. INFORMACIÓN DE CLIENTE
+8. ACCIONES DE DOMINIOS
+9. DNS Y NAMESERVERS
+10. AUTHCODE Y TRANSFERENCIAS
+11. AUTO-RENOVACIÓN
+12. SERVIDORES
+13. INTEGRACIÓN ERP
+14. PRODUCTO/COMPRA DE DOMINIOS
+15. MENSAJES DE ERROR
+16. OTROS
+17. NUEVAS CLAVES PARA STRINGS HARDCODEADOS
+
+════════════════════════════════════════════════════════════════
+
+✅ VALIDACIÓN FINAL
+
+JSON válido: ✅
+Total de elementos: 210
+Claves reales: 193
+Comentarios: 17
+Sin duplicados: ✅
+Organizado por secciones: ✅
+
+════════════════════════════════════════════════════════════════
+
+⚠️ NOTAS IMPORTANTES
+
+1. El archivo es COMPATIBLE con el código actual
+2. Las nuevas claves están listas para refactorización futura
+3. Los comentarios (_comment_*) NO afectan JSON.parse()
+4. La estructura facilita el mantenimiento
+
+════════════════════════════════════════════════════════════════

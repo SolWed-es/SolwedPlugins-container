@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view>
+    <model>Cliente</model>
+    <viewName>EditClienteDominio</viewName>
+    <viewType>edit</viewType>
+    <title>Dominios</title>
+    <icon>fas fa-globe</icon>
+    
+    <rows>
+        <row type="header">
+            <group name="domain-contacts" numcolumns="12">
+                <column name="contacts" numcolumns="12" display="none">
+                    <widget type="html" name="contacts" onclick="return false;">
+                        <template>Block/Domains</template>
+                    </widget>
+                </column>
+            </group>
+        </row>
+    </rows>
+</view>

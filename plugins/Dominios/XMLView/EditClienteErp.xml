@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view>
+    <columns>
+        <group name="erp" title="domain-erp-tab" numcolumns="12">
+            <column name="erp-url" title="domain-erp-url" numcolumns="6" order="100">
+                <widget type="text" fieldname="erp_url" icon="fa-solid fa-link" maxlength="255"/>
+            </column>
+            <column name="erp-user" title="domain-erp-user" numcolumns="3" order="110">
+                <widget type="text" fieldname="erp_user" icon="fa-solid fa-user" maxlength="100"/>
+            </column>
+            <column name="erp-password" title="domain-erp-password" numcolumns="3" order="120">
+                <widget type="password" fieldname="erp_password" icon="fa-solid fa-key" maxlength="255"/>
+            </column>
+        </group>
+    </columns>
+</view>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view>
+    <columns>
+        <column name="domain" title="domain-domain" order="100">
+            <widget type="text" fieldname="domain" icon="fa-solid fa-globe" readonly="true"/>
+        </column>
+        <column name="domain-id" title="domain-domain-id" order="110">
+            <widget type="text" fieldname="domain_id" icon="fa-solid fa-key" readonly="true"/>
+        </column>
+        <column name="provider" title="domain-provider" order="120">
+            <widget type="select" fieldname="provider" icon="fa-solid fa-store" readonly="true">
+                <values title="domain-provider-dominios">dominios</values>
+                <values title="domain-provider-manual">manual</values>
+            </widget>
+        </column>
+        <column name="status" title="domain-status" order="130">
+            <widget type="text" fieldname="status" icon="fa-solid fa-circle-notch" readonly="true"/>
+        </column>
+        <column name="expires-at" title="domain-expires-at" order="140">
+            <widget type="date" fieldname="expires_at" icon="fa-solid fa-calendar" readonly="true"/>
+        </column>
+        <column name="autorenew" title="domain-autorenew" order="150">
+            <widget type="checkbox" fieldname="autorenew" readonly="true"/>
+        </column>
+        <column name="synced-at" title="domain-synced-at" order="160">
+            <widget type="datetime" fieldname="synced_at" icon="fa-solid fa-clock" readonly="true"/>
+        </column>
+        <column name="created-at" title="domain-created-at" order="170" display="none">
+            <widget type="datetime" fieldname="created_at" readonly="true"/>
+        </column>
+        <column name="updated-at" title="domain-updated-at" order="180" display="none">
+            <widget type="datetime" fieldname="updated_at" readonly="true"/>
+        </column>
+        <column name="raw-data" title="domain-raw-data" order="190" display="none">
+            <widget type="textarea" fieldname="raw_data" readonly="true"/>
+        </column>
+    </columns>
+</view>

@@ -1,0 +1,11 @@
+# Ignorar archivo de configuración con credenciales
+config.php
+
+# Ignorar vendor de composer
+vendor/
+composer.lock
+
+# Ignorar backups y archivos temporales
+*.backup
+*.bak
+*~

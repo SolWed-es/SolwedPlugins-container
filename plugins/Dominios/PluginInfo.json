@@ -1,0 +1,14 @@
+{
+    "name": "Dominios",
+    "description": "Gestión avanzada de dominios con integración de API en tiempo real",
+    "version": "2.0.0",
+    "author": "Tu Nombre",
+    "url": "https://tudominio.com",
+    "compatible_versions": ">=2025.43",
+    "php_min": "8.1",
+    "dependencies": [],
+    "i18n": [
+        "en_US",
+        "es_ES"
+    ]
+}

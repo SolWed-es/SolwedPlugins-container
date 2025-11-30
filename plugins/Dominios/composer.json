@@ -1,0 +1,13 @@
+{
+    "name": "facturascripts/dominios-plugin",
+    "description": "Domain management plugin for FacturaScripts with real-time API integration",
+    "type": "library",
+    "require": {
+        "dondominio/api-sdk-php": "^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "FacturaScripts\\Plugins\\Dominios\\": ""
+        }
+    }
+}
