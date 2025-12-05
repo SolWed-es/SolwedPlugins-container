@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view>
+    <columns>
+        <group name="datosmerak" order="500">
+            <column name="talla-etiqueta" numcolumns="2" order="161">
+                <widget type="select" fieldname="tallaetiqueta">
+                        <values source="atributos_valores" fieldcode="valor" fieldtitle="descripcion"/>
+                    </widget>
+            </column>
+            <column name="color-etiqueta" numcolumns="2" order="162">
+                    <widget type="select" fieldname="coloretiqueta">
+                        <values source="atributos_valores" fieldcode="valor" fieldtitle="descripcion"/>
+                    </widget>
+            </column>
+        </group>
+    </columns>
+</view>

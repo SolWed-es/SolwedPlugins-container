@@ -1,0 +1,11 @@
+<view>
+ <columns>
+   <column name="talla-etiqueta" order="220">
+            <widget type="text" fieldname="tallaetiqueta" />
+    </column>
+       <column name="color-etiqueta" order="220">
+            <widget type="text" fieldname="coloretiqueta" />
+    </column>
+
+</columns>
+</view>

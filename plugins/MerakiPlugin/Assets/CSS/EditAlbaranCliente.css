@@ -1,0 +1,17 @@
+.br-pageheader {
+    background-color: purple;
+}
+
+.tab-pane {
+    background-color: rgba(200, 192, 35, 0.1);
+}
+
+.text-right {
+    color: purple;
+}
+
+
+
+.br-pageheader .breadcrumb-item.active {
+    color: white;
+}

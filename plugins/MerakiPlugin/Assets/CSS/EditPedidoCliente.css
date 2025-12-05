@@ -1,0 +1,15 @@
+.br-pageheader {
+    background-color: blue;
+}
+
+.tab-pane {
+    background-color: rgba(54, 35, 200, 0.1);
+}
+
+.text-right {
+    color: blue;
+}
+
+.br-pageheader .breadcrumb-item.active {
+    color: white;
+}
