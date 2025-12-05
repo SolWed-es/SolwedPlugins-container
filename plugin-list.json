@@ -1,9 +1,9 @@
 {
     "metadata": {
-        "generated": "30-11-2025 16:18:52",
+        "generated": "05-12-2025 17:34:05",
         "repo": "https://github.com/SolWed-es/SolwedPlugins-container",
-        "plugin_count": 12,
-        "workflow_run": "19801602134"
+        "plugin_count": 13,
+        "workflow_run": "19970943534"
     },
     "plugins": [
         {
@@ -88,6 +88,17 @@
             "require_php": [],
             "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/IeWhatsapp.zip",
             "last_updated": "2025-11-04"
+        },
+        {
+            "name": "MerakiPlugin",
+            "description": "A\u00f1adir columna de detalles a productos",
+            "version": 1.1,
+            "min_version": 2025,
+            "min_php": 7.3,
+            "require": [],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/MerakiPlugin.zip",
+            "last_updated": "2025-12-05"
         },
         {
             "name": "PleskServers",
