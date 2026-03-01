@@ -1,10 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+    This file is part of HumanResourcesSolwed plugin for FacturaScripts.
+    FacturaScripts  Copyright (C) 2015-2025 Carlos Garcia Gomez <carlos@facturascripts.com>
+    HumanResourcesSolwed  Copyright (C) 2025 Jose Antonio Cuello Principal <yopli2000@gmail.com>
 
+    This program and its files are under the terms of the license specified in the LICENSE file.
+
+    Document   : EditAttendance.xml
+    Author     : Jose Antonio Cuello    <yopli2000@gmail.com>
+    Description:
+        Extension for EditAttendance view adding localizacion group and idturno select.
+-->
 <view>
     <columns>
         <group name="localizacion" numcolumns="12" title="Localización" icon="fas fa-location">
             <column name="localizacion" numcolumns="8" order="110" >
                 <widget type="text" fieldname="localizacion" />
+            </column>
+        </group>
+        <group name="data" numcolumns="12">
+            <column name="turno" numcolumns="6" order="145">
+                <widget type="select" fieldname="idturno" required="false">
+                    <values source="rrhh_shifts" fieldcode="id" fieldtitle="location"></values>
+                </widget>
             </column>
         </group>
     </columns>

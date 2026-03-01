@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    This file is part of HumanResourcesSolwed plugin for FacturaScripts.
+    FacturaScripts  Copyright (C) 2015-2025 Carlos Garcia Gomez <carlos@facturascripts.com>
+    HumanResourcesSolwed  Copyright (C) 2025 Jose Antonio Cuello Principal <yopli2000@gmail.com>
+
+    This program and its files are under the terms of the license specified in the LICENSE file.
+
+    Document   : rrhh_shift_week_days.xml
+    Description: Table definition for weekly shift schedule detail
+-->
+<table>
+    <!-- PK autonumérica -->
+    <column>
+        <name>id</name>
+        <type>serial</type>
+        <null>NO</null>
+    </column>
+
+    <!-- FK al turno/patrón -->
+    <column>
+        <name>idshift</name>
+        <type>integer</type>
+        <null>NO</null>
+    </column>
+
+    <!-- Día de la semana: 1=lun … 7=dom -->
+    <column>
+        <name>dayofweek</name>
+        <type>integer</type>
+        <null>NO</null>
+    </column>
+
+    <!-- Tramo de mañana -->
+    <column>
+        <name>morning_entry</name>
+        <type>time</type>
+        <null>YES</null>
+    </column>
+    <column>
+        <name>morning_exit</name>
+        <type>time</type>
+        <null>YES</null>
+    </column>
+
+    <!-- Tramo de tarde -->
+    <column>
+        <name>afternoon_entry</name>
+        <type>time</type>
+        <null>YES</null>
+    </column>
+    <column>
+        <name>afternoon_exit</name>
+        <type>time</type>
+        <null>YES</null>
+    </column>
+
+    <!-- Claves y restricciones -->
+    <constraint>
+        <name>rrhh_shift_week_days_pkey</name>
+        <type>PRIMARY KEY (id)</type>
+    </constraint>
+
+    <!-- Un único registro por turno y día -->
+    <constraint>
+        <name>rrhh_shift_week_days_unique</name>
+        <type>UNIQUE (idshift, dayofweek)</type>
+    </constraint>
+
+    <!-- Integridad referencial -->
+    <constraint>
+        <name>rrhh_shift_week_days_fk_shift</name>
+        <type>FOREIGN KEY (idshift) REFERENCES rrhh_shifts(id) ON DELETE CASCADE</type>
+    </constraint>
+
+    <!-- Validación del rango de días de la semana -->
+    <constraint>
+        <name>chk_dayofweek_range</name>
+        <type>CHECK (dayofweek &gt;= 1 AND dayofweek &lt;= 7)</type>
+    </constraint>
+
+    <!-- Las horas de mañana deben ser coherentes -->
+    <constraint>
+        <name>chk_morning_times</name>
+        <type>CHECK (morning_entry IS NULL OR morning_exit IS NULL OR morning_exit &gt; morning_entry)</type>
+    </constraint>
+
+    <!-- Las horas de tarde deben ser coherentes -->
+    <constraint>
+        <name>chk_afternoon_times</name>
+        <type>CHECK (afternoon_entry IS NULL OR afternoon_exit IS NULL OR afternoon_exit &gt; afternoon_entry)</type>
+    </constraint>
+</table>

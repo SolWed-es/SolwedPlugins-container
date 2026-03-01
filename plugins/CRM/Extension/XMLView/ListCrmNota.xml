@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view>
+    <columns>
+        <column name="start-date" display="right" order="180">
+            <widget type="date" fieldname="startdate"/>
+        </column>
+        <column name="start-time" display="right" order="190">
+            <widget type="time" fieldname="starttime"/>
+        </column>
+    </columns>
+</view>

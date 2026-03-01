@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    This file is part of HumanResourcesSolwed plugin for FacturaScripts.
+    FacturaScripts  Copyright (C) 2015-2025 Carlos Garcia Gomez <carlos@facturascripts.com>
+    HumanResourcesSolwed  Copyright (C) 2025 Jose Antonio Cuello Principal <yopli2000@gmail.com>
+
+    This program and its files are under the terms of the license specified in the LICENSE file.
+
+    Document   : ListEmpleadosRuta.xml
+    Description: List view for employees assigned to a route
+-->
+<view>
+    <columns>
+        <column name="id" display="none" order="100">
+            <widget type="number" fieldname="id" />
+        </column>
+        <column name="nombre" display="left" order="110">
+            <widget type="text" fieldname="nombre" />
+        </column>
+    </columns>
+</view>

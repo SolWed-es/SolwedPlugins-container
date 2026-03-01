@@ -7,9 +7,16 @@ use FacturaScripts\Dinamic\Model\Attendance;
 use FacturaScripts\Dinamic\Model\EmployeeHoliday;
 use FacturaScripts\Plugins\HumanResources\Controller\EmployeePanel as ParentEmployeePanel;
 use FacturaScripts\Plugins\HumanResources\Lib\DateTimeTools;
+use FacturaScripts\Plugins\HumanResourcesSolwed\Model\Shift;
+use FacturaScripts\Plugins\HumanResourcesSolwed\Model\EmployeeShift;
 
 class EmployeePanel extends ParentEmployeePanel
 {
+    /** @var array Turnos auto-asignables */
+    public array $shifts = [];
+
+    /** @var EmployeeShift|null Asignación actual del empleado */
+    public ?EmployeeShift $currentShift = null;
     /** @var array<string, array{items: EmployeeHoliday[], totals: array{total:int,enjoyed:int,pending:int}}> */
     public array $holidayGroups = [];
 
@@ -24,6 +31,8 @@ class EmployeePanel extends ParentEmployeePanel
         }
 
         $this->hydrateHolidayGroups();
+        $this->loadAutoAssignableShifts();
+        $this->loadCurrentEmployeeShift();
     }
 
     protected function execPreviousAction(?string $action): bool
@@ -37,6 +46,11 @@ class EmployeePanel extends ParentEmployeePanel
             return true;
         }
 
+        // Guardar turno por defecto del empleado
+        if ($action === 'set-default-shift') {
+            return $this->execSetDefaultShift();
+        }
+
         if ($action === 'insert-attendance') {
             return $this->execInsertAttendanceWithLocalization();
         } elseif ($action === 'insert-holidays') {
@@ -44,6 +58,104 @@ class EmployeePanel extends ParentEmployeePanel
         } else {
             return parent::execPreviousAction($action);
         }
+    }
+
+    private function execSetDefaultShift(): bool
+    {
+        $idemployee = (int)($this->employee->id ?? 0);
+        $idshift    = (int)$this->request->request->get('idturno', 0);
+
+        if ($idemployee <= 0 || $idshift <= 0) {
+            $this->toolBox()->i18nLog()->warning('select-shift');
+            return false;
+        }
+
+        try {
+            $vEmp   = $this->dataBase->var2str($idemployee);
+            $vShift = $this->dataBase->var2str($idshift);
+            $vNick  = $this->dataBase->var2str($this->user->nick ?? 'system');
+            $vToday = $this->dataBase->var2str(date('Y-m-d'));
+            $vNow   = $this->dataBase->var2str(date('Y-m-d H:i:s'));
+
+            // Desmarcar default previo
+            $this->dataBase->exec('UPDATE rrhh_employeesshifts SET isdefault = 0 WHERE idemployee = ' . $vEmp);
+
+            // ¿Existe (empleado, turno)?
+            $row = $this->dataBase->select('SELECT id FROM rrhh_employeesshifts WHERE idemployee = ' . $vEmp . ' AND idshift = ' . $vShift . ' LIMIT 1');
+
+            if (empty($row)) {
+                $this->dataBase->exec('INSERT INTO rrhh_employeesshifts
+                    (idemployee, idshift, assignment_date, active, autoassignable, isdefault, creation_date, last_update, nick, last_nick)
+                    VALUES (' . $vEmp . ', ' . $vShift . ', ' . $vToday . ', 1, 1, 1, ' . $vNow . ', ' . $vNow . ', ' . $vNick . ', ' . $vNick . ')');
+            } else {
+                $vId = $this->dataBase->var2str((int)$row[0]['id']);
+                $this->dataBase->exec('UPDATE rrhh_employeesshifts SET isdefault = 1, active = 1, last_update = ' . $vNow . ', last_nick = ' . $vNick . ' WHERE id = ' . $vId);
+            }
+
+            $this->defaultShift = (object)['idshift' => $idshift];
+            $this->toolBox()->i18nLog()->notice('saved-correctly');
+            return true;
+        } catch (\Throwable $e) {
+            $this->toolBox()->log()->error('[HumanResourcesSolwed] set-default-shift: ' . $e->getMessage());
+            $this->toolBox()->i18nLog()->warning('save-error');
+            return false;
+        }
+    }
+
+    /**
+     * Carga los turnos marcados como auto-asignables
+     */
+    private function loadAutoAssignableShifts(): void
+    {
+        try {
+            $shift = new Shift();
+            $where = [new DataBaseWhere('autoassignable', true)];
+            $this->shifts = $shift->all($where, [], 0, 0);
+        } catch (\Exception $e) {
+            Tools::log()->error('Error al cargar turnos auto-asignables: ' . $e->getMessage());
+            $this->shifts = [];
+        }
+    }
+
+    /**
+     * Carga la asignación de turno actual del empleado
+     */
+    private function loadCurrentEmployeeShift(): void
+    {
+        if (!$this->employee || !$this->employee->id) {
+            return;
+        }
+
+        $employeeShift = new EmployeeShift();
+        $where = [
+            new DataBaseWhere('idemployee', $this->employee->id),
+            new DataBaseWhere('active', true),
+            new DataBaseWhere('start_date', date('Y-m-d'), '<='),
+            new DataBaseWhere('end_date', date('Y-m-d'), '>=')
+        ];
+
+        $assignments = $employeeShift->all($where, [], 0, 1);
+        $this->currentShift = $assignments[0] ?? null;
+    }
+
+    /**
+     * Devuelve el turno por defecto del empleado
+     */
+    public function getDefaultShift(): ?EmployeeShift
+    {
+        if (!$this->employee || !$this->employee->id) {
+            return null;
+        }
+
+        $employeeShift = new EmployeeShift();
+        $where = [
+            new DataBaseWhere('idemployee', $this->employee->id),
+            new DataBaseWhere('isdefault', true),
+            new DataBaseWhere('active', true)
+        ];
+
+        $assignments = $employeeShift->all($where, [], 0, 1);
+        return $assignments[0] ?? null;
     }
 
     private function execInsertAttendanceWithLocalization(): bool

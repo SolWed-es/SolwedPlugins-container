@@ -27,11 +27,14 @@ final class Init extends InitClass
     {
         $this->loadExtension(new Extension\Controller\EditAgente());
         $this->loadExtension(new Extension\Controller\EditCliente());
+        $this->loadExtension(new Extension\Controller\EditCrmNota());
         $this->loadExtension(new Extension\Controller\EditPresupuestoCliente());
         $this->loadExtension(new Extension\Controller\EditProveedor());
         $this->loadExtension(new Extension\Controller\EditServicioAT());
+        $this->loadExtension(new Extension\Model\CrmNota());
         $this->loadExtension(new Extension\Model\LineaPresupuestoCliente());
         $this->loadExtension(new Extension\Model\PresupuestoCliente());
+        $this->loadExtension(new Extension\Model\ServicioAT());
     }
 
     public function uninstall(): void

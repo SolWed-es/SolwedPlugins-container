@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    This file is part of HumanResourcesSolwed plugin for FacturaScripts.
+    FacturaScripts  Copyright (C) 2015-2025 Carlos Garcia Gomez <carlos@facturascripts.com>
+    HumanResourcesSolwed  Copyright (C) 2025 Jose Antonio Cuello Principal <yopli2000@gmail.com>
+
+    This program and its files are under the terms of the license specified in the LICENSE file.
+
+    Document   : MyShifts.xml
+    Description: View for employees to see their own shifts
+-->
+<view>
+    <columns>
+        <group name="header" numcolumns="12">
+            <column name="employee-info" display="none" numcolumns="12">
+                <widget type="html" fieldname="employee_info">
+                    <values title="employee-info">
+                        <![CDATA[
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-user"></i> {{ employee.nombre }}
+                                </h5>
+                            </div>
+                        </div>
+                        ]]>
+                    </values>
+                </widget>
+            </column>
+        </group>
+    </columns>
+</view>

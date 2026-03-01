@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    This file is part of HumanResourcesSolwed plugin for FacturaScripts.
+    FacturaScripts  Copyright (C) 2015-2025 Carlos Garcia Gomez <carlos@facturascripts.com>
+    HumanResourcesSolwed  Copyright (C) 2025 Jose Antonio Cuello Principal <yopli2000@gmail.com>
+
+    This program and its files are under the terms of the license specified in the LICENSE file.
+
+    Document   : destino_trabajador.xml
+    Description: Structure for the destino_trabajador table.
+-->
+<table>
+    <column>
+        <name>id</name>
+        <type>serial</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>iddestino</name>
+        <type>integer</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>idemployee</name>
+        <type>integer</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>fecha</name>
+        <type>date</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>created_at</name>
+        <type>timestamp</type>
+        <null>YES</null>
+    </column>
+    <column>
+        <name>updated_at</name>
+        <type>timestamp</type>
+        <null>YES</null>
+    </column>
+    <constraint>
+        <name>destino_trabajador_pkey</name>
+        <type>PRIMARY KEY (id)</type>
+    </constraint>
+</table>

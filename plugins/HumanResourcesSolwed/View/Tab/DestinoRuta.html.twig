@@ -1,0 +1,25 @@
+{% extends "Master/MenuTemplate.html.twig" %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-map-marker-alt fa-fw" aria-hidden="true"></i>
+                        {{ i18n.trans('destinations') }}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h4><i class="fas fa-info-circle"></i> {{ i18n.trans('coming-soon') }}</h4>
+                        <p>{{ i18n.trans('destinations') }}</p>
+                        <p><strong>ID Ruta:</strong> {{ fsc.getViewModelValue(fsc.getMainViewName(), 'idruta') }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    This file is part of HumanResourcesSolwed plugin for FacturaScripts.
+    FacturaScripts  Copyright (C) 2015-2025 Carlos Garcia Gomez <carlos@facturascripts.com>
+    HumanResourcesSolwed  Copyright (C) 2025 Jose Antonio Cuello Principal <yopli2000@gmail.com>
+
+    This program and its files are under the terms of the license specified in the LICENSE file.
+
+    Document   : EditRutaDestino.xml
+    Author    : Jose Antonio Cuello    <yopli2000@gmail.com>
+    Description:
+    View for the controller EditRutaDestino
+-->
+<view>
+    <columns>
+        <group name="data" numcolumns="12" title="data">
+            <column name="code" order="0" display="none">
+                <widget type="text" fieldname="id" readonly="true" />
+            </column>
+            <column name="route" order="100" numcolumns="12" title="Ruta" display="none">
+                <widget type="select" fieldname="idruta" required="true">
+                    <values source="rutas" fieldcode="idruta" fieldtitle="nombre" />
+                </widget>
+            </column>
+            <column name="destination" order="110" numcolumns="6" title="Destino">
+                <widget type="autocomplete" fieldname="iddestino" required="true">
+                    <values source="destinos" fieldcode="iddestino" fieldtitle="nombre" />
+                </widget>
+            </column>
+            <column name="order" order="120" numcolumns="6" title="Orden de visita">
+                <widget type="number" fieldname="orden" required="true" min="1" max="999" />
+            </column>
+        </group>
+    </columns>
+</view>

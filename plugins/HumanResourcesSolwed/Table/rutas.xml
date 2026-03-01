@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    This file is part of HumanResourcesSolwed plugin for FacturaScripts.
+    FacturaScripts  Copyright (C) 2015-2025 Carlos Garcia Gomez <carlos@facturascripts.com>
+    HumanResourcesSolwed  Copyright (C) 2025 Jose Antonio Cuello Principal <yopli2000@gmail.com>
+
+    This program and its files are under the terms of the license specified in the LICENSE file.
+
+    Document   : rutas.xml
+    Description: Structure for the rutas table.
+-->
+<table>
+    <column>
+        <name>idruta</name>
+        <type>serial</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>nombre</name>
+        <type>character varying(120)</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>fecha_inicio</name>
+        <type>date</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>fecha_fin</name>
+        <type>date</type>
+    </column>
+    <column>
+        <name>optimizada</name>
+        <type>boolean</type>
+        <null>NO</null>
+        <default>false</default>
+    </column>
+    <column>
+        <name>datos_extra</name>
+        <type>text</type>
+    </column>
+    <column>
+        <name>created_at</name>
+        <type>timestamp</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>updated_at</name>
+        <type>timestamp</type>
+        <null>NO</null>
+    </column>
+
+    <constraint>
+        <name>rutas_pkey</name>
+        <type>PRIMARY KEY (idruta)</type>
+    </constraint>
+</table>
