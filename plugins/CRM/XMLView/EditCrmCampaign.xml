@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view>
+    <columns>
+        <group name="data" numcolumns="12" valign="bottom">
+            <column name="id" display="none" order="100">
+                <widget type="text" fieldname="id" readonly="true"/>
+            </column>
+            <column name="name" order="110">
+                <widget type="text" fieldname="name" maxlength="100" required="true"/>
+            </column>
+            <column name="emails" numcolumns="2" order="120">
+                <widget type="number" fieldname="num_emails" decimal="0" readonly="true"/>
+            </column>
+            <column name="sent" numcolumns="2" order="130">
+                <widget type="number" fieldname="num_sent" decimal="0" readonly="true"/>
+            </column>
+            <column name="send-start-hour" numcolumns="2" order="140">
+                <widget type="number" fieldname="send_start_hour" required="true" decimal="0" min="0" max="23"/>
+            </column>
+            <column name="send-end-hour" numcolumns="2" order="150">
+                <widget type="number" fieldname="send_end_hour" required="true" decimal="0" min="0" max="23"/>
+            </column>
+            <column name="status" numcolumns="2" order="160">
+                <widget type="select" fieldname="status" translate="true" required="true">
+                    <values title="sketch">0</values>
+                    <values title="send">1</values>
+                    <values title="sent">2</values>
+                </widget>
+            </column>
+        </group>
+        <group name="email" numcolumns="12">
+            <column name="email-subject" numcolumns="12" order="100">
+                <widget type="text" fieldname="subject" maxlength="200" required="true"/>
+            </column>
+            <column name="email-content" numcolumns="12" order="110">
+                <widget type="textarea" fieldname="content" maxlength="5000" rows="10" required="true"/>
+            </column>
+        </group>
+        <group name="logs" numcolumns="12">
+            <column name="creation-date" order="100">
+                <widget type="datetime" fieldname="creation_date" required="true" readonly="true"/>
+            </column>
+            <column name="user" order="110">
+                <widget type="select" fieldname="nick" readonly="true">
+                    <values source="users" fieldcode="nick" fieldtitle="nick"/>
+                </widget>
+            </column>
+            <column name="last-update" order="120">
+                <widget type="datetime" fieldname="last_update" readonly="true"/>
+            </column>
+            <column name="last-user" order="130">
+                <widget type="select" fieldname="last_nick" readonly="true">
+                    <values source="users" fieldcode="nick" fieldtitle="nick"/>
+                </widget>
+            </column>
+        </group>
+    </columns>
+    <modals>
+        <group name="send-test" title="test" icon="fa-solid fa-envelope">
+            <column name="outgoing-email" numcolumns="12">
+                <widget type="select" fieldname="outgoing-email" required="true">
+                    <values/>
+                </widget>
+            </column>
+            <column name="test-email" title="email" numcolumns="12">
+                <widget type="text" fieldname="test-email" required="true"/>
+            </column>
+        </group>
+    </modals>
+</view>

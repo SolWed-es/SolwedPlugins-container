@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<table>
+    <column>
+        <name>startdate</name>
+        <type>date</type>
+    </column>
+    <column>
+        <name>starttime</name>
+        <type>time</type>
+    </column>
+    <column>
+        <name>start</name>
+        <type>timestamp</type>
+    </column>
+    <column>
+        <name>enddate</name>
+        <type>date</type>
+    </column>
+    <column>
+        <name>endtime</name>
+        <type>time</type>
+    </column>
+    <column>
+        <name>end</name>
+        <type>timestamp</type>
+    </column>
+</table>
+
+
+

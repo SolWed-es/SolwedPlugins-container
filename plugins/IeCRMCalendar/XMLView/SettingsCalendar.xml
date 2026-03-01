@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view>
+    <columns>
+        <group name="data" numcolumns="12">
+            <column name="name" display="none" order="0">
+                <widget type="text" fieldname="name" readonly="true" required="true" />
+            </column>
+            <column name="language" numcolumns="2" order="100">
+                <widget type="select" fieldname="language">
+                    <values title="Español">es</values>
+                    <values title="English">en</values>
+                </widget>
+            </column>
+            <column name="view" numcolumns="2" order="110">
+                <widget type="select" fieldname="view" translate="true">
+                    <values title="day">dayGridDay</values>
+                    <values title="week">timeGridWeek</values>
+                    <values title="month">dayGridMonth</values>
+                </widget>
+            </column>
+            <column name="weekend" numcolumns="2" order="120">
+                <widget type="select" fieldname="weekend" translate="true">
+                    <values title="yes">yes</values>
+                    <values title="No">no</values>
+                </widget>
+            </column>
+            <column name="timetostart" numcolumns="2" order="130">
+                <widget type="time" fieldname="timetostart" translate="true" />
+            </column>
+            <column name="timetoend" numcolumns="2" order="140">
+                <widget type="time" fieldname="timetoend" translate="true" />
+            </column>
+        </group>
+    </columns>
+</view>

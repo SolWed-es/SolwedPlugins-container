@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ * Copyright (C) 2019-2024 Carlos Garcia Gomez <carlos@facturascripts.com>
+ * @author Carlos García Gómez <carlos@facturascripts.com>
+-->
+<view>
+    <columns>
+        <group name="data" numcolumns="12">
+            <column name="position" order="170" overwrite="true">
+                <widget type="datalist" fieldname="cargo">
+                    <values source="crm_positions" fieldcode="id" fieldtitle="name" limit="9000"/>
+                </widget>
+            </column>
+        </group>
+        <group name="other" title="other-data" valign="bottom" numcolumns="12">
+            <column name="source" titleurl="AdminCRM?activetab=ListCrmFuente" numcolumns="3" order="119">
+                <widget type="select" fieldname="idfuente" onclick="EditCrmFuente">
+                    <values source="crm_fuentes2" fieldcode="id" fieldtitle="nombre"/>
+                </widget>
+            </column>
+        </group>
+    </columns>
+</view>

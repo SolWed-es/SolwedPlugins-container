@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ * Copyright (C) 2019-2022 Carlos Garcia Gomez <carlos@facturascripts.com>
+ * @author Carlos García Gómez <carlos@facturascripts.com>
+-->
+<view>
+    <columns>
+        <group name="main" numcolumns="12">
+            <column name="code" display="none" order="100">
+                <widget type="text" fieldname="id"/>
+            </column>
+            <column name="name" order="110">
+                <widget type="text" fieldname="nombre" required="true"/>
+            </column>
+            <column name="icon" titleurl="https://fontawesome.com/icons?d=gallery" order="120">
+                <widget type="text" fieldname="icon" icon="fa-solid fa-icons"/>
+            </column>
+            <column name="color" order="130">
+                <widget type="select" fieldname="color" translate="true">
+                    <values title="color-primary">primary</values>
+                    <values title="color-secondary">secondary</values>
+                    <values title="color-success">success</values>
+                    <values title="color-danger">danger</values>
+                    <values title="color-warning">warning</values>
+                    <values title="color-info">info</values>
+                    <values title="color-light">light</values>
+                    <values title="color-dark">dark</values>
+                </widget>
+            </column>
+            <column name="sort" order="140">
+                <widget type="number" decimal="0" fieldname="orden" required="true"/>
+            </column>
+        </group>
+        <group name="advanced" valign="bottom" numcolumns="12">
+            <column name="default" order="100">
+                <widget type="checkbox" fieldname="predeterminado"/>
+            </column>
+            <column name="editable" order="110">
+                <widget type="checkbox" fieldname="editable"/>
+            </column>
+            <column name="rejected" order="120">
+                <widget type="checkbox" fieldname="rechazado"/>
+            </column>
+            <column name="show-tab" order="130">
+                <widget type="checkbox" fieldname="tab"/>
+            </column>
+        </group>
+    </columns>
+</view>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ * Copyright (C) 2024 Carlos Garcia Gomez <carlos@facturascripts.com>
+ * @author Daniel Fernández Giménez <hola@danielfg.es>
+-->
+<view>
+    <columns>
+        <group name="data" numcolumns="12">
+            <column name="id" display="none" order="100">
+                <widget type="text" fieldname="id" readonly="true"/>
+            </column>
+            <column name="name" order="110">
+                <widget type="text" fieldname="name" maxlength="100"/>
+            </column>
+        </group>
+    </columns>
+</view>

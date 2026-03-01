@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view>
+    <columns>
+        <column name="id" display="none" order="100">
+            <widget type="text" fieldname="id"/>
+        </column>
+        <column name="outgoing-email" order="110">
+            <widget type="text" fieldname="outgoing_email"/>
+        </column>
+        <column name="email" order="120">
+            <widget type="text" fieldname="email"/>
+        </column>
+        <column name="creation-date" display="right" order="130">
+            <widget type="datetime" fieldname="creation_date"/>
+        </column>
+        <column name="sent" display="right" order="140">
+            <widget type="datetime" fieldname="sent"/>
+        </column>
+    </columns>
+    <modals>
+        <group name="add-contacts" title="add-contacts" icon="fa-solid fa-users">
+            <column name="outgoing-email" numcolumns="12">
+                <widget type="select" fieldname="outgoing-email" required="true">
+                    <values/>
+                </widget>
+            </column>
+            <column name="import-list" title="list" titleurl="ListContacto?activetab=ListCrmLista" numcolumns="12">
+                <widget type="select" fieldname="import-list" required="true">
+                    <values source="crm_listas" fieldcode="id" fieldtitle="nombre"/>
+                </widget>
+            </column>
+        </group>
+    </modals>
+    <rows>
+        <row type="status">
+            <option color="success" fieldname="sent" title="sent">notnull:</option>
+        </row>
+    </rows>
+</view>

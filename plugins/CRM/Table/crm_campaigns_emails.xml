@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<table>
+    <column>
+        <name>creation_date</name>
+        <type>timestamp</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>email</name>
+        <type>character varying(100)</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>id</name>
+        <type>serial</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>id_campaign</name>
+        <type>integer</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>id_contacto</name>
+        <type>integer</type>
+    </column>
+    <column>
+        <name>outgoing_email</name>
+        <type>character varying(100)</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>sent</name>
+        <type>timestamp</type>
+    </column>
+    <constraint>
+        <name>crm_campaigns_emails_pkey</name>
+        <type>PRIMARY KEY (id)</type>
+    </constraint>
+    <constraint>
+        <name>uniq_crm_campaigns_emails</name>
+        <type>UNIQUE (id_campaign,outgoing_email,email)</type>
+    </constraint>
+    <constraint>
+        <name>ca_crm_campaigns_id_campaing</name>
+        <type>FOREIGN KEY (id_campaign) REFERENCES crm_campaigns (id) ON DELETE CASCADE ON UPDATE CASCADE</type>
+    </constraint>
+    <constraint>
+        <name>ca_crm_campaigns_emails_id_contacto</name>
+        <type>FOREIGN KEY (id_contacto) REFERENCES contactos (idcontacto) ON DELETE SET NULL ON UPDATE CASCADE</type>
+    </constraint>
+</table>
