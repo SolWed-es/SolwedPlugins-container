@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view>
+    <columns>
+        <group name="data" numcolumns="12">
+            <column name="id" display="none" order="100">
+                <widget type="text" fieldname="idproducto" readonly="true" />
+            </column>
+            <column name="woo_id" display="none" order="101">
+                <widget type="number" fieldname="woo_id" readonly="true" />
+            </column>
+            <column name="name" display="" order="110">
+                <widget type="text" fieldname="woo_product_name" readonly="true" />
+            </column>
+            <column name="price" display="left" order="115">
+                <widget type="text" fieldname="woo_price" readonly="true" />
+            </column>
+            <column name="status" display="left" order="120">
+                <widget type="text" fieldname="woo_status" readonly="true" />
+            </column>
+            <column name="creation-date" display="left" order="130">
+                <widget type="datetime" fieldname="creation_date" readonly="true" />
+            </column>
+            <column name="url" display="left" numcolumns="12" order="140">
+                <widget type="textarea" fieldname="woo_permalink" readonly="true" />
+            </column>
+
+        </group>
+    </columns>
+</view>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<table>
+    <column>
+        <name>costepersonalizado</name>
+        <type>double precision</type>
+    </column>
+    <column>
+        <name>proveedorpersonalizado</name>
+        <type>text</type>
+    </column>
+</table>
