@@ -1,9 +1,9 @@
 {
     "metadata": {
-        "generated": "01-03-2026 19:41:03",
+        "generated": "01-03-2026 19:43:20",
         "repo": "https://github.com/SolWed-es/SolwedPlugins-container",
-        "plugin_count": 15,
-        "workflow_run": "22551059245"
+        "plugin_count": 24,
+        "workflow_run": "22551103791"
     },
     "plugins": [
         {
@@ -18,6 +18,19 @@
             "last_updated": "2026-03-01"
         },
         {
+            "name": "BackupSetting",
+            "description": "Plugin para configurar el backup.",
+            "version": 0.1,
+            "min_version": 2024.9,
+            "min_php": 7.3,
+            "require": [
+                "Backup"
+            ],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/BackupSettings.zip",
+            "last_updated": "2026-03-01"
+        },
+        {
             "name": "CRM",
             "description": "Permite gestionar contactos, listas, notas y oportunidades de negocio. Perfecto para llevar la adquisici\u00f3n de clientes junto al resto de gestiones de la empresa con FacturaScripts.",
             "version": 3.4,
@@ -26,6 +39,17 @@
             "require": [],
             "require_php": [],
             "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/CRM.zip",
+            "last_updated": "2026-03-01"
+        },
+        {
+            "name": "DescargarFacturasZIP",
+            "description": "Descargar PDF de facturas en archivo comprimido",
+            "version": 1,
+            "min_version": 2023,
+            "min_php": 7.3,
+            "require": [],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/DescargarFacturasZIP.zip",
             "last_updated": "2026-03-01"
         },
         {
@@ -40,6 +64,19 @@
             "last_updated": "2026-03-01"
         },
         {
+            "name": "DocumentosProyectos",
+            "description": "Permite a\u00f1adir archivos a proyectos.",
+            "version": 1.2,
+            "min_version": 2025.43,
+            "min_php": 7.3,
+            "require": [
+                "Proyectos"
+            ],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/DocumentosProyectos.zip",
+            "last_updated": "2026-03-01"
+        },
+        {
             "name": "Dominios",
             "description": "Gesti\u00f3n avanzada de dominios con integraci\u00f3n de API y validaci\u00f3n de contactos",
             "version": 2,
@@ -48,6 +85,56 @@
             "require": [],
             "require_php": [],
             "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/Dominios.zip",
+            "last_updated": "2026-03-01"
+        },
+        {
+            "name": "Facturae",
+            "description": "A\u00f1ade soporte para la factura electr\u00f3nica espa\u00f1ola. Formato Facturae 3.2",
+            "version": 1.6,
+            "min_version": 2021.81,
+            "min_php": 7.3,
+            "require": [],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/Facturae.zip",
+            "last_updated": "2026-03-01"
+        },
+        {
+            "name": "HHRRSolwedDestinos",
+            "description": "Plugin de gesti\u00f3n de turnos y destinos para empleados desarrollado por Jos\u00e9 Ferr\u00e1n basado en HumanResources.",
+            "version": 1,
+            "min_version": 2024.3,
+            "min_php": 8,
+            "require": [
+                "HumanResources"
+            ],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/HHRRSolwedDestinos.zip",
+            "last_updated": "2026-03-01"
+        },
+        {
+            "name": "HHRRSolwedTurnos",
+            "description": "Plugin de gesti\u00f3n de turnos para empleados desarrollado por Jos\u00e9 Ferr\u00e1n basado en HumanResources.",
+            "version": 1,
+            "min_version": 2024.3,
+            "min_php": 8,
+            "require": [
+                "HumanResources"
+            ],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/HHRRSolwedTurnos.zip",
+            "last_updated": "2026-03-01"
+        },
+        {
+            "name": "HHRRSolwedTurnosSemana",
+            "description": "Plugin de gesti\u00f3n de turnos para empleados desarrollado por Jos\u00e9 Ferr\u00e1n basado en HumanResources.",
+            "version": 1,
+            "min_version": 2024.3,
+            "min_php": 8,
+            "require": [
+                "HumanResources"
+            ],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/HHRRSolwedTurnosSemana.zip",
             "last_updated": "2026-03-01"
         },
         {
@@ -98,6 +185,17 @@
             "require": [],
             "require_php": [],
             "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/IeWhatsapp.zip",
+            "last_updated": "2026-03-01"
+        },
+        {
+            "name": "InfoCostePresupuesto",
+            "description": "Agrega los campos Proveedor y coste al documento Presupuesto de ventas",
+            "version": 1.1,
+            "min_version": 2024,
+            "min_php": 7.3,
+            "require": [],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/InfoCostePresupuesto.zip",
             "last_updated": "2026-03-01"
         },
         {
@@ -179,6 +277,19 @@
             "require": [],
             "require_php": [],
             "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/SyncWoocommerceProducts.zip",
+            "last_updated": "2026-03-01"
+        },
+        {
+            "name": "Vehiculos",
+            "description": "Gesti\u00f3n integral de veh\u00edculos: ficha completa (matr\u00edcula, bastidor, kil\u00f3metros, combustible, color, fabricante), asociaci\u00f3n autom\u00e1tica a facturas y exportaci\u00f3n profesional a PDF.",
+            "version": 1.4,
+            "min_version": 2025.43,
+            "min_php": 7.3,
+            "require": [
+                "PlantillasPDF"
+            ],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/Vehiculos.zip",
             "last_updated": "2026-03-01"
         }
     ]
