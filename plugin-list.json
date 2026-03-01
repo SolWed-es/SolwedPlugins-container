@@ -1,15 +1,15 @@
 {
     "metadata": {
-        "generated": "01-03-2026 19:43:20",
+        "generated": "01-03-2026 19:44:41",
         "repo": "https://github.com/SolWed-es/SolwedPlugins-container",
         "plugin_count": 24,
-        "workflow_run": "22551103791"
+        "workflow_run": "22551128958"
     },
     "plugins": [
         {
             "name": "AcercaFacturaScripts",
             "description": "Plugins que despliega una hoja de las  especificaciones t\u00e9cnicas de Facturascript y accede a datos del servidor.",
-            "version": 0,
+            "version": 1,
             "min_version": 2024.9,
             "min_php": 7.4,
             "require": [],
@@ -18,7 +18,7 @@
             "last_updated": "2026-03-01"
         },
         {
-            "name": "BackupSetting",
+            "name": "BackupSettings",
             "description": "Plugin para configurar el backup.",
             "version": 0.1,
             "min_version": 2024.9,
@@ -140,7 +140,7 @@
         {
             "name": "HumanResourcesSolwed",
             "description": "Ampliaci\u00f3n plugin HumanResources con geolocalizaci\u00f3n, botones empleado, asistencias sin bot\u00f3n borrado, archivos por pesta\u00f1as, localizacion autom\u00e1tica .",
-            "version": 0,
+            "version": 1,
             "min_version": 2025.43,
             "min_php": 7.4,
             "require": [
