@@ -1,0 +1,38 @@
+{% extends "Master/MenuBghTemplate.html.twig" %}
+
+{% block body %}
+<div class="container-fluid my-3" style="padding:0;">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">
+      <i class="fas fa-server me-2"></i>Datos de servidor
+    </h1>
+  </div>
+
+  <div class="card shadow-sm" style="border:0;">
+    <div class="card-body p-0" style="padding:0;">
+      <iframe
+        id="serverStatsFrame"
+        src="https://solwedpleskapp-production.up.railway.app/jesusmartinezvergel.erpsolwed.es"
+        style="width:100%; border:0; display:block;"
+        title="Datos de servidor"
+        loading="lazy"
+        referrerpolicy="no-referrer"
+      ></iframe>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  function resizeIframe() {
+    var iframe = document.getElementById('serverStatsFrame');
+    if (!iframe) return;
+    var topOffset = iframe.getBoundingClientRect().top;
+    var available = window.innerHeight - topOffset - 10; // margen de seguridad
+    iframe.style.height = available + 'px';
+  }
+  window.addEventListener('load', resizeIframe);
+  window.addEventListener('resize', resizeIframe);
+})();
+</script>
+{% endblock %}

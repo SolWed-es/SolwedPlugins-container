@@ -1,0 +1,8 @@
+{
+    "error-when-signing": "Error a la signatura ¿Contrasenya incorrecta?",
+    "expedient": "Expedient",
+    "filereference-exp": "Nº expedient \/ Referència fitxer",
+    "include-invoice-observations": "Incloure observacions de la factura",
+    "receiver-contract-ref": "Ref. contrato",
+    "receiver-transaction-ref": "Ref. transacción"
+}

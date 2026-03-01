@@ -1,0 +1,296 @@
+<div class="container-fluid">
+    {% set routeId = fsc.getViewModelValue(fsc.getMainViewName(), 'idruta') %}
+
+    <!-- Modal de confirmación -->
+    <div class="modal fade" id="confirmUnassignModal" tabindex="-1" role="dialog" aria-labelledby="confirmUnassignModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmUnassignModalLabel">
+                        <i class="fas fa-exclamation-triangle text-warning"></i> Confirmar desasignación
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Está seguro que desea desasignar este empleado de la ruta?</p>
+                    <p class="text-muted">Esta acción no se puede deshacer.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button type="button" class="btn btn-danger" id="confirm-unassign-btn">
+                        <i class="fas fa-trash-alt"></i> Desasignar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-users"></i> {{ i18n.trans('assign-employees') }}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    {% if not routeId %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> {{ i18n.trans('save-route-first') }}
+                        </div>
+                    {% else %}
+                        <form id="assign-ruta-form" class="form-row">
+                            <input type="hidden" name="action" value="assign-ruta"/>
+                            <input type="hidden" name="idruta" value="{{ routeId }}"/>
+                            <input type="hidden" name="multireqtoken" value="{{ fsc.multiRequestToken() }}"/>
+                            
+                            <div class="col-md-8">
+                                <div class="form-group">
+                                    <label for="idemployee">{{ i18n.trans('employee') }}</label>
+                                    <select name="idemployee" id="idemployee" class="form-control" required>
+                                        <option value="">{{ i18n.trans('loading') }}...</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>&nbsp;</label>
+                                    <button type="submit" class="btn btn-primary btn-block" id="assign-btn" disabled>
+                                        <i class="fas fa-plus"></i> {{ i18n.trans('assign') }}
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                        
+                        <div id="assign-message" class="mt-2"></div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if routeId %}
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-list"></i> {{ i18n.trans('assigned-employees') }}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div id="empleados-ruta-list">
+                        <div class="text-center">
+                            <i class="fas fa-spinner fa-spin"></i> {{ i18n.trans('loading') }}...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+$(document).ready(function() {
+    const routeId = '{{ routeId }}';
+    let currentUnassignId = null;
+
+    if (!routeId) {
+        return;
+    }
+
+    // Función para mostrar mensajes
+    function showMessage(message, type = 'info') {
+        const alertClass = type === 'success' ? 'alert-success' :
+                          type === 'error' ? 'alert-danger' : 'alert-info';
+        $('#assign-message').html('<div class="alert ' + alertClass + '">' + message + '</div>').fadeIn();
+        setTimeout(() => $('#assign-message').fadeOut(), 3000);
+    }
+
+    // Función para mostrar el modal de confirmación
+    function showConfirmModal(assignmentId) {
+        currentUnassignId = assignmentId;
+        $('#confirmUnassignModal').modal('show');
+    }
+
+    // Cargar empleados disponibles
+    function loadEmployees() {
+        const select = $('#idemployee');
+        select.empty().append('<option value="">{{ i18n.trans('loading') }}...</option>');
+
+        $.ajax({
+            url: '{{ fsc.url() }}',
+            method: 'POST',
+            dataType: 'json',
+            data: {
+                action: 'get-employees',
+                multireqtoken: '{{ fsc.multiRequestToken() }}'
+            },
+            success: function(data) {
+                select.empty().append('<option value="">{{ i18n.trans('select-employee') }}...</option>');
+
+                if (data && data.length > 0) {
+                    data.forEach(function(employee) {
+                        select.append('<option value="' + employee.id + '">' + employee.label + '</option>');
+                    });
+                    $('#assign-btn').prop('disabled', false);
+                } else {
+                    select.empty().append('<option value="">{{ i18n.trans('no-employees-found') }}</option>');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error loading employees:', error);
+                console.error('Response:', xhr.responseText);
+                select.empty().append('<option value="">{{ i18n.trans('error-loading-employees') }}</option>');
+                showMessage('{{ i18n.trans('error-loading-employees') }}: ' + (xhr.responseText || error), 'error');
+            }
+        });
+    }
+
+    // Cargar empleados asignados
+    function loadEmpleadosRuta() {
+        const listDiv = $('#empleados-ruta-list');
+        listDiv.html('<div class="text-center"><i class="fas fa-spinner fa-spin"></i> {{ i18n.trans('loading') }}...</div>');
+
+        $.ajax({
+            url: '{{ fsc.url() }}',
+            method: 'POST',
+            dataType: 'json',
+            data: {
+                action: 'load-rutas-data',
+                idruta: routeId,
+                multireqtoken: '{{ fsc.multiRequestToken() }}'
+            },
+            success: function(data) {
+                let html = '<table class="table table-hover">';
+                html += '<thead><tr><th>{{ i18n.trans('employee') }}</th><th>{{ i18n.trans('assignment-date') }}</th><th class="text-right">{{ i18n.trans('actions') }}</th></tr></thead><tbody>';
+
+                if (!data || data.length === 0) {
+                    html += '<tr><td colspan="3" class="text-center">{{ i18n.trans('no-employees-assigned') }}</td></tr>';
+                } else {
+                    data.forEach(function(item) {
+                        html += '<tr>';
+                        html += '<td>' + (item.nombre || 'N/A') + '</td>';
+                        html += '<td>' + (item.fecha || '') + '</td>';
+                        html += '<td class="text-right">';
+                        html += '<button class="btn btn-sm btn-danger unassign-ruta" data-id="' + item.id + '">';
+                        html += '<i class="fas fa-trash-alt"></i> {{ i18n.trans('unassign') }}';
+                        html += '</button>';
+                        html += '</td>';
+                        html += '</tr>';
+                    });
+                }
+
+                html += '</tbody></table>';
+                listDiv.html(html);
+            },
+            error: function(xhr, status, error) {
+                console.error('Error loading assignments:', error);
+                console.error('Response:', xhr.responseText);
+                listDiv.html('<div class="alert alert-danger">{{ i18n.trans('error-loading-data') }}: ' + (xhr.responseText || error) + '</div>');
+            }
+        });
+    }
+
+    // Asignar empleado
+    $('#assign-ruta-form').on('submit', function(e) {
+        e.preventDefault();
+
+        const employeeId = $('#idemployee').val();
+        if (!employeeId) {
+            showMessage('{{ i18n.trans('employee-required') }}', 'error');
+            return;
+        }
+
+        $('#assign-btn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> {{ i18n.trans('assigning') }}...');
+
+        $.ajax({
+            type: 'POST',
+            url: '{{ fsc.url() }}',
+            data: {
+                action: 'assign-ruta',
+                idemployee: employeeId,
+                idruta: routeId,
+                multireqtoken: '{{ fsc.multiRequestToken() }}'
+            },
+            dataType: 'json',
+            success: function(response) {
+                $('#assign-btn').prop('disabled', false).html('<i class="fas fa-plus"></i> {{ i18n.trans('assign') }}');
+
+                if (response.success) {
+                    showMessage('{{ i18n.trans('employee-assigned-successfully') }}', 'success');
+                    $('#idemployee').val('');
+                    loadEmpleadosRuta();
+                } else {
+                    showMessage(response.error || '{{ i18n.trans('error-assigning-employee') }}', 'error');
+                }
+            },
+            error: function(xhr, status, error) {
+                $('#assign-btn').prop('disabled', false).html('<i class="fas fa-plus"></i> {{ i18n.trans('assign') }}');
+                console.error('Error assigning employee:', error);
+                showMessage('{{ i18n.trans('error-assigning-employee') }}: ' + error, 'error');
+            }
+        });
+    });
+
+    // Desasignar empleado - Mostrar modal
+    $(document).on('click', '.unassign-ruta', function() {
+        const id = $(this).data('id');
+        showConfirmModal(id);
+    });
+
+    // Confirmar desasignación desde el modal
+    $('#confirm-unassign-btn').on('click', function() {
+        if (!currentUnassignId) return;
+
+        const btn = $(this);
+        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> {{ i18n.trans('processing') }}...');
+
+        $.ajax({
+            type: 'POST',
+            url: '{{ fsc.url() }}',
+            data: {
+                action: 'unassign-ruta',
+                id: currentUnassignId,
+                multireqtoken: '{{ fsc.multiRequestToken() }}'
+            },
+            dataType: 'json',
+            success: function(response) {
+                $('#confirmUnassignModal').modal('hide');
+                btn.prop('disabled', false).html('<i class="fas fa-trash-alt"></i> {{ i18n.trans('confirm-unassign') }}');
+
+                if (response.success) {
+                    showMessage('{{ i18n.trans('employee-unassigned-successfully') }}', 'success');
+                    loadEmpleadosRuta();
+                } else {
+                    showMessage(response.error || '{{ i18n.trans('error-unassigning-employee') }}', 'error');
+                }
+                currentUnassignId = null;
+            },
+            error: function(xhr, status, error) {
+                $('#confirmUnassignModal').modal('hide');
+                btn.prop('disabled', false).html('<i class="fas fa-trash-alt"></i> {{ i18n.trans('confirm-unassign') }}');
+                console.error('Error unassigning employee:', error);
+                showMessage('{{ i18n.trans('error-unassigning-employee') }}: ' + error, 'error');
+                currentUnassignId = null;
+            }
+        });
+    });
+
+    // Resetear ID cuando se cierra el modal
+    $('#confirmUnassignModal').on('hidden.bs.modal', function () {
+        currentUnassignId = null;
+        $('#confirm-unassign-btn').prop('disabled', false).html('<i class="fas fa-trash-alt"></i> {{ i18n.trans('confirm-unassign') }}');
+    });
+
+    // Cargar datos al iniciar
+    loadEmployees();
+    loadEmpleadosRuta();
+});
+</script>

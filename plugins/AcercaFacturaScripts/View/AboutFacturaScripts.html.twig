@@ -1,0 +1,132 @@
+{# View/AboutFacturaScripts.html.twig #}
+{% extends "Master/MenuBghTemplate.html.twig" %}
+
+{% set pageData = fsc.getPageData() %}
+{% block body %}
+<div class="container-fluid my-3">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">
+      <i class="fas fa-info-circle me-2"></i>Acerca de FacturaScripts
+    </h1>
+    <div>
+      <button class="btn btn-outline-secondary me-2" onclick="window.print()">
+        <i class="fas fa-print me-1"></i>Imprimir / Guardar PDF
+      </button>
+      <a class="btn btn-primary" href="https://www.facturascripts.com" target="_blank" rel="noopener">
+        <i class="fas fa-external-link-alt me-1"></i>Web oficial
+      </a>
+    </div>
+  </div>
+
+  {# 1) Resumen ejecutivo #}
+  <div class="card shadow-sm mb-3">
+    <div class="card-body">
+      <h2 class="h5 mb-3">Resumen ejecutivo</h2>
+      <p class="mb-2">
+        <strong>FacturaScripts</strong> es una solución de facturación y ERP de <strong>software libre (GPL‑3.0)</strong>,
+        con <strong>usuarios y documentos ilimitados</strong>, orientada a pymes y autónomos. Permite
+        la emisión y gestión de <strong>facturas</strong>, <strong>clientes</strong> y <strong>productos/servicios</strong> de forma
+        <strong>ilimitada</strong>, sin restricciones de licencia. El volumen real depende del hosting (espacio en disco).
+      </p>
+      <ul class="mb-0">
+        <li><strong>Categoría Kit Digital:</strong> Gestión de facturación y factura electrónica.</li>
+        <li><strong>Despliegue:</strong> On‑premise o SaaS. Navegador web. Multiusuario.</li>
+        <li><strong>Escalable:</strong> cientos de miles de documentos (según recursos del servidor).</li>
+      </ul>
+    </div>
+  </div>
+
+  {# 2) Requisitos del Kit Digital (lo “pedible” explícito) #}
+  <div class="card shadow-sm mb-3">
+    <div class="card-body">
+      <h2 class="h5 mb-3">Características del sistema.</h2>
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="border rounded p-3 h-100">
+            <h3 class="h6 text-uppercase text-muted">Ilimitados</h3>
+            <ul class="mb-0">
+              <li>Alta y gestión de <strong>facturas</strong> ilimitadas (PDF y Facturae 3.2.x).</li>
+              <li>Alta y gestión de <strong>clientes</strong> ilimitados (con CRM básico).</li>
+              <li>Catálogo de <strong>productos y/o servicios</strong> ilimitado.</li>
+              <li>Sin límites por licencia en número de documentos o usuarios.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="border rounded p-3 h-100">
+            <h3 class="h6 text-uppercase text-muted">Otras capacidades</h3>
+            <ul class="mb-0">
+              <li>Envío y recepción de facturas por e‑mail, plantillas personalizables.</li>
+              <li>Control de vencimientos y alertas de cobro.</li>
+              <li>API REST y +130 plugins (Facturae, VeriFactu, TPV, CRM, SEPA, etc.).</li>
+              <li>Responsive, multiempresa y multiusuario.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <small class="text-muted d-block mt-3">
+        * “Ilimitado” = sin restricciones de licencia; el límite efectivo depende del almacenamiento del servidor/VPS contratado.
+      </small>
+    </div>
+  </div>
+
+  {# 3) Licencia y costes #}
+  <div class="card shadow-sm mb-3">
+    <div class="card-body">
+      <h2 class="h5 mb-3">Licenciamiento y costes</h2>
+      <p class="mb-2">
+        <strong>GPL‑3.0</strong>. Sin coste de licencias por usuario ni por documento.
+      </p>
+      <ul class="mb-0">
+        <li>Costes habituales: hosting/VPS o suscripción SaaS; implantación, formación y soporte.</li>
+        <li>La subvención puede concentrarse en servicios de valor (no en licencias).</li>
+      </ul>
+    </div>
+  </div>
+
+  {# 4) Cumplimiento normativo (resumen) #}
+  <div class="card shadow-sm mb-3">
+    <div class="card-body">
+      <h2 class="h5 mb-3">Conformidad normativa (resumen)</h2>
+      <ul class="mb-0">
+        <li>Reglamento de facturación (RD 1619/2012).</li>
+        <li>Ley “Crea y Crece” – factura electrónica B2B.</li>
+        <li>VeriFactu (RD 1007/2023 y Ley 11/2021) mediante plugin específico.</li>
+      </ul>
+    </div>
+  </div>
+
+{# 6) Especificaciones técnicas (tabla) #}
+  <div class="card shadow-sm mb-3">
+    <div class="card-body">
+      <h2 class="h5 mb-3">Especificaciones técnicas</h2>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle">
+          <tbody>
+            <tr><th class="w-25">Backend</th><td>PHP 8.x</td></tr>
+            <tr><th>Base de datos</th><td>MySQL / MariaDB 10.x</td></tr>
+            <tr><th>Despliegue</th><td>On‑premise (Windows/Linux/macOS/Docker) o SaaS</td></tr>
+            <tr><th>Navegador</th><td>Chrome, Firefox, Edge, Safari (desktop & mobile)</td></tr>
+            <tr><th>Recursos mín.</th><td>1 vCPU, 1 GB RAM, 5 GB SSD (escalable)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  {# 7) Comunidad y soporte #}
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h2 class="h5 mb-3">Comunidad y soporte</h2>
+      <ul class="mb-0">
+        <li>Foro y chat con miles de usuarios.</li>
+        <li>Red de agentes digitalizadores y expertos.</li>
+        <li>Documentación y actualizaciones automáticas.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

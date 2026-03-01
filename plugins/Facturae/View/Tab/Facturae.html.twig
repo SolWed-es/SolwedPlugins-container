@@ -1,0 +1,474 @@
+{% set firstView = fsc.views | first %}
+{% set factura = firstView.model %}
+{% set currentView = fsc.getCurrentView() %}
+{% set facturae = currentView.model %}
+
+<div class="container-fluid">
+    {% if facturae.signed() %}
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="card shadow mb-4">
+                    <div class="card-body">
+                        <h2 class="h4 mb-1">
+                            <i class="fas fa-download"></i> Facturae ya generada y firmada
+                        </h2>
+                        <p>
+                            Puedes descargar la factura electrónica y entregarla en el portal de la administración
+                            <a href="https://face.gob.es" target="_blank">
+                                https://face.gob.es
+                            </a>
+                            o bien
+                            <a href="https://efact.aoc.cat" target="_blank">
+                                https://efact.aoc.cat
+                            </a>
+                        </p>
+                        <form action="{{ factura.url() }}" method="post" enctype="multipart/form-data">
+                            <input type="hidden" name="action" value="download-facturae"/>
+                            <input type="hidden" name="activetab" value="{{ currentView.getViewName() }}"/>
+                            <input type="hidden" name="idfacturae" value="{{ facturae.id }}"/>
+                            <button type="submit" class="btn btn-primary">
+                                {{ i18n.trans('download') }}
+                            </button>
+                            <a href="https://face.gob.es" target="_blank" class="btn btn-secondary">
+                                face.gob.es
+                            </a>
+                            <a href="https://efact.aoc.cat/bustia/multiInvoicView.htm" target="_blank"
+                               class="btn btn-secondary">
+                                efact.aoc.cat
+                            </a>
+                        </form>
+                    </div>
+                </div>
+                {% if facturae.numeroregistro %}
+                    <div class="card border-success shadow mb-4">
+                        <div class="card-body">
+                            <h2 class="h4 mb-1">
+                                <i class="fas fa-paper-plane"></i> Facturae ya enviada a FACE
+                            </h2>
+                            <p class="mb-0">
+                                La factura ya fué enviada a face.gob.es y tiene el número de registro
+                                <b>{{ facturae.numeroregistro }}</b>
+                            </p>
+                        </div>
+                    </div>
+                {% else %}
+                    <form action="{{ factura.url() }}" method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="action" value="send-face"/>
+                        <input type="hidden" name="activetab" value="{{ currentView.getViewName() }}"/>
+                        <input type="hidden" name="idfacturae" value="{{ facturae.id }}"/>
+                        <div class="card border-success shadow mb-4">
+                            <div class="card-body">
+                                <h2 class="h4 mb-1">
+                                    <i class="fas fa-paper-plane"></i> Enviar a FACE
+                                </h2>
+                                <p>
+                                    Selecciona tu certificado de Hacienda, un archivo con extensión <b>p12</b> o
+                                    <b>pfx</b>,
+                                    escribe la contraseña y pulsa el <b>botón enviar</b>
+                                    para enviar la factura electrónica a face.gob.es
+                                </p>
+                                <div class="form-row">
+                                    <div class="col-sm-4">
+                                        <div class="form-group">
+                                            <input name="fcert" type="file" accept=".p12,.pfx" required=""/>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <div class="form-group">
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">
+                                                        <i class="fa fa-key" aria-hidden="true"></i>
+                                                    </span>
+                                                </div>
+                                                <input type="text" name="certpass" class="form-control"
+                                                       placeholder="{{ i18n.trans('password') }}" autocomplete="false"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm">
+                                        <button type="submit" class="btn btn-success">
+                                            {{ i18n.trans('send') }}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    <form action="{{ factura.url() }}" method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="action" value="delete-facturae"/>
+                        <input type="hidden" name="activetab" value="{{ currentView.getViewName() }}"/>
+                        <input type="hidden" name="idfacturae" value="{{ facturae.id }}"/>
+                        <div class="card border-danger shadow mb-4">
+                            <div class="card-body">
+                                <h2 class="h4 mb-1">
+                                    <i class="fas fa-edit"></i> ¿Quieres rectificar?
+                                </h2>
+                                <p>
+                                    Para volver a rellenar el formulario y firmar la factura electrónica, pulsa el botón
+                                    <b>{{ i18n.trans('undo') }}</b>.
+                                </p>
+                                <button type="submit" class="btn btn-danger">
+                                    {{ i18n.trans('undo') }}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    {% elseif facturae.validate() == false %}
+        <div class="row">
+            <div class="col-sm-12">
+                {% for error in facturae.validationErrors %}
+                    <div class="alert alert-danger">
+                        {{ error }}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% else %}
+        {{ _self.genFacturaeForm(currentView, factura, facturae, i18n) }}
+    {% endif %}
+</div>
+
+{% macro genFacturaeForm(currentView, factura, facturae, i18n) %}
+    {% set bank = factura.getPaymentMethod().getBankAccount() %}
+    <form action="{{ factura.url() }}" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="action" value="edit-facturae"/>
+        <input type="hidden" name="activetab" value="{{ currentView.getViewName() }}"/>
+        <input type="hidden" name="idfacturae" value="{{ facturae.id }}"/>
+        <div class="row">
+            <div class="col-sm-12">
+                <p class="text-muted mb-1">
+                    Rellena este formulario para generar la factura electrónica.
+                    Selecciona la cuenta bancaria donde recibir el pago y el número
+                    de expediente, si es necesario.
+                </p>
+            </div>
+        </div>
+        <div class="form-row align-items-end">
+            <div class="col-sm-2">
+                <div class="form-group">
+                    {{ i18n.trans('expiration') }}
+                    <input type="date" name="vencimiento" value="{{ facturae.vencimiento | date('Y-m-d') }}"
+                           class="form-control" autocomplete="off"/>
+                </div>
+            </div>
+            <div class="col-sm-2">
+                <div class="form-group">
+                    <a href="{{ bank.url() }}">
+                        {{ i18n.trans('bank-account') }}
+                    </a>
+                    <select name="iban" class="form-control">
+                        {% for item in bank.all() %}
+                            {% if item.iban == facturae.iban %}
+                                <option value="{{ item.iban }}" selected="">{{ item.descripcion }}</option>
+                            {% else %}
+                                <option value="{{ item.iban }}">{{ item.descripcion }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="form-group">
+                    {{ i18n.trans('filereference-exp') }}
+                    <input type="text" name="filereference" value="{{ facturae.filereference | raw }}" maxlength="50"
+                           class="form-control" autocomplete="off"/>
+                </div>
+            </div>
+            <div class="col-sm-2">
+                <div class="form-group">
+                    {{ i18n.trans('receiver-transaction-ref') }}
+                    <input type="text" name="receivertransref" value="{{ facturae.receivertransref | raw }}"
+                           maxlength="50" class="form-control" autocomplete="off"/>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="form-group">
+                    {{ i18n.trans('receiver-contract-ref') }}
+                    <input type="text" name="receivercontraref" value="{{ facturae.receivercontraref | raw }}"
+                           maxlength="50" class="form-control" autocomplete="off"/>
+                </div>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="col-sm">
+                <div class="form-group form-check">
+                    <label>
+                        {% if facturae.observaciones %}
+                            <input type="checkbox" name="observaciones" value="1" class="form-check-input" checked=""/>
+                        {% else %}
+                            <input type="checkbox" name="observaciones" value="1" class="form-check-input"/>
+                        {% endif %}
+                        {{ i18n.trans('include-invoice-observations') }}
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12">
+                <h3 class="h5 mt-3 mb-0">Oficina contable</h3>
+                <p class="text-muted mb-1">
+                    Obligatorio si el cliente es la administración pública.
+                    Puedes dejar en blanco los campos nombre, dirección, código postal,
+                    ciudad y provincia para usar los del cliente.
+                </p>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="col-sm-2">
+                <div class="form-group">
+                    {{ i18n.trans('code') }}
+                    <input type="text" name="codoficina" value="{{ facturae.codoficina | raw }}"
+                           placeholder="{{ i18n.trans('optional') }}" class="form-control" maxlength="10"/>
+                </div>
+            </div>
+            <div class="col-sm-2">
+                <div class="form-group">
+                    {{ i18n.trans('name') }}
+                    <input type="text" name="nomoficina" value="{{ facturae.nomoficina | raw }}"
+                           placeholder="{{ i18n.trans('optional') }}" class="form-control"/>
+                </div>
+            </div>
+            <div class="col-sm-2">
+                <div class="form-group">
+                    {{ i18n.trans('address') }}
+                    <input type="text" name="diroficina" value="{{ facturae.diroficina | raw }}"
+                           placeholder="{{ i18n.trans('optional') }}" class="form-control"/>
+                </div>
+            </div>
+            <div class="col-sm-2">
+                <div class="form-group">
+                    {{ i18n.trans('zip-code') }}
+                    <input type="text" name="cpoficina" value="{{ facturae.cpoficina | raw }}"
+                           placeholder="{{ i18n.trans('optional') }}" class="form-control"/>
+                </div>
+            </div>
+            <div class="col-sm-2">
+                <div class="form-group">
+                    {{ i18n.trans('city') }}
+                    <input type="text" name="ciuoficina" value="{{ facturae.ciuoficina | raw }}"
+                           placeholder="{{ i18n.trans('optional') }}" class="form-control"/>
+                </div>
+            </div>
+            <div class="col-sm-2">
+                <div class="form-group">
+                    {{ i18n.trans('province') }}
+                    <input type="text" name="proficina" value="{{ facturae.proficina | raw }}"
+                           placeholder="{{ i18n.trans('optional') }}" class="form-control"/>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12">
+                <h3 class="h5 mt-3 mb-0">Órgano gestor</h3>
+                <p class="text-muted mb-1">
+                    Obligatorio si el cliente es la administración pública.
+                    Puedes dejar en blanco los campos nombre, dirección, código postal,
+                    ciudad y provincia para usar los del cliente.
+                </p>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="col-sm-2">
+                <div class="form-group">
+                    {{ i18n.trans('code') }}
+                    <input type="text" name="codorgano" value="{{ facturae.codorgano | raw }}"
+                           placeholder="{{ i18n.trans('optional') }}" class="form-control" maxlength="10"/>
+                </div>
+            </div>
+            <div class="col-sm-2">
+                <div class="form-group">
+                    {{ i18n.trans('name') }}
+                    <input type="text" name="nomorgano" value="{{ facturae.nomorgano | raw }}"
+                           placeholder="{{ i18n.trans('optional') }}" class="form-control"/>
+                </div>
+            </div>
+            <div class="col-sm-2">
+                <div class="form-group">
+                    {{ i18n.trans('address') }}
+                    <input type="text" name="dirorgano" value="{{ facturae.dirorgano | raw }}"
+                           placeholder="{{ i18n.trans('optional') }}" class="form-control"/>
+                </div>
+            </div>
+            <div class="col-sm-2">
+                <div class="form-group">
+                    {{ i18n.trans('zip-code') }}
+                    <input type="text" name="cporgano" value="{{ facturae.cporgano | raw }}"
+                           placeholder="{{ i18n.trans('optional') }}" class="form-control"/>
+                </div>
+            </div>
+            <div class="col-sm-2">
+                <div class="form-group">
+                    {{ i18n.trans('city') }}
+                    <input type="text" name="ciuorgano" value="{{ facturae.ciuorgano | raw }}"
+                           placeholder="{{ i18n.trans('optional') }}" class="form-control"/>
+                </div>
+            </div>
+            <div class="col-sm-2">
+                <div class="form-group">
+                    {{ i18n.trans('province') }}
+                    <input type="text" name="prorgano" value="{{ facturae.prorgano | raw }}"
+                           placeholder="{{ i18n.trans('optional') }}" class="form-control"/>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12">
+                <h3 class="h5 mt-3 mb-0">Unidad tramitadora</h3>
+                <p class="text-muted mb-1">
+                    Obligatorio si el cliente es la administración pública.
+                    Puedes dejar en blanco los campos nombre, dirección, código postal,
+                    ciudad y provincia para usar los del cliente.
+                </p>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="col-sm-2">
+                <div class="form-group">
+                    {{ i18n.trans('code') }}
+                    <input type="text" name="codunidad" value="{{ facturae.codunidad | raw }}"
+                           placeholder="{{ i18n.trans('optional') }}" class="form-control" maxlength="10"/>
+                </div>
+            </div>
+            <div class="col-sm-2">
+                <div class="form-group">
+                    {{ i18n.trans('name') }}
+                    <input type="text" name="nomunidad" value="{{ facturae.nomunidad | raw }}"
+                           placeholder="{{ i18n.trans('optional') }}" class="form-control"/>
+                </div>
+            </div>
+            <div class="col-sm-2">
+                <div class="form-group">
+                    {{ i18n.trans('address') }}
+                    <input type="text" name="dirunidad" value="{{ facturae.dirunidad | raw }}"
+                           placeholder="{{ i18n.trans('optional') }}" class="form-control"/>
+                </div>
+            </div>
+            <div class="col-sm-2">
+                <div class="form-group">
+                    {{ i18n.trans('zip-code') }}
+                    <input type="text" name="cpunidad" value="{{ facturae.cpunidad | raw }}"
+                           placeholder="{{ i18n.trans('optional') }}" class="form-control"/>
+                </div>
+            </div>
+            <div class="col-sm-2">
+                <div class="form-group">
+                    {{ i18n.trans('city') }}
+                    <input type="text" name="ciuunidad" value="{{ facturae.ciuunidad | raw }}"
+                           placeholder="{{ i18n.trans('optional') }}" class="form-control"/>
+                </div>
+            </div>
+            <div class="col-sm-2">
+                <div class="form-group">
+                    {{ i18n.trans('province') }}
+                    <input type="text" name="prunidad" value="{{ facturae.prunidad | raw }}"
+                           placeholder="{{ i18n.trans('optional') }}" class="form-control"/>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12">
+                <h3 class="h5 mt-3 mb-0">Órgano proponente</h3>
+                <p class="text-muted mb-1">
+                    Puedes dejar en blanco los campos nombre, dirección, código postal,
+                    ciudad y provincia para usar los del cliente.
+                </p>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="col-sm-2">
+                <div class="form-group">
+                    {{ i18n.trans('code') }}
+                    <input type="text" name="codorganop" value="{{ facturae.codorganop | raw }}"
+                           placeholder="{{ i18n.trans('optional') }}" class="form-control" maxlength="10"/>
+                </div>
+            </div>
+            <div class="col-sm-2">
+                <div class="form-group">
+                    {{ i18n.trans('name') }}
+                    <input type="text" name="nomorganop" value="{{ facturae.nomorganop | raw }}"
+                           placeholder="{{ i18n.trans('optional') }}" class="form-control"/>
+                </div>
+            </div>
+            <div class="col-sm-2">
+                <div class="form-group">
+                    {{ i18n.trans('address') }}
+                    <input type="text" name="dirorganop" value="{{ facturae.dirorganop | raw }}"
+                           placeholder="{{ i18n.trans('optional') }}" class="form-control"/>
+                </div>
+            </div>
+            <div class="col-sm-2">
+                <div class="form-group">
+                    {{ i18n.trans('zip-code') }}
+                    <input type="text" name="cporganop" value="{{ facturae.cporganop | raw }}"
+                           placeholder="{{ i18n.trans('optional') }}" class="form-control"/>
+                </div>
+            </div>
+            <div class="col-sm-2">
+                <div class="form-group">
+                    {{ i18n.trans('city') }}
+                    <input type="text" name="ciuorganop" value="{{ facturae.ciuorganop | raw }}"
+                           placeholder="{{ i18n.trans('optional') }}" class="form-control"/>
+                </div>
+            </div>
+            <div class="col-sm-2">
+                <div class="form-group">
+                    {{ i18n.trans('province') }}
+                    <input type="text" name="prorganop" value="{{ facturae.prorganop | raw }}"
+                           placeholder="{{ i18n.trans('optional') }}" class="form-control"/>
+                </div>
+            </div>
+            <div class="col-sm-12">
+                <div class="form-group">
+                    Descripción órgano proponente:
+                    <input type="text" name="desorganop" value="{{ facturae.desorganop | raw }}"
+                           placeholder="{{ i18n.trans('optional') }}" class="form-control"/>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12">
+                <h3 class="h4 mt-3 mb-0">Firmar</h3>
+                <p class="text-muted">
+                    Selecciona tu certificado de Hacienda, un archivo con extensión <b>p12</b> o <b>pfx</b>,
+                    escribe la contraseña y pulsa el <b>botón continuar</b>
+                    para generar y firmar la factura electrónica.
+                </p>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="col-sm-4">
+                <div class="form-group">
+                    <input name="fcert" type="file" accept=".p12,.pfx" required=""/>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                <div class="form-group">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">
+                                <i class="fa fa-key" aria-hidden="true"></i>
+                            </span>
+                        </div>
+                        <input type="text" name="certpass" class="form-control"
+                               placeholder="{{ i18n.trans('password') }}" autocomplete="false"/>
+                    </div>
+                </div>
+                <div class="form-group form-check">
+                    <label>
+                        <input type="checkbox" name="sendface" value="1" class="form-check-input"/>
+                        Enviar automáticamente a face.gob.es
+                    </label>
+                </div>
+            </div>
+            <div class="col-sm">
+                <button type="submit" class="btn btn-primary">
+                    {{ i18n.trans('continue') }}
+                </button>
+            </div>
+        </div>
+    </form>
+{% endmacro %}

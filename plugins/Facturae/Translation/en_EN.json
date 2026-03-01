@@ -1,0 +1,8 @@
+{
+    "error-when-signing": "Signing error. Wrong password?",
+    "expedient": "Expedient",
+    "filereference-exp": "File reference \/ Exp. Num.",
+    "include-invoice-observations": "Include invoice observations",
+    "receiver-contract-ref": "Contract ref.",
+    "receiver-transaction-ref": "Transaction ref."
+}

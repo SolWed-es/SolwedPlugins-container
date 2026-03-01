@@ -1,0 +1,66 @@
+{
+    "packages": [
+        {
+            "name": "josemmo/facturae-php",
+            "version": "v1.7.0",
+            "version_normalized": "1.7.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/josemmo/Facturae-PHP.git",
+                "reference": "bed326faff4c594166513b698c398fe78347d5ed"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/josemmo/Facturae-PHP/zipball/bed326faff4c594166513b698c398fe78347d5ed",
+                "reference": "bed326faff4c594166513b698c398fe78347d5ed",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.6"
+            },
+            "require-dev": {
+                "symfony/phpunit-bridge": "*"
+            },
+            "suggest": {
+                "ext-curl": "For communicating with remote TSA Servers and SOAP Web Services",
+                "ext-fileinfo": "For getting MIME types when using FacturaeFile",
+                "ext-openssl": "For signing and timestamping both invoices and SOAP requests",
+                "lib-libxml": "For parsing SOAP XML responses for FACe and FACeB2B"
+            },
+            "time": "2022-02-05T09:17:49+00:00",
+            "type": "library",
+            "installation-source": "dist",
+            "autoload": {
+                "psr-4": {
+                    "josemmo\\Facturae\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "josemmo",
+                    "email": "josemmo@pm.me",
+                    "homepage": "https://github.com/josemmo"
+                }
+            ],
+            "description": "Librería para la generación, firma y envío de facturas electrónicas",
+            "homepage": "https://github.com/josemmo/Facturae-PHP",
+            "keywords": [
+                "face",
+                "faceb2b",
+                "facturae",
+                "xades"
+            ],
+            "support": {
+                "issues": "https://github.com/josemmo/Facturae-PHP/issues",
+                "source": "https://github.com/josemmo/Facturae-PHP/tree/v1.7.0"
+            },
+            "install-path": "../josemmo/facturae-php"
+        }
+    ],
+    "dev": true,
+    "dev-package-names": []
+}

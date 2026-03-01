@@ -1,0 +1,104 @@
+{# BackupSetting/View/AdminBackupSetting.html.twig #}
+{% extends "Master/MenuBghTemplate.html.twig" %}
+
+{% set pageData = fsc.getPageData() %}
+
+{% block body %}
+<div class="container-fluid my-3">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">
+      <i class="fas fa-cogs me-2"></i>Backup Setting
+    </h1>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-12 col-lg-7">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-primary text-white d-flex align-items-center">
+          <i class="fas fa-shield-alt me-2"></i>
+          <span>Copias de seguridad automáticas</span>
+          <span class="ms-auto badge bg-light text-primary text-uppercase">
+            Actual: {{ fsc.getFrequency() }}
+          </span>
+        </div>
+
+        <div class="card-body">
+          <p class="mb-4 text-muted">
+            Seleccione cada cuánto desea que se ejecute la copia de seguridad automática.
+          </p>
+
+          <form method="post" class="needs-validation" novalidate>
+            {% set current = fsc.getFrequency() %}
+
+            <div class="mb-3">
+              <label class="form-label">Frecuencia</label>
+              <div class="btn-group w-100" role="group" aria-label="Frecuencia de backup">
+                <input type="radio" class="btn-check" name="frequency" id="freq-daily" value="daily" {{ current == 'daily' ? 'checked' : '' }}>
+                <label class="btn btn-outline-primary" for="freq-daily">
+                  <i class="fas fa-sun me-1"></i> Diaria
+                </label>
+
+                <input type="radio" class="btn-check" name="frequency" id="freq-weekly" value="weekly" {{ current == 'weekly' ? 'checked' : '' }}>
+                <label class="btn btn-outline-primary" for="freq-weekly">
+                  <i class="fas fa-calendar-week me-1"></i> Semanal
+                </label>
+
+                <input type="radio" class="btn-check" name="frequency" id="freq-monthly" value="monthly" {{ current == 'monthly' ? 'checked' : '' }}>
+                <label class="btn btn-outline-primary" for="freq-monthly">
+                  <i class="fas fa-calendar-alt me-1"></i> Mensual
+                </label>
+              </div>
+              <div class="form-text">
+                Diaria: una vez al día · Semanal: una vez por semana · Mensual: una vez al mes
+              </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-2 mt-4">
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save me-1"></i>Guardar cambios
+              </button>
+              <span class="text-muted small">
+                Los cambios se aplican al próximo ciclo de ejecución.
+              </span>
+            </div>
+          </form>
+        </div>
+
+        <div class="card-footer bg-light">
+          <small class="text-muted">
+            Consejo: mantenga al menos una copia externa para mayor seguridad.
+          </small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-5">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body">
+          <h2 class="h5 mb-3">
+            <i class="fas fa-info-circle me-2 text-primary"></i>Información
+          </h2>
+          <ul class="list-unstyled mb-0">
+            <li class="mb-2">
+              <i class="fas fa-database text-primary me-2"></i>
+              Se genera un volcado SQL y un ZIP del proyecto (excluye cachés y temporales).
+            </li>
+            <li class="mb-2">
+              <i class="fas fa-folder-open text-primary me-2"></i>
+              Carpeta destino: <code>MyFiles/Backups</code>.
+            </li>
+            <li class="mb-2">
+              <i class="fas fa-clock text-primary me-2"></i>
+              La planificación usa el mismo job que el plugin Backup para no duplicar tareas.
+            </li>
+            <li>
+              <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+              Asegúrese de que el cron del sistema está activo en su servidor.
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

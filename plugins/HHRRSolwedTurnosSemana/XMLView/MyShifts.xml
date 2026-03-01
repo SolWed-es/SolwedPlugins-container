@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Document   : MyShifts.xml
+    Author     : Carlos Garcia Gomez
+    Description: View for employees to see their own shifts
+-->
+<view>
+    <columns>
+        <group name="header" numcolumns="12">
+            <column name="employee-info" display="none" numcolumns="12">
+                <widget type="html" fieldname="employee_info">
+                    <values title="employee-info">
+                        <![CDATA[
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-user"></i> {{ employee.nombre }}
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <strong>{{ i18n.trans('employee-code') }}:</strong> {{ employee.codemployee }}<br>
+                                        <strong>{{ i18n.trans('department') }}:</strong> {{ employee.coddepartment }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>{{ i18n.trans('current-month') }}:</strong> {{ monthName }} {{ currentYear }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        ]]>
+                    </values>
+                </widget>
+            </column>
+        </group>
+
+        <group name="calendar" numcolumns="12">
+            <column name="calendar-navigation" display="none" numcolumns="12">
+                <widget type="html" fieldname="calendar_nav">
+                    <values title="calendar-navigation">
+                        <![CDATA[
+                        <div class="card mb-3">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <a href="MyShifts?month={{ prevMonth }}&year={{ prevYear }}" class="btn btn-outline-primary">
+                                    <i class="fas fa-chevron-left"></i> {{ i18n.trans('previous-month') }}
+                                </a>
+                                <h5 class="mb-0">{{ monthName }} {{ currentYear }}</h5>
+                                <a href="MyShifts?month={{ nextMonth }}&year={{ nextYear }}" class="btn btn-outline-primary">
+                                    {{ i18n.trans('next-month') }} <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </div>
+                            <div class="card-body">
+                                <div id="calendar"></div>
+                            </div>
+                        </div>
+                        ]]>
+                    </values>
+                </widget>
+            </column>
+        </group>
+
+        <group name="actions" numcolumns="12">
+            <column name="action-buttons" display="none" numcolumns="12">
+                <widget type="html" fieldname="action_buttons">
+                    <values title="actions">
+                        <![CDATA[
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <h6 class="card-title mb-0">{{ i18n.trans('actions') }}</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-primary" onclick="requestShiftExchange()">
+                                        <i class="fas fa-exchange-alt"></i> {{ i18n.trans('request-shift-exchange') }}
+                                    </button>
+                                    <button type="button" class="btn btn-info" onclick="exportToPDF()">
+                                        <i class="fas fa-file-pdf"></i> {{ i18n.trans('export-pdf') }}
+                                    </button>
+                                    <button type="button" class="btn btn-success" onclick="exportToExcel()">
+                                        <i class="fas fa-file-excel"></i> {{ i18n.trans('export-excel') }}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        ]]>
+                    </values>
+                </widget>
+            </column>
+        </group>
+
+        <group name="pending-requests" numcolumns="12">
+            <column name="pending-requests-list" display="none" numcolumns="12">
+                <widget type="html" fieldname="pending_requests">
+                    <values title="pending-requests">
+                        <![CDATA[
+                        {% if pendingRequests|length > 0 %}
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <h6 class="card-title mb-0">
+                                    <i class="fas fa-clock text-warning"></i> {{ i18n.trans('pending-requests') }}
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>{{ i18n.trans('request-date') }}</th>
+                                                <th>{{ i18n.trans('requested-date') }}</th>
+                                                <th>{{ i18n.trans('reason') }}</th>
+                                                <th>{{ i18n.trans('status') }}</th>
+                                                <th>{{ i18n.trans('actions') }}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for request in pendingRequests %}
+                                            <tr>
+                                                <td>{{ request.request_date|date('d/m/Y H:i') }}</td>
+                                                <td>{{ request.requested_date|date('d/m/Y') }}</td>
+                                                <td>{{ request.reason|slice(0, 50) }}{% if request.reason|length > 50 %}...{% endif %}</td>
+                                                <td>
+                                                    <span class="badge badge-{{ request.getStatusColor() }}">
+                                                        <i class="{{ request.getStatusIcon() }}"></i> {{ i18n.trans(request.status) }}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    {% if request.canBeCancelled() %}
+                                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="cancelRequest({{ request.id }})">
+                                                        <i class="fas fa-times"></i> {{ i18n.trans('cancel') }}
+                                                    </button>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        ]]>
+                    </values>
+                </widget>
+            </column>
+        </group>
+
+        <group name="shift-history" numcolumns="12">
+            <column name="history-list" display="none" numcolumns="12">
+                <widget type="html" fieldname="shift_history">
+                    <values title="shift-history">
+                        <![CDATA[
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="card-title mb-0">
+                                    <i class="fas fa-history"></i> {{ i18n.trans('shift-history') }}
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                {% if shiftHistory|length > 0 %}
+                                <div class="table-responsive">
+                                    <table class="table table-sm" id="historyTable">
+                                        <thead>
+                                            <tr>
+                                                <th>{{ i18n.trans('date') }}</th>
+                                                <th>{{ i18n.trans('location') }}</th>
+                                                <th>{{ i18n.trans('shift-number') }}</th>
+                                                <th>{{ i18n.trans('entry-time') }}</th>
+                                                <th>{{ i18n.trans('exit-time') }}</th>
+                                                <th>{{ i18n.trans('notes') }}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for item in shiftHistory %}
+                                            <tr>
+                                                <td>{{ item.assignment.start_date|date('d/m/Y') }} - {{ item.assignment.end_date|date('d/m/Y') }}</td>
+                                                <td>{{ item.shift.location }}</td>
+                                                <td>
+                                                    <span class="badge badge-primary">{{ item.shift.shift_number }}</span>
+                                                </td>
+                                                <td>{{ item.assignment.notes|slice(0, 30) }}{% if item.assignment.notes|length > 30 %}...{% endif %}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {% else %}
+                                <p class="text-muted">{{ i18n.trans('no-shift-history') }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        ]]>
+                    </values>
+                </widget>
+            </column>
+        </group>
+    </columns>
+
+    <modals>
+        <group name="request-exchange-modal" id="requestExchangeModal">
+            <column name="modal-content" numcolumns="12">
+                <widget type="html" fieldname="request_modal">
+                    <values>
+                        <![CDATA[
+                        <div class="modal fade" id="requestExchangeModal" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">{{ i18n.trans('request-shift-exchange') }}</h5>
+                                        <button type="button" class="close" data-dismiss="modal">
+                                            <span>&times;</span>
+                                        </button>
+                                    </div>
+                                    <form id="requestExchangeForm">
+                                        <div class="modal-body">
+                                            <div class="form-group">
+                                                <label for="shiftSelect">{{ i18n.trans('select-shift') }}</label>
+                                                <select class="form-control" id="shiftSelect" name="shift_id" required>
+                                                    <option value="">{{ i18n.trans('select-shift') }}</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="requestedDate">{{ i18n.trans('requested-date') }}</label>
+                                                <input type="date" class="form-control" id="requestedDate" name="requested_date" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="reason">{{ i18n.trans('reason') }}</label>
+                                                <textarea class="form-control" id="reason" name="reason" rows="3" maxlength="500"></textarea>
+                                                <small class="form-text text-muted">{{ i18n.trans('max-500-characters') }}</small>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ i18n.trans('cancel') }}</button>
+                                            <button type="submit" class="btn btn-primary">{{ i18n.trans('send-request') }}</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        ]]>
+                    </values>
+                </widget>
+            </column>
+        </group>
+    </modals>
+</view>

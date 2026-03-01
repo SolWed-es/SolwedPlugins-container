@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    This file is part of HHRRSolwedDestinos plugin for FacturaScripts.
+    
+    Document   : destinos.xml
+    Description: Structure for the destinos table.
+-->
+<table>
+    <column>
+        <name>iddestino</name>
+        <type>serial</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>nombre</name>
+        <type>character varying(120)</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>direccion</name>
+        <type>text</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>ciudad</name>
+        <type>character varying(60)</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>cp</name>
+        <type>character varying(10)</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>lat</name>
+        <type>double precision</type>
+        <null>NO</null>
+        <default>0</default>
+    </column>
+    <column>
+        <name>lon</name>
+        <type>double precision</type>
+        <null>NO</null>
+        <default>0</default>
+    </column>
+    <column>
+        <name>duracion_min</name>
+        <type>integer</type>
+        <null>NO</null>
+        <default>60</default>
+    </column>
+    <column>
+        <name>hora_entrada</name>
+        <type>time</type>
+        <null>YES</null>
+    </column>
+    <column>
+        <name>hora_salida</name>
+        <type>time</type>
+        <null>YES</null>
+    </column>
+    <column>
+        <name>fecha_inicio</name>
+        <type>date</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>fecha_fin</name>
+        <type>date</type>
+        <null>YES</null>
+    </column>
+    <column>
+        <name>activo</name>
+        <type>boolean</type>
+        <null>NO</null>
+        <default>true</default>
+    </column>
+    <column>
+        <name>referencia</name>
+        <type>boolean</type>
+        <null>NO</null>
+        <default>false</default>
+    </column>
+    <column>
+        <name>created_at</name>
+        <type>timestamp</type>
+        <null>NO</null>
+    </column>
+    <column>
+        <name>updated_at</name>
+        <type>timestamp</type>
+        <null>NO</null>
+    </column>
+    
+    <constraint>
+        <name>destinos_pkey</name>
+        <type>PRIMARY KEY (iddestino)</type>
+    </constraint>
+</table>

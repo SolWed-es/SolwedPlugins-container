@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Document   : EditEmployeeShift.xml
+    Author     : José Ferrán
+    Description: Edit view for employee shift assignments
+
+    This file is part of HHRRSolwedTurnosSemana plugin for FacturaScripts.
+    Developed by José Ferrán based on the excellent work of the Human Resources
+    plugin created by Carlos García Gómez and Jose Antonio Cuello Principal.
+-->
+<view>
+    <columns>
+        <group name="data" numcolumns="12">
+            <column name="employee" order="100" numcolumns="6">
+                <widget type="autocomplete" fieldname="idemployee" required="true">
+                    <values source="rrhh_employees" fieldcode="id" fieldtitle="nombre" />
+                </widget>
+            </column>
+            <column name="shift" order="110" numcolumns="6">
+                <widget type="autocomplete" fieldname="idshift" required="true">
+                    <values source="rrhh_shifts" fieldcode="id" fieldtitle="location" />
+                </widget>
+            </column>
+            <column name="assignment-date" order="120" numcolumns="4">
+                <widget type="date" fieldname="assignment_date" required="true" />
+            </column>
+            <column name="start-date" order="130" numcolumns="4">
+                <widget type="date" fieldname="start_date" />
+            </column>
+            <column name="end-date" order="140" numcolumns="4">
+                <widget type="date" fieldname="end_date" />
+            </column>
+            <column name="active" order="150" numcolumns="12">
+                <widget type="checkbox" fieldname="active" />
+            </column>
+            <column name="autoassignable" order="155" numcolumns="6">
+                <widget type="checkbox" fieldname="autoassignable" />
+            </column>
+            <column name="notes" order="160" numcolumns="12">
+                <widget type="textarea" fieldname="notes" rows="3" />
+            </column>
+        </group>
+    </columns>
+</view>

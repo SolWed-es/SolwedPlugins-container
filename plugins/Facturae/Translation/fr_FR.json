@@ -1,0 +1,8 @@
+{
+    "error-when-signing": "Erreur de signature. Mauvais mot de passe ?",
+    "expedient": "Expéditeur",
+    "filereference-exp": "Ref. fichier \/ Nº expéditeur",
+    "include-invoice-observations": "Inclure les remarques de la facture",
+    "receiver-contract-ref": "Ref. contrato",
+    "receiver-transaction-ref": "Ref. transacción"
+}

@@ -1,0 +1,139 @@
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-calendar-week"></i> {{ i18n.trans('weekly-schedule') }}
+                    </h3>
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-success btn-sm" id="addWeekDay">
+                            <i class="fas fa-plus"></i> {{ i18n.trans('add-day') }}
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped" id="weekDaysTable">
+                            <thead>
+                                <tr>
+                                    <th>{{ i18n.trans('day-of-week') }}</th>
+                                    <th>{{ i18n.trans('morning-entry') }}</th>
+                                    <th>{{ i18n.trans('morning-exit') }}</th>
+                                    <th>{{ i18n.trans('afternoon-entry') }}</th>
+                                    <th>{{ i18n.trans('afternoon-exit') }}</th>
+                                    <th width="100">{{ i18n.trans('actions') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody id="weekDaysBody">
+                                {% if model.exists() %}
+                                    {% for weekDay in model.getWeekDays() %}
+                                        <tr data-id="{{ weekDay.id }}">
+                                            <td>
+                                                <select name="weekdays[{{ loop.index0 }}][dayofweek]" class="form-control form-control-sm" required>
+                                                    <option value="1" {% if weekDay.dayofweek == 1 %}selected{% endif %}>{{ i18n.trans('monday') }}</option>
+                                                    <option value="2" {% if weekDay.dayofweek == 2 %}selected{% endif %}>{{ i18n.trans('tuesday') }}</option>
+                                                    <option value="3" {% if weekDay.dayofweek == 3 %}selected{% endif %}>{{ i18n.trans('wednesday') }}</option>
+                                                    <option value="4" {% if weekDay.dayofweek == 4 %}selected{% endif %}>{{ i18n.trans('thursday') }}</option>
+                                                    <option value="5" {% if weekDay.dayofweek == 5 %}selected{% endif %}>{{ i18n.trans('friday') }}</option>
+                                                    <option value="6" {% if weekDay.dayofweek == 6 %}selected{% endif %}>{{ i18n.trans('saturday') }}</option>
+                                                    <option value="7" {% if weekDay.dayofweek == 7 %}selected{% endif %}>{{ i18n.trans('sunday') }}</option>
+                                                </select>
+                                                <input type="hidden" name="weekdays[{{ loop.index0 }}][id]" value="{{ weekDay.id }}">
+                                            </td>
+                                            <td>
+                                                <input type="time" name="weekdays[{{ loop.index0 }}][morning_entry]" 
+                                                       class="form-control form-control-sm" value="{{ weekDay.morning_entry }}">
+                                            </td>
+                                            <td>
+                                                <input type="time" name="weekdays[{{ loop.index0 }}][morning_exit]" 
+                                                       class="form-control form-control-sm" value="{{ weekDay.morning_exit }}">
+                                            </td>
+                                            <td>
+                                                <input type="time" name="weekdays[{{ loop.index0 }}][afternoon_entry]" 
+                                                       class="form-control form-control-sm" value="{{ weekDay.afternoon_entry }}">
+                                            </td>
+                                            <td>
+                                                <input type="time" name="weekdays[{{ loop.index0 }}][afternoon_exit]" 
+                                                       class="form-control form-control-sm" value="{{ weekDay.afternoon_exit }}">
+                                            </td>
+                                            <td>
+                                                <button type="button" class="btn btn-danger btn-sm remove-weekday">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    let weekDayIndex = {{ model.exists() ? model.getWeekDays()|length : 0 }};
+    
+    // Definir traducciones fuera del template literal
+    const translations = {
+        monday: '{{ i18n.trans('monday') }}',
+        tuesday: '{{ i18n.trans('tuesday') }}',
+        wednesday: '{{ i18n.trans('wednesday') }}',
+        thursday: '{{ i18n.trans('thursday') }}',
+        friday: '{{ i18n.trans('friday') }}',
+        saturday: '{{ i18n.trans('saturday') }}',
+        sunday: '{{ i18n.trans('sunday') }}',
+        confirmDelete: '{{ i18n.trans('confirm-delete') }}'
+    };
+    
+    // Agregar nuevo día de la semana
+    $('#addWeekDay').click(function() {
+        const newRow = `
+            <tr>
+                <td>
+                    <select name="weekdays[${weekDayIndex}][dayofweek]" class="form-control form-control-sm" required>
+                        <option value="1">${translations.monday}</option>
+                        <option value="2">${translations.tuesday}</option>
+                        <option value="3">${translations.wednesday}</option>
+                        <option value="4">${translations.thursday}</option>
+                        <option value="5">${translations.friday}</option>
+                        <option value="6">${translations.saturday}</option>
+                        <option value="7">${translations.sunday}</option>
+                    </select>
+                    <input type="hidden" name="weekdays[${weekDayIndex}][id]" value="">
+                </td>
+                <td>
+                    <input type="time" name="weekdays[${weekDayIndex}][morning_entry]" class="form-control form-control-sm">
+                </td>
+                <td>
+                    <input type="time" name="weekdays[${weekDayIndex}][morning_exit]" class="form-control form-control-sm">
+                </td>
+                <td>
+                    <input type="time" name="weekdays[${weekDayIndex}][afternoon_entry]" class="form-control form-control-sm">
+                </td>
+                <td>
+                    <input type="time" name="weekdays[${weekDayIndex}][afternoon_exit]" class="form-control form-control-sm">
+                </td>
+                <td>
+                    <button type="button" class="btn btn-danger btn-sm remove-weekday">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+        $('#weekDaysBody').append(newRow);
+        weekDayIndex++;
+    });
+    
+    // Eliminar día de la semana
+    $(document).on('click', '.remove-weekday', function() {
+        if (confirm(translations.confirmDelete)) {
+            $(this).closest('tr').remove();
+        }
+    });
+});
+</script>

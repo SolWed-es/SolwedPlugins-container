@@ -1,0 +1,351 @@
+{#
+    MyShifts.html.twig
+    Author: José Ferrán
+    Description: Employee shift calendar view template
+
+    This file is part of HHRRSolwedDestinos plugin for FacturaScripts.
+    Developed by José Ferrán based on the excellent work of the Human Resources
+    plugin created by Carlos García Gómez and Jose Antonio Cuello Principal.
+#}
+
+{% extends "Master/MenuTemplate.html.twig" %}
+
+{% block body %}
+{% set translations = fsc.getTranslations() %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">
+                        <i class="fas fa-calendar-alt fa-fw" aria-hidden="true"></i>
+                        {{ translations['my-shifts'] }}
+                    </h3>
+                </div>
+                <div class="card-body pb-4">
+                    {% set navigation = fsc.getNavigationData() %}
+                    
+                    <!-- Month Navigation -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <a href="{{ fsc.url() }}?month={{ navigation.prev.month }}&year={{ navigation.prev.year }}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-chevron-left"></i> {{ translations['previous-month'] }}
+                            </a>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <h4 class="text-primary font-weight-bold mb-0">{{ navigation.current.monthName }} {{ navigation.current.year }}</h4>
+                        </div>
+                        <div class="col-md-4 text-right">
+                            <a href="{{ fsc.url() }}?month={{ navigation.next.month }}&year={{ navigation.next.year }}" class="btn btn-outline-primary btn-sm">
+                                {{ translations['next-month'] }} <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Calendar -->
+                    {% set calendar = fsc.getCalendarData() %}
+                    {% if calendar %}
+                        <div class="calendar-container">
+                            <div class="table-responsive mb-4">
+                                <table class="table table-bordered calendar-table">
+                                <thead class="thead-dark">
+                                    <tr>
+                                        <th class="text-center py-3">{{ translations['monday'] }}</th>
+                                        <th class="text-center py-3">{{ translations['tuesday'] }}</th>
+                                        <th class="text-center py-3">{{ translations['wednesday'] }}</th>
+                                        <th class="text-center py-3">{{ translations['thursday'] }}</th>
+                                        <th class="text-center py-3">{{ translations['friday'] }}</th>
+                                        <th class="text-center py-3">{{ translations['saturday'] }}</th>
+                                        <th class="text-center py-3">{{ translations['sunday'] }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% set firstDay = date(navigation.current.year ~ '-' ~ navigation.current.month|number_format(0, '', '') ~ '-01') %}
+                                    {% set startOfWeek = firstDay|date_modify('monday this week') %}
+                                    {% set endOfMonth = firstDay|date_modify('last day of this month') %}
+                                    {% set endOfWeek = endOfMonth|date_modify('sunday this week') %}
+                                    
+                                    {% for week in range(0, 5) %}
+                                        {% set weekStartDate = startOfWeek|date_modify('+' ~ (week * 7) ~ ' days') %}
+                                        {% if weekStartDate <= endOfMonth|date_modify('+6 days') %}
+                                            <tr>
+                                                {% for day in range(0, 6) %}
+                                                    {% set currentDate = startOfWeek|date_modify('+' ~ (week * 7 + day) ~ ' days') %}
+                                                    {% set dateStr = currentDate|date('Y-m-d') %}
+                                                    {% set isCurrentMonth = currentDate|date('m') == navigation.current.month %}
+                                                    {% set isToday = currentDate|date('Y-m-d') == 'now'|date('Y-m-d') %}
+                                                    
+                                                    <td class="calendar-day {% if not isCurrentMonth %}text-muted bg-light{% endif %} {% if isToday %}today{% endif %}" style="height: 100px; vertical-align: top; position: relative;">
+                                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                                            <span class="badge {% if isToday %}badge-primary{% elseif isCurrentMonth %}badge-secondary{% else %}badge-light{% endif %} font-weight-bold">
+                                                                {{ currentDate|date('j') }}
+                                                            </span>
+                                                            {% if isToday %}
+                                                                <small class="text-primary font-weight-bold">{{ translations['today'] }}</small>
+                                                            {% endif %}
+                                                        </div>
+                                                        
+                                                        {% if calendar[dateStr] is defined %}
+                                                            <div class="shifts-container">
+                                                                {% for shift in calendar[dateStr] %}
+                                                                    <div class="shift-item mb-1">
+                                                                        <div class="badge badge-success d-block text-left p-2" title="{{ shift.shift_location }}{% if shift.shift_number %} - {{ translations['shift'] }} #{{ shift.shift_number }}{% endif %}">
+                                                                            <div class="font-weight-bold">{{ shift.shift_location }}</div>
+                                                                            {% if shift.shift_number %}
+                                                                                <small>{{ translations['shift'] }} #{{ shift.shift_number }}</small>
+                                                                            {% endif %}
+                                                                        </div>
+                                                                    </div>
+                                                                {% endfor %}
+                                                            </div>
+                                                        {% endif %}
+                                                    </td>
+                                                {% endfor %}
+                                            </tr>
+                                        {% endif %}
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info text-center">
+                            <i class="fas fa-info-circle fa-2x mb-2"></i>
+                            <h5>{{ translations['no-shifts-assigned'] }}</h5>
+                            <p class="mb-0">{{ translations['contact-admin-for-shift-assignment'] }}</p>
+                        </div>
+                    {% endif %}
+
+                    <!-- Shifts List -->
+                    {% set shifts = fsc.getEmployeeShifts() %}
+                    {% if shifts %}
+                        <div class="mt-4">
+                            <h5 class="text-primary mb-3">
+                                <i class="fas fa-list-alt"></i> {{ translations['shift-details'] }}
+                            </h5>
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead class="thead-light">
+                                        <tr>
+                                            <th class="text-center"><i class="fas fa-map-marker-alt"></i> {{ translations['shift-location'] }}</th>
+                                            <th class="text-center"><i class="fas fa-hashtag"></i> {{ translations['shift-number'] }}</th>
+                                            <th class="text-center"><i class="fas fa-calendar-plus"></i> {{ translations['assignment-date'] }}</th>
+                                            <th class="text-center"><i class="fas fa-play"></i> {{ translations['start-date'] }}</th>
+                                            <th class="text-center"><i class="fas fa-stop"></i> {{ translations['end-date'] }}</th>
+                                            <th class="text-center"><i class="fas fa-toggle-on"></i> {{ translations['active'] }}</th>
+                                            <th class="text-center"><i class="fas fa-sticky-note"></i> {{ translations['notes'] }}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for shift in shifts %}
+                                            <tr class="{% if shift.active %}table-success{% else %}table-secondary{% endif %}">
+                                                <td class="font-weight-bold">
+                                                    <i class="fas fa-building text-primary"></i> {{ shift.shift_location }}
+                                                </td>
+                                                <td class="text-center">
+                                                    {% if shift.shift_number %}
+                                                        <span class="badge badge-primary">#{{ shift.shift_number }}</span>
+                                                    {% else %}
+                                                        <span class="text-muted">-</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td class="text-center">
+                                                    <span class="badge badge-info">{{ shift.assignment_date|date('d/m/Y') }}</span>
+                                                </td>
+                                                <td class="text-center">
+                                                    {% if shift.start_date %}
+                                                        <span class="badge badge-success">{{ shift.start_date|date('d/m/Y') }}</span>
+                                                    {% else %}
+                                                        <span class="badge badge-secondary">{{ translations['no-date'] }}</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td class="text-center">
+                                                    {% if shift.end_date %}
+                                                        <span class="badge badge-warning">{{ shift.end_date|date('d/m/Y') }}</span>
+                                                    {% else %}
+                                                        <span class="badge badge-secondary">{{ translations['no-date'] }}</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td class="text-center">
+                                                    {% if shift.active %}
+                                                        <span class="badge badge-success">
+                                                            <i class="fas fa-check"></i> {{ translations['yes'] }}
+                                                        </span>
+                                                    {% else %}
+                                                        <span class="badge badge-secondary">
+                                                            <i class="fas fa-times"></i> {{ translations['no'] }}
+                                                        </span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    {% if shift.notes %}
+                                                        <span class="text-muted" title="{{ shift.notes }}">
+                                                            {{ shift.notes|length > 50 ? shift.notes|slice(0, 50) ~ '...' : shift.notes }}
+                                                        </span>
+                                                    {% else %}
+                                                        <span class="text-muted">-</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.calendar-table {
+    border: 2px solid #dee2e6;
+    margin-bottom: 0;
+}
+
+.calendar-table th {
+    background-color: #343a40 !important;
+    color: white !important;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: 1px solid #495057 !important;
+}
+
+.calendar-day {
+    border: 1px solid #dee2e6 !important;
+    transition: all 0.2s ease;
+    padding: 8px;
+}
+
+.calendar-day:hover {
+    background-color: #f8f9fa !important;
+    transform: scale(1.01);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.calendar-day.today {
+    background-color: #e3f2fd !important;
+    border: 2px solid #2196f3 !important;
+}
+
+.shifts-container {
+    max-height: 60px;
+    overflow-y: auto;
+    padding-right: 2px;
+}
+
+.shifts-container::-webkit-scrollbar {
+    width: 4px;
+}
+
+.shifts-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 2px;
+}
+
+.shifts-container::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 2px;
+}
+
+.shifts-container::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+    overflow-y: auto;
+}
+
+.shift-item .badge {
+    font-size: 0.75rem;
+    line-height: 1.2;
+    white-space: normal;
+    text-align: left;
+    max-width: 100%;
+}
+
+.shift-item .badge:hover {
+    transform: scale(1.02);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(0,123,255,0.1) !important;
+}
+
+.card {
+    border-radius: 10px;
+    margin-bottom: 30px;
+}
+
+.card-header {
+    border-radius: 10px 10px 0 0 !important;
+}
+
+.card-body {
+    padding-bottom: 2rem !important;
+}
+
+.btn-outline-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.table-responsive {
+    margin-bottom: 1rem;
+    overflow-y: auto;
+    max-height: calc(100vh - 200px);
+}
+
+@media (max-height: 700px) {
+    .table-responsive {
+        max-height: calc(100vh - 250px);
+    }
+}
+
+/* Ensure proper spacing at bottom */
+.container-fluid {
+    padding-bottom: 2rem;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+}
+
+.card-body {
+    padding-bottom: 2rem !important;
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+}
+
+.calendar-container {
+    max-height: calc(100vh - 300px);
+    overflow-y: auto;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+}
+
+.table-responsive {
+    margin-bottom: 1rem;
+    max-height: calc(100vh - 350px);
+    overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+    .calendar-day {
+        height: 100px !important;
+        font-size: 0.8rem;
+        padding: 4px;
+    }
+    
+    .shift-item .badge {
+        font-size: 0.65rem;
+        padding: 0.25rem 0.4rem;
+    }
+    
+    .btn-sm {
+        font-size: 0.8rem;
+        padding: 0.25rem 0.5rem;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,8 @@
+{
+    "error-when-signing": "Error al firmar ¿Contraseña incorrecta?",
+    "expedient": "Expediente",
+    "filereference-exp": "Nº de expediente \/ Referência do ficheiro",
+    "include-invoice-observations": "Incluir observarções na Fatura",
+    "receiver-contract-ref": "Ref. contrato",
+    "receiver-transaction-ref": "Ref. transacción"
+}

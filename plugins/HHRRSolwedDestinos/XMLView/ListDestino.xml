@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    This file is part of HHRRSolwedDestinos plugin for FacturaScripts.
+    FacturaScripts  Copyright (C) 2015-2025 Carlos Garcia Gomez <carlos@facturascripts.com>
+    HHRRSolwedDestinos  Copyright (C) 2025 Jose Antonio Cuello Principal <yopli2000@gmail.com>
+
+    This program and its files are under the terms of the license specified in the LICENSE file.
+
+    Document   : ListDestino.xml
+    Author    : Jose Antonio Cuello    <yopli2000@gmail.com>
+    Description:
+    View for the controller ListDestino
+-->
+<view>
+    <columns>
+        <column name="code" order="100" title="Código">
+            <widget type="text" fieldname="iddestino" />
+        </column>
+        <column name="name" order="110" title="Nombre">
+            <widget type="text" fieldname="nombre" />
+        </column>
+        <column name="address" order="120" title="Dirección">
+            <widget type="text" fieldname="direccion" />
+        </column>
+        <column name="city" order="130" title="Ciudad">
+            <widget type="text" fieldname="ciudad" />
+        </column>
+        <column name="postal-code" order="140" title="Código Postal">
+            <widget type="text" fieldname="cp" />
+        </column>
+        <column name="latitude" order="150" title="Latitud">
+            <widget type="number" fieldname="lat" step="0.00001" />
+        </column>
+        <column name="longitude" order="160" title="Longitud">
+            <widget type="number" fieldname="lon" step="0.00001" />
+        </column>
+        <column name="duration" order="170" title="Duración (min)">
+            <widget type="number" fieldname="duracion_min" />
+        </column>
+        <column name="entry-time" order="180" title="Hora Entrada">
+            <widget type="time" fieldname="hora_entrada" step="60" />
+        </column>
+        <column name="exit-time" order="190" title="Hora Salida">
+            <widget type="time" fieldname="hora_salida" step="60" />
+        </column>
+        <column name="start-date" order="200" title="Fecha Inicio">
+            <widget type="date" fieldname="fecha_inicio" />
+        </column>
+        <column name="end-date" order="210" title="Fecha Fin">
+            <widget type="date" fieldname="fecha_fin" />
+        </column>
+        <column name="active" order="220" title="Activo">
+            <widget type="checkbox" fieldname="activo" />
+        </column>
+        <column name="reference" order="230" title="Referencia">
+            <widget type="checkbox" fieldname="referencia" />
+        </column>
+        <column name="created" order="240" title="Creado">
+            <widget type="datetime" fieldname="created_at" />
+        </column>
+        <column name="updated" order="250" title="Actualizado">
+            <widget type="datetime" fieldname="updated_at" />
+        </column>
+    </columns>
+</view>

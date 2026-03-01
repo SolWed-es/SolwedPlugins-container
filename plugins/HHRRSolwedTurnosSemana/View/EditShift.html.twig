@@ -1,0 +1,142 @@
+{% extends "Master/EditController.html.twig" %}
+
+{% block body %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <!-- Agregar el header de la página -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-clock"></i>
+                            {{ i18n.trans('shift') }}
+                            {% if model.exists() %}
+                                <small class="text-muted">{{ model.primaryColumnValue() }}</small>
+                            {% endif %}
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <!-- Mostrar mensajes del sistema -->
+                        {% for message in fsc.toolBox().log().read() %}
+                            <div class="alert alert-{{ message.level }} alert-dismissible">
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                                {{ message.message }}
+                            </div>
+                        {% endfor %}
+
+                        <form id="form{{ model.modelClassName }}" method="post" enctype="multipart/form-data">
+                            <input type="hidden" name="action" value="save"/>
+                            <input type="hidden" name="activetab" value="{{ fsc.getCurrentView().getViewName() }}"/>
+                            <input type="hidden" name="code" value="{{ model.primaryColumnValue() }}"/>
+                            <input type="hidden" name="multireqtoken" value="{{ fsc.multiRequestProtection.newToken() }}"/>
+
+                            <!-- Sistema de pestañas -->
+                            <ul class="nav nav-tabs" id="shiftTabs" role="tablist">
+                                <li class="nav-item">
+                                    <a class="nav-link active" id="general-tab" data-toggle="tab" href="#general" role="tab" aria-controls="general" aria-selected="true">
+                                        <i class="fas fa-info-circle"></i> {{ i18n.trans('general') }}
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="schedule-tab" data-toggle="tab" href="#schedule" role="tab" aria-controls="schedule" aria-selected="false">
+                                        <i class="fas fa-calendar-week"></i> {{ i18n.trans('weekly-schedule') }}
+                                    </a>
+                                </li>
+                            </ul>
+
+                            <div class="tab-content" id="shiftTabsContent">
+                                <!-- Pestaña General -->
+                                <div class="tab-pane fade show active" id="general" role="tabpanel" aria-labelledby="general-tab">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label for="location">{{ i18n.trans('location') }}</label>
+                                                        <input type="text" class="form-control" id="location" name="location" 
+                                                               value="{{ model.location }}" maxlength="100" required/>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label for="shift_number">{{ i18n.trans('shift-number') }}</label>
+                                                        <input type="number" class="form-control" id="shift_number" name="shift_number" 
+                                                               value="{{ model.shift_number }}" min="1" required/>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="row">
+                                                <div class="col-12">
+                                                    <div class="form-group">
+                                                        <label for="notes">{{ i18n.trans('notes') }}</label>
+                                                        <textarea class="form-control" id="notes" name="notes" rows="4">{{ model.notes }}</textarea>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Pestaña Horarios Semanales -->
+                                <div class="tab-pane fade" id="schedule" role="tabpanel" aria-labelledby="schedule-tab">
+                                    {% include 'Tab/ShiftWeekDays.html.twig' %}
+                                </div>
+                            </div>
+
+                            <!-- Botones de acción -->
+                            <div class="card-footer">
+                                <div class="row">
+                                    <div class="col">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-save"></i> {{ i18n.trans('save') }}
+                                        </button>
+                                        <a href="{{ fsc.url() }}" class="btn btn-secondary">
+                                            <i class="fas fa-undo"></i> {{ i18n.trans('cancel') }}
+                                        </a>
+                                    </div>
+                                    <div class="col-auto">
+                                        {% if model.exists() %}
+                                            <div class="btn-group">
+                                                <a href="{{ fsc.url() }}?action=delete&amp;code={{ model.primaryColumnValue() }}&amp;multireqtoken={{ fsc.multiRequestProtection.newToken() }}" 
+                                                   class="btn btn-danger" onclick="return confirm('{{ i18n.trans('confirm-delete') }}')">
+                                                    <i class="fas fa-trash-alt"></i> {{ i18n.trans('delete') }}
+                                                </a>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        $(document).ready(function() {
+            // Activar pestañas
+            $('#shiftTabs a').on('click', function (e) {
+                e.preventDefault();
+                $(this).tab('show');
+            });
+            
+            // Guardar pestaña activa
+            $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+                localStorage.setItem('activeTab_shift', $(e.target).attr('href'));
+            });
+            
+            // Restaurar pestaña activa
+            var activeTab = localStorage.getItem('activeTab_shift');
+            if (activeTab) {
+                $('#shiftTabs a[href="' + activeTab + '"]').tab('show');
+            }
+        });
+    </script>
+{% endblock %}

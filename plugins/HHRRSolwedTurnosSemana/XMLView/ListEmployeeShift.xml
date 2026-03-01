@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Document   : ListEmployeeShift.xml
+    Author     : José Ferrán
+    Description: List view for employee shift management
+
+    This file is part of HHRRSolwedTurnosSemana plugin for FacturaScripts.
+    Developed by José Ferrán based on the excellent work of the Human Resources
+    plugin created by Carlos García Gómez and Jose Antonio Cuello Principal.
+-->
+<view>
+    <columns>
+        <column name="employee-name" order="100">
+            <widget type="text" fieldname="employee_name" readonly="true" />
+        </column>
+        <column name="employee" display="none" order="105">
+            <widget type="autocomplete" fieldname="idemployee" required="true">
+                <values source="rrhh_employees" fieldcode="id" fieldtitle="nombre" />
+            </widget>
+        </column>
+        <column name="shift-location" order="110">
+            <widget type="text" fieldname="shift_location" readonly="true" />
+        </column>
+        <column name="shift" display="none" order="115">
+            <widget type="autocomplete" fieldname="idshift" required="true">
+                <values source="rrhh_shifts" fieldcode="id" fieldtitle="location" />
+            </widget>
+        </column>
+        <column name="shift-number" order="120">
+            <widget type="number" fieldname="shift_number" readonly="true" />
+        </column>
+        <column name="assignment-date" order="140">
+            <widget type="date" fieldname="assignment_date" />
+        </column>
+        <column name="start-date" order="150">
+            <widget type="date" fieldname="start_date" />
+        </column>
+        <column name="end-date" order="160">
+            <widget type="date" fieldname="end_date" />
+        </column>
+        <column name="active" order="170">
+            <widget type="checkbox" fieldname="active" />
+        </column>
+        <column name="autoassignable" order="175">
+            <widget type="checkbox" fieldname="autoassignable" />
+        </column>
+        <column name="notes" order="180">
+            <widget type="textarea" fieldname="notes" />
+        </column>
+    </columns>
+    
+    <filters>
+        <filter type="autocomplete" fieldname="idemployee">
+            <values source="employees" fieldcode="id" fieldtitle="nombre" />
+        </filter>
+        <filter type="autocomplete" fieldname="idshift">
+            <values source="rrhh_shifts" fieldcode="id" fieldtitle="location" />
+        </filter>
+        <filter type="checkbox" fieldname="active" />
+        <filter type="checkbox" fieldname="autoassignable" />
+        <filter type="dateperiod" fieldname="assignment_date" />
+        <filter type="dateperiod" fieldname="start_date" />
+        <filter type="dateperiod" fieldname="end_date" />
+    </filters>
+</view>

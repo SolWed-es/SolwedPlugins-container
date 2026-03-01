@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    EditShiftWeekDay.xml
+    Vista de edición para configuración de horarios por día de la semana
+-->
+<view>
+    <columns>
+        <group name="data" numcolumns="12" title="daily-schedule">
+            <column name="shift" order="100" numcolumns="6">
+                <widget type="select" fieldname="idshift" required="true">
+                    <values source="rrhh_shifts" fieldcode="id" fieldtitle="location" />
+                </widget>
+            </column>
+            <column name="day-of-week" order="110" numcolumns="6">
+                <widget type="select" fieldname="dayofweek" required="true" translate="true">
+                    <values title="monday">1</values>
+                    <values title="tuesday">2</values>
+                    <values title="wednesday">3</values>
+                    <values title="thursday">4</values>
+                    <values title="friday">5</values>
+                    <values title="saturday">6</values>
+                    <values title="sunday">7</values>
+                </widget>
+            </column>
+        </group>
+
+        <group name="morning" numcolumns="12" title="morning-shift">
+            <column name="entry-time" order="200" numcolumns="6">
+                <widget type="time" fieldname="morning_entry" step="60" />
+            </column>
+            <column name="exit-time" order="210" numcolumns="6">
+                <widget type="time" fieldname="morning_exit" step="60" />
+            </column>
+        </group>
+
+        <group name="afternoon" numcolumns="12" title="afternoon-shift">
+            <column name="entry-time" order="300" numcolumns="6">
+                <widget type="time" fieldname="afternoon_entry" step="60" />
+            </column>
+            <column name="exit-time" order="310" numcolumns="6">
+                <widget type="time" fieldname="afternoon_exit" step="60" />
+            </column>
+        </group>
+    </columns>
+</view>

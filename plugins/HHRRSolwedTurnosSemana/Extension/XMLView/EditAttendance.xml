@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view>
+    <columns>
+        <group name="data" numcolumns="12">
+            <column name="turno" numcolumns="6" order="145">
+                <widget type="select" fieldname="idturno" required="false">
+                    <values source="rrhh_shifts" fieldcode="id" fieldtitle="location"></values>
+                </widget>
+            </column>
+        </group>
+    </columns>
+</view>

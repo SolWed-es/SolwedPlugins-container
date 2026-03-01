@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    This file is part of HHRRSolwedTurnosSemana plugin for FacturaScripts.
+    FacturaScripts  Copyright (C) 2015-2025 Carlos Garcia Gomez <carlos@facturascripts.com>
+    HHRRSolwedTurnosSemana  Copyright (C) 2025 Jose Antonio Cuello Principal <yopli2000@gmail.com>
+
+    This program and its files are under the terms of the license specified in the LICENSE file.
+
+    Document   : EditShift.xml
+    Author     : Jose Antonio Cuello    <yopli2000@gmail.com>
+    Description:
+        Initial description for the controller EditShift
+-->
+<view>
+    <columns>
+        <group name="data" numcolumns="12">
+            <column name="code" order="0" display="none">
+                <widget type="text" fieldname="id" readonly="true" />
+            </column>
+            <column name="location" order="100" numcolumns="6">
+                <widget type="text" fieldname="location" required="true" />
+            </column>
+            <column name="shift-number" order="110" numcolumns="6">
+                <widget type="number" fieldname="shift_number" required="true" min="1" />
+            </column>
+
+        </group>
+        <group name="notes" numcolumns="12">
+            <column name="notes" order="200">
+                <widget type="textarea" fieldname="notes" />
+            </column>
+        </group>
+    </columns>
+</view>
