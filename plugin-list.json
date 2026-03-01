@@ -1,9 +1,9 @@
 {
     "metadata": {
-        "generated": "01-03-2026 19:32:05",
+        "generated": "01-03-2026 19:37:05",
         "repo": "https://github.com/SolWed-es/SolwedPlugins-container",
-        "plugin_count": 22,
-        "workflow_run": "22550892373"
+        "plugin_count": 24,
+        "workflow_run": "22550985596"
     },
     "plugins": [
         {
@@ -188,6 +188,17 @@
             "last_updated": "2025-11-04"
         },
         {
+            "name": "InfoCostePresupuesto",
+            "description": "Agrega los campos Proveedor y coste al documento Presupuesto de ventas",
+            "version": 1.1,
+            "min_version": 2024,
+            "min_php": 7.3,
+            "require": [],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/InfoCostePresupuesto.zip",
+            "last_updated": "2026-03-01"
+        },
+        {
             "name": "MerakiPlugin",
             "description": "A\u00f1adir columna de detalles a productos",
             "version": 1.1,
@@ -256,6 +267,17 @@
             "require_php": [],
             "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/SolwedTiendaWeb.zip",
             "last_updated": "2025-11-04"
+        },
+        {
+            "name": "PushWoocommerceProductos",
+            "description": "PushWoocommerceProductos",
+            "version": 0.1,
+            "min_version": 2024.1,
+            "min_php": 7.3,
+            "require": [],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/SyncWoocommerceProducts.zip",
+            "last_updated": "2026-03-01"
         },
         {
             "name": "Vehiculos",
