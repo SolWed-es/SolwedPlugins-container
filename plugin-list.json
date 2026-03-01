@@ -1,9 +1,9 @@
 {
     "metadata": {
-        "generated": "01-03-2026 21:18:36",
+        "generated": "01-03-2026 21:32:34",
         "repo": "https://github.com/SolWed-es/SolwedPlugins-container",
         "plugin_count": 18,
-        "workflow_run": "22552907047"
+        "workflow_run": "22553179965"
     },
     "plugins": [
         {
@@ -100,8 +100,8 @@
         },
         {
             "name": "HumanResourcesSolwed",
-            "description": "Ampliaci\u00f3n completa de HumanResources: geolocalizaci\u00f3n, gesti\u00f3n de turnos, planificaci\u00f3n semanal, destinos y rutas para trabajadores.",
-            "version": 2,
+            "description": "Ampliaci\u00f3n completa de HumanResources: geolocalizaci\u00f3n, gesti\u00f3n de turnos, planificaci\u00f3n semanal, destinos y rutas para trabajadores. Con el plugin Proyectos activo, permite vincular fichajes a proyectos e informes de horas por proyecto.",
+            "version": 2.1,
             "min_version": 2025.43,
             "min_php": 7.4,
             "require": [
