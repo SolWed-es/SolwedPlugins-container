@@ -22,6 +22,7 @@ class AttendanceUser extends ParentClass
             'idemployee' => 'attendances.idemployee',
             'kind' => 'attendances.kind',
             'credentialid' => 'attendances.credentialid',
+            'inputdelay' => 'attendances.inputdelay',
             'idabsenceconcept' => 'attendances.idabsenceconcept',
             'note' => 'attendances.note',
             'nick' => 'employees.nick',
