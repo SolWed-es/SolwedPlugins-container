@@ -1,11 +1,22 @@
 {
     "metadata": {
-        "generated": "01-03-2026 02:23:35",
+        "generated": "01-03-2026 19:23:39",
         "repo": "https://github.com/SolWed-es/SolwedPlugins-container",
-        "plugin_count": 13,
-        "workflow_run": "22534071522"
+        "plugin_count": 15,
+        "workflow_run": "22550739455"
     },
     "plugins": [
+        {
+            "name": "CRM",
+            "description": "Permite gestionar contactos, listas, notas y oportunidades de negocio. Perfecto para llevar la adquisici\u00f3n de clientes junto al resto de gestiones de la empresa con FacturaScripts.",
+            "version": 3.3,
+            "min_version": 2025.4,
+            "min_php": 7.3,
+            "require": [],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/CRM.zip",
+            "last_updated": "2026-03-01"
+        },
         {
             "name": "DescargarFacturasZIP",
             "description": "Descargar PDF de facturas en archivo comprimido",
@@ -64,6 +75,19 @@
             "require_php": [],
             "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/HumanResourcesSolwed.zip",
             "last_updated": "2025-11-17"
+        },
+        {
+            "name": "IeCRMCalendar",
+            "description": "Calendario CRM. Permite crear notas como eventos, asign\u00e1ndole fecha y hora.",
+            "version": 3.3,
+            "min_version": 2025.3,
+            "min_php": 7.3,
+            "require": [
+                "CRM"
+            ],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/IeCRMCalendar.zip",
+            "last_updated": "2026-03-01"
         },
         {
             "name": "IeCRMFormularioElementor",
