@@ -69,6 +69,12 @@ class ListAttendance
                     ['code' => Attendance::KIND_OUTPUT, 'description' => Tools::lang()->trans('output')],
                 ]);
 
+                // Filtro de proyecto (disponible si el plugin Proyectos está instalado)
+                if (class_exists('\\FacturaScripts\\Plugins\\Proyectos\\Model\\Proyecto')) {
+                    $proyectoValues = $this->codeModel->all('proyectos', 'idproyecto', 'nombre');
+                    $this->addFilterSelect('ListAttendance', 'idproyecto', 'project', 'idproyecto', $proyectoValues);
+                }
+
                 $this->addFilterSelectWhere('ListAttendance', 'paid', [
                     ['label' => Tools::lang()->trans('all'), 'where' => []],
                     ['label' => Tools::lang()->trans('only-pending'), 'where' => [new DataBaseWhere('authorized', false)]],

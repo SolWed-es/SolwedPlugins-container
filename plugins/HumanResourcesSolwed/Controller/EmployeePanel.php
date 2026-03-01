@@ -17,6 +17,9 @@ class EmployeePanel extends ParentEmployeePanel
 
     /** @var EmployeeShift|null Asignación actual del empleado */
     public ?EmployeeShift $currentShift = null;
+
+    /** @var array Proyectos disponibles (si el plugin Proyectos está instalado) */
+    public array $proyectos = [];
     /** @var array<string, array{items: EmployeeHoliday[], totals: array{total:int,enjoyed:int,pending:int}}> */
     public array $holidayGroups = [];
 
@@ -33,6 +36,7 @@ class EmployeePanel extends ParentEmployeePanel
         $this->hydrateHolidayGroups();
         $this->loadAutoAssignableShifts();
         $this->loadCurrentEmployeeShift();
+        $this->loadProyectos();
     }
 
     protected function execPreviousAction(?string $action): bool
@@ -57,6 +61,24 @@ class EmployeePanel extends ParentEmployeePanel
             return $this->execInsertHolidaysWithStatus();
         } else {
             return parent::execPreviousAction($action);
+        }
+    }
+
+    /**
+     * Carga los proyectos disponibles si el plugin Proyectos está instalado.
+     */
+    private function loadProyectos(): void
+    {
+        if (!class_exists('\\FacturaScripts\\Plugins\\Proyectos\\Model\\Proyecto')) {
+            return;
+        }
+
+        try {
+            $proyecto = new \FacturaScripts\Plugins\Proyectos\Model\Proyecto();
+            $this->proyectos = $proyecto->all([], ['nombre' => 'ASC'], 0, 0);
+        } catch (\Exception $e) {
+            Tools::log()->error('HumanResourcesSolwed: Error al cargar proyectos: ' . $e->getMessage());
+            $this->proyectos = [];
         }
     }
 
@@ -175,6 +197,10 @@ class EmployeePanel extends ParentEmployeePanel
         $attendance->kind = (int)$data['kind'];
         $attendance->location = $data['location'] ?? '';
         $attendance->localizacion = $data['localizacion'] ?? '';
+        $idproyecto = (int)($data['idproyecto'] ?? 0);
+        if ($idproyecto > 0) {
+            $attendance->idproyecto = $idproyecto;
+        }
         if ($attendance->origin == Attendance::ORIGIN_MANUAL) {
             $attendance->authorized = false;
             $attendance->checkdate = $data['date'];

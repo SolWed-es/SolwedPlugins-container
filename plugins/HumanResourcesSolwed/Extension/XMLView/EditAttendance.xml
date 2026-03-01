@@ -24,6 +24,11 @@
                     <values source="rrhh_shifts" fieldcode="id" fieldtitle="location"></values>
                 </widget>
             </column>
+            <column name="project" numcolumns="6" order="146">
+                <widget type="select" fieldname="idproyecto" required="false">
+                    <values source="proyectos" fieldcode="idproyecto" fieldtitle="nombre"></values>
+                </widget>
+            </column>
         </group>
     </columns>
 </view>

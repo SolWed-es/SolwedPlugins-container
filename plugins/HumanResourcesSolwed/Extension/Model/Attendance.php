@@ -23,11 +23,19 @@ class Attendance
     public $localizacion;
 
     /**
+     * Project linked to this attendance record
+     *
+     * @var int|null
+     */
+    public $idproyecto;
+
+    /**
      * Reset the values of all model properties.
      */
     public function clear()
     {
         $this->localizacion = '';
+        $this->idproyecto = null;
     }
 
     /**

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view>
+    <columns>
+        <column name="type" order="100">
+            <widget type="text" fieldname="type" readonly="true"/>
+        </column>
+        <column name="employee" order="110">
+            <widget type="text" fieldname="employee_name" readonly="true"/>
+        </column>
+        <column name="project-entry" order="120">
+            <widget type="text" fieldname="project_in_name" readonly="true"/>
+        </column>
+        <column name="project-exit" order="130">
+            <widget type="text" fieldname="project_out_name" readonly="true"/>
+        </column>
+        <column name="entry-id" order="140" display="center">
+            <widget type="text" fieldname="entry_id" onclick="EditAttendance" readonly="true"/>
+        </column>
+        <column name="entry-date" order="150" display="center">
+            <widget type="date" fieldname="entry_date" readonly="true"/>
+        </column>
+        <column name="entry-time" order="160" display="center">
+            <widget type="time" fieldname="entry_time" readonly="true"/>
+        </column>
+        <column name="exit-id" order="170" display="center">
+            <widget type="text" fieldname="exit_id" onclick="EditAttendance" readonly="true"/>
+        </column>
+        <column name="exit-date" order="180" display="center">
+            <widget type="date" fieldname="exit_date" readonly="true"/>
+        </column>
+        <column name="exit-time" order="190" display="center">
+            <widget type="time" fieldname="exit_time" readonly="true"/>
+        </column>
+    </columns>
+</view>

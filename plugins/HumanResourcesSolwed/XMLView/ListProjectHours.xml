@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<view>
+    <columns>
+        <column name="project-code" order="100">
+            <widget type="text" fieldname="project_code" readonly="true"/>
+        </column>
+        <column name="project-name" order="110">
+            <widget type="text" fieldname="project_name" readonly="true"/>
+        </column>
+        <column name="employee-code" order="120">
+            <widget type="text" fieldname="employee_code" readonly="true"/>
+        </column>
+        <column name="employee" order="130">
+            <widget type="text" fieldname="employee_name" readonly="true"/>
+        </column>
+        <column name="hours-total" order="140" display="right">
+            <widget type="number" fieldname="hours_total" decimal="2" readonly="true"/>
+        </column>
+        <column name="hours-justified" order="150" display="right">
+            <widget type="number" fieldname="hours_justified" decimal="2" readonly="true"/>
+        </column>
+        <column name="hours-worked" order="160" display="right">
+            <widget type="number" fieldname="hours_worked" decimal="2" readonly="true"/>
+        </column>
+        <column name="sessions" order="170" display="center">
+            <widget type="number" fieldname="sessions_count" decimal="0" readonly="true"/>
+        </column>
+        <column name="first-date" order="180" display="center">
+            <widget type="date" fieldname="first_date" readonly="true"/>
+        </column>
+        <column name="last-date" order="190" display="center">
+            <widget type="date" fieldname="last_date" readonly="true"/>
+        </column>
+    </columns>
+</view>
