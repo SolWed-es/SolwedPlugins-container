@@ -1,11 +1,35 @@
 {
     "metadata": {
-        "generated": "01-03-2026 19:23:39",
+        "generated": "01-03-2026 19:32:05",
         "repo": "https://github.com/SolWed-es/SolwedPlugins-container",
-        "plugin_count": 15,
-        "workflow_run": "22550739455"
+        "plugin_count": 22,
+        "workflow_run": "22550892373"
     },
     "plugins": [
+        {
+            "name": "AcercaFacturaScripts",
+            "description": "Plugins que despliega una hoja de las  especificaciones t\u00e9cnicas de Facturascript y accede a datos del servidor.",
+            "version": 0,
+            "min_version": 2024.9,
+            "min_php": 7.4,
+            "require": [],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/AcercaFacturaScripts.zip",
+            "last_updated": "2026-03-01"
+        },
+        {
+            "name": "BackupSetting",
+            "description": "Plugin para configurar el backup.",
+            "version": 0.1,
+            "min_version": 2024.9,
+            "min_php": 7.3,
+            "require": [
+                "Backup"
+            ],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/BackupSettings.zip",
+            "last_updated": "2026-03-01"
+        },
         {
             "name": "CRM",
             "description": "Permite gestionar contactos, listas, notas y oportunidades de negocio. Perfecto para llevar la adquisici\u00f3n de clientes junto al resto de gestiones de la empresa con FacturaScripts.",
@@ -62,6 +86,56 @@
             "require_php": [],
             "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/Dominios.zip",
             "last_updated": "2025-11-30"
+        },
+        {
+            "name": "Facturae",
+            "description": "A\u00f1ade soporte para la factura electr\u00f3nica espa\u00f1ola. Formato Facturae 3.2",
+            "version": 1.6,
+            "min_version": 2021.81,
+            "min_php": 7.3,
+            "require": [],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/Facturae.zip",
+            "last_updated": "2026-03-01"
+        },
+        {
+            "name": "HHRRSolwedDestinos",
+            "description": "Plugin de gesti\u00f3n de turnos y destinos para empleados desarrollado por Jos\u00e9 Ferr\u00e1n basado en HumanResources.",
+            "version": 1,
+            "min_version": 2024.3,
+            "min_php": 8,
+            "require": [
+                "HumanResources"
+            ],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/HHRRSolwedDestinos.zip",
+            "last_updated": "2026-03-01"
+        },
+        {
+            "name": "HHRRSolwedTurnos",
+            "description": "Plugin de gesti\u00f3n de turnos para empleados desarrollado por Jos\u00e9 Ferr\u00e1n basado en HumanResources.",
+            "version": 1,
+            "min_version": 2024.3,
+            "min_php": 8,
+            "require": [
+                "HumanResources"
+            ],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/HHRRSolwedTurnos.zip",
+            "last_updated": "2026-03-01"
+        },
+        {
+            "name": "HHRRSolwedTurnosSemana",
+            "description": "Plugin de gesti\u00f3n de turnos para empleados desarrollado por Jos\u00e9 Ferr\u00e1n basado en HumanResources.",
+            "version": 1,
+            "min_version": 2024.3,
+            "min_php": 8,
+            "require": [
+                "HumanResources"
+            ],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/HHRRSolwedTurnosSemana.zip",
+            "last_updated": "2026-03-01"
         },
         {
             "name": "HumanResourcesSolwed",
@@ -123,6 +197,17 @@
             "require_php": [],
             "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/MerakiPlugin.zip",
             "last_updated": "2025-12-05"
+        },
+        {
+            "name": "NewSolwedTheme",
+            "description": "Tema basado en Flexy Bootstrap Admin Free.",
+            "version": 1.3,
+            "min_version": 2024.94,
+            "min_php": 7.3,
+            "require": [],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/NewSolwedTheme.zip",
+            "last_updated": "2026-03-01"
         },
         {
             "name": "PleskServers",
