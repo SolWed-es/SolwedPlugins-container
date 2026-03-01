@@ -1,9 +1,9 @@
 {
     "metadata": {
-        "generated": "01-03-2026 19:37:05",
+        "generated": "01-03-2026 19:41:03",
         "repo": "https://github.com/SolWed-es/SolwedPlugins-container",
-        "plugin_count": 24,
-        "workflow_run": "22550985596"
+        "plugin_count": 15,
+        "workflow_run": "22551059245"
     },
     "plugins": [
         {
@@ -18,39 +18,15 @@
             "last_updated": "2026-03-01"
         },
         {
-            "name": "BackupSetting",
-            "description": "Plugin para configurar el backup.",
-            "version": 0.1,
-            "min_version": 2024.9,
-            "min_php": 7.3,
-            "require": [
-                "Backup"
-            ],
-            "require_php": [],
-            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/BackupSettings.zip",
-            "last_updated": "2026-03-01"
-        },
-        {
             "name": "CRM",
             "description": "Permite gestionar contactos, listas, notas y oportunidades de negocio. Perfecto para llevar la adquisici\u00f3n de clientes junto al resto de gestiones de la empresa con FacturaScripts.",
-            "version": 3.3,
+            "version": 3.4,
             "min_version": 2025.4,
             "min_php": 7.3,
             "require": [],
             "require_php": [],
             "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/CRM.zip",
             "last_updated": "2026-03-01"
-        },
-        {
-            "name": "DescargarFacturasZIP",
-            "description": "Descargar PDF de facturas en archivo comprimido",
-            "version": 1,
-            "min_version": 2023,
-            "min_php": 7.3,
-            "require": [],
-            "require_php": [],
-            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/DescargarFacturasZIP.zip",
-            "last_updated": "2025-11-11"
         },
         {
             "name": "DescuentoProducto",
@@ -61,20 +37,7 @@
             "require": [],
             "require_php": [],
             "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/DescuentoProducto.zip",
-            "last_updated": "2025-11-12"
-        },
-        {
-            "name": "DocumentosProyectos",
-            "description": "Permite a\u00f1adir archivos a proyectos.",
-            "version": 1.2,
-            "min_version": 2025.43,
-            "min_php": 7.3,
-            "require": [
-                "Proyectos"
-            ],
-            "require_php": [],
-            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/DocumentosProyectos.zip",
-            "last_updated": "2025-11-11"
+            "last_updated": "2026-03-01"
         },
         {
             "name": "Dominios",
@@ -85,56 +48,6 @@
             "require": [],
             "require_php": [],
             "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/Dominios.zip",
-            "last_updated": "2025-11-30"
-        },
-        {
-            "name": "Facturae",
-            "description": "A\u00f1ade soporte para la factura electr\u00f3nica espa\u00f1ola. Formato Facturae 3.2",
-            "version": 1.6,
-            "min_version": 2021.81,
-            "min_php": 7.3,
-            "require": [],
-            "require_php": [],
-            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/Facturae.zip",
-            "last_updated": "2026-03-01"
-        },
-        {
-            "name": "HHRRSolwedDestinos",
-            "description": "Plugin de gesti\u00f3n de turnos y destinos para empleados desarrollado por Jos\u00e9 Ferr\u00e1n basado en HumanResources.",
-            "version": 1,
-            "min_version": 2024.3,
-            "min_php": 8,
-            "require": [
-                "HumanResources"
-            ],
-            "require_php": [],
-            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/HHRRSolwedDestinos.zip",
-            "last_updated": "2026-03-01"
-        },
-        {
-            "name": "HHRRSolwedTurnos",
-            "description": "Plugin de gesti\u00f3n de turnos para empleados desarrollado por Jos\u00e9 Ferr\u00e1n basado en HumanResources.",
-            "version": 1,
-            "min_version": 2024.3,
-            "min_php": 8,
-            "require": [
-                "HumanResources"
-            ],
-            "require_php": [],
-            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/HHRRSolwedTurnos.zip",
-            "last_updated": "2026-03-01"
-        },
-        {
-            "name": "HHRRSolwedTurnosSemana",
-            "description": "Plugin de gesti\u00f3n de turnos para empleados desarrollado por Jos\u00e9 Ferr\u00e1n basado en HumanResources.",
-            "version": 1,
-            "min_version": 2024.3,
-            "min_php": 8,
-            "require": [
-                "HumanResources"
-            ],
-            "require_php": [],
-            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/HHRRSolwedTurnosSemana.zip",
             "last_updated": "2026-03-01"
         },
         {
@@ -148,12 +61,12 @@
             ],
             "require_php": [],
             "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/HumanResourcesSolwed.zip",
-            "last_updated": "2025-11-17"
+            "last_updated": "2026-03-01"
         },
         {
             "name": "IeCRMCalendar",
             "description": "Calendario CRM. Permite crear notas como eventos, asign\u00e1ndole fecha y hora.",
-            "version": 3.3,
+            "version": 3.4,
             "min_version": 2025.3,
             "min_php": 7.3,
             "require": [
@@ -174,7 +87,7 @@
             ],
             "require_php": [],
             "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/IeCRMFormularioElementor.zip",
-            "last_updated": "2025-11-04"
+            "last_updated": "2026-03-01"
         },
         {
             "name": "IeWhatsapp",
@@ -185,17 +98,6 @@
             "require": [],
             "require_php": [],
             "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/IeWhatsapp.zip",
-            "last_updated": "2025-11-04"
-        },
-        {
-            "name": "InfoCostePresupuesto",
-            "description": "Agrega los campos Proveedor y coste al documento Presupuesto de ventas",
-            "version": 1.1,
-            "min_version": 2024,
-            "min_php": 7.3,
-            "require": [],
-            "require_php": [],
-            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/InfoCostePresupuesto.zip",
             "last_updated": "2026-03-01"
         },
         {
@@ -207,7 +109,7 @@
             "require": [],
             "require_php": [],
             "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/MerakiPlugin.zip",
-            "last_updated": "2025-12-05"
+            "last_updated": "2026-03-01"
         },
         {
             "name": "NewSolwedTheme",
@@ -233,7 +135,7 @@
                 ""
             ],
             "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/PleskServers.zip",
-            "last_updated": "2025-11-13"
+            "last_updated": "2026-03-01"
         },
         {
             "name": "Rdgarantia",
@@ -244,7 +146,7 @@
             "require": [],
             "require_php": [],
             "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/Rdgarantia.zip",
-            "last_updated": "2025-11-27"
+            "last_updated": "2026-03-01"
         },
         {
             "name": "SolwedTheme",
@@ -255,7 +157,7 @@
             "require": [],
             "require_php": [],
             "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/SolwedTheme.zip",
-            "last_updated": "2025-11-19"
+            "last_updated": "2026-03-01"
         },
         {
             "name": "SolwedTiendaWeb",
@@ -266,7 +168,7 @@
             "require": [],
             "require_php": [],
             "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/SolwedTiendaWeb.zip",
-            "last_updated": "2025-11-04"
+            "last_updated": "2026-03-01"
         },
         {
             "name": "PushWoocommerceProductos",
@@ -278,19 +180,6 @@
             "require_php": [],
             "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/SyncWoocommerceProducts.zip",
             "last_updated": "2026-03-01"
-        },
-        {
-            "name": "Vehiculos",
-            "description": "Gesti\u00f3n integral de veh\u00edculos: ficha completa (matr\u00edcula, bastidor, kil\u00f3metros, combustible, color, fabricante), asociaci\u00f3n autom\u00e1tica a facturas y exportaci\u00f3n profesional a PDF.",
-            "version": 1.4,
-            "min_version": 2025.43,
-            "min_php": 7.3,
-            "require": [
-                "PlantillasPDF"
-            ],
-            "require_php": [],
-            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/Vehiculos.zip",
-            "last_updated": "2025-11-24"
         }
     ]
 }
