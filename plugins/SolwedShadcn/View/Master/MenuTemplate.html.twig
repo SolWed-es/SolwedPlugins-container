@@ -46,7 +46,7 @@
         <link rel="stylesheet" href="{{ asset('Plugins/SolwedShadcn/Assets/CSS/custom.css') }}?v={{ 'now' | date('ymd') }}"/>
     {% endblock %}
     {# Lucide Icons via CDN #}
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
     {# Adds custom CSS assets #}
     {% for css in assetManager.get('css') %}
         <link rel="stylesheet" href="{{ css }}"/>
@@ -96,7 +96,7 @@
                 {# Logo #}
                 <div class="sidebar-brand">
                     <a href="{{ asset(fsc.user.homepage) }}" title="{{ trans('homepage') }}">
-                        <img src="{{ asset('Dinamic/Assets/Images/logo-white.png') }}"
+                        <img src="{{ asset('Plugins/SolwedShadcn/Assets/Images/logo-dark.png') }}"
                              class="solwed-logo" alt="SOLWED"/>
                     </a>
                 </div>
