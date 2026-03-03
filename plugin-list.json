@@ -1,9 +1,9 @@
 {
     "metadata": {
-        "generated": "01-03-2026 21:36:59",
+        "generated": "03-03-2026 17:52:55",
         "repo": "https://github.com/SolWed-es/SolwedPlugins-container",
-        "plugin_count": 18,
-        "workflow_run": "22553266268"
+        "plugin_count": 19,
+        "workflow_run": "22635899264"
     },
     "plugins": [
         {
@@ -182,6 +182,17 @@
             "require_php": [],
             "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/Rdgarantia.zip",
             "last_updated": "2026-03-01"
+        },
+        {
+            "name": "SolwedShadcn",
+            "description": "Tema Tailwind CSS + shadcn/ui para FacturaScripts \u2014 identidad visual SOLWED",
+            "version": 0.1,
+            "min_version": 2025.42,
+            "min_php": 7.3,
+            "require": [],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/SolwedShadcn.zip",
+            "last_updated": "2026-03-03"
         },
         {
             "name": "SolwedTheme",
