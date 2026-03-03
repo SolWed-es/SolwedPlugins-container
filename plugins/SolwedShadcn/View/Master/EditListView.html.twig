@@ -1,0 +1,150 @@
+{#
+ * SolwedShadcn — EditListView: lista de formularios apilados con estilo shadcn
+ * Cada registro es una card con su propio form
+ #}
+{% set currentView = fsc.getCurrentView() %}
+
+<script>
+    var editListViewDeleteCancel = "{{ trans('cancel') }}";
+    var editListViewDeleteConfirm = "{{ trans('confirm') }}";
+    var editListViewDeleteMessage = "{{ trans('are-you-sure') }}";
+    var editListViewDeleteTitle = "{{ trans('confirm-delete') }}";
+</script>
+
+<div class="{{ currentView.settings.card ? '' : 'container-fluid' }}">
+    {# -- Row header -- #}
+    <div class="row">
+        {% set row = currentView.getRow('header') %}
+        {{ row.render(currentView.getViewName(), '', fsc) | raw }}
+    </div>
+
+    {# -- Row statistics -- #}
+    <div>
+        {% set row = currentView.getRow('statistics') %}
+        {{ row.render(fsc) | raw }}
+    </div>
+
+    {# -- Formulario nuevo (colapsable) -- #}
+    {% if currentView.settings.btnNew %}
+        {% set formName = 'form' ~ currentView.getViewName() ~ 'New' %}
+        <form id="{{ formName }}" method="post" enctype="multipart/form-data" onsubmit="animateSpinner('add')">
+            {{ formToken() }}
+            <input type="hidden" name="action" value="insert"/>
+            <input type="hidden" name="activetab" value="{{ currentView.getViewName() }}"/>
+            <div class="card-shadcn border-success mb-2">
+                <div class="p-2 flex items-center gap-2">
+                    <button class="btn btn-spin-action btn-sm btn-outline-success" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#{{ formName }}Collapse" aria-expanded="false">
+                        <i data-lucide="plus-square" class="w-3.5 h-3.5 me-1"></i>
+                        {{ trans('add') }}
+                    </button>
+                    <span class="text-sm text-muted-foreground">{{ currentView.title }}</span>
+                </div>
+                <div class="collapse" id="{{ formName }}Collapse">
+                    <div class="border-t border-border p-3">
+                        <div class="row">
+                            {% for group in currentView.getColumns() %}
+                                {{ group.edit(currentView.model) | raw }}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="border-t border-border p-2 text-end">
+                        <button class="btn btn-spin-action btn-sm btn-success" type="submit">
+                            <i data-lucide="save" class="w-3.5 h-3.5 me-1"></i>
+                            <span class="d-none d-sm-inline-block">{{ trans('save') }}</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <script>
+            $(document).ready(function () {
+                $('#{{ formName }}Collapse').on('shown.bs.collapse', function () {
+                    $('#{{ formName }}Collapse input[type="text"]').first().focus();
+                });
+            });
+        </script>
+    {% endif %}
+
+    {# -- Formularios de registros existentes -- #}
+    {% for counter, model in currentView.cursor %}
+        {% set formName = 'form' ~ currentView.getViewName() ~ counter %}
+        <form id="{{ formName }}" method="post" enctype="multipart/form-data" onsubmit="animateSpinner('add')">
+            {{ formToken() }}
+            <input type="hidden" name="action" value="edit"/>
+            <input type="hidden" name="activetab" value="{{ currentView.getViewName() }}"/>
+            <input type="hidden" name="code" value="{{ model.primaryColumnValue() }}"/>
+            <div class="card-shadcn mb-2"{% if currentView.selected == model.primaryColumnValue() %} id="EditListViewSelected"{% endif %}>
+                <div class="p-3">
+                    <div class="row">
+                        {% for group in currentView.getColumns() %}
+                            {{ group.edit(model) | raw }}
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="border-t border-border p-2">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        {% if currentView.settings.btnDelete %}
+                            <button type="button" class="btn btn-spin-action btn-sm btn-danger"
+                                    onclick="editListViewDelete('{{ currentView.getViewName() ~ counter }}');">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5 me-1"></i>
+                                <span class="d-none d-sm-inline-block">{{ trans('delete') }}</span>
+                            </button>
+                        {% endif %}
+                        <div class="flex-1">
+                            {% set row = currentView.getRow('actions') %}
+                            {{ row.render(false, currentView.getViewName() ~ counter) | raw }}
+                        </div>
+                        <div class="flex items-center gap-1">
+                            {% if currentView.settings.btnUndo %}
+                                <button class="btn btn-spin-action btn-sm btn-secondary" type="reset">
+                                    <i data-lucide="undo-2" class="w-3.5 h-3.5 me-1"></i>
+                                    <span class="d-none d-sm-inline-block">{{ trans('undo') }}</span>
+                                </button>
+                            {% endif %}
+                            {% if currentView.settings.btnSave %}
+                                <button class="btn btn-spin-action btn-sm btn-primary" type="submit">
+                                    <i data-lucide="save" class="w-3.5 h-3.5 me-1"></i>
+                                    <span class="d-none d-sm-inline-block">{{ trans('save') }}</span>
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    {% endfor %}
+
+    {# -- Paginación -- #}
+    {% if currentView.getPagination() | length > 0 %}
+        {% set formName = 'form' ~ currentView.getViewName() ~ 'Offset' %}
+        <form id="{{ formName }}" method="post" onsubmit="animateSpinner('add')">
+            <input type="hidden" name="activetab" value="{{ currentView.getViewName() }}"/>
+            <input type="hidden" name="offset" value="{{ currentView.offset }}"/>
+            <div class="text-center pt-3">
+                <div class="inline-flex rounded-md border border-border overflow-hidden">
+                    {% for page in currentView.getPagination() %}
+                        <button type="button"
+                                class="btn-spin-action px-3 py-1.5 text-sm font-medium transition-colors border-r border-border last:border-r-0
+                                       {{ page.active ? 'bg-foreground text-background' : 'bg-background text-foreground hover:bg-muted' }}"
+                                onclick="editListViewSetOffset('{{ currentView.getViewName() }}', '{{ page.offset }}');">
+                            {{ page.num }}
+                        </button>
+                    {% endfor %}
+                </div>
+            </div>
+        </form>
+    {% endif %}
+
+    {# -- Row footer -- #}
+    <div class="row">
+        {% set row = currentView.getRow('footer') %}
+        {{ row.render(currentView.getViewName(), '', fsc) | raw }}
+    </div>
+</div>
+
+{# -- Modals -- #}
+{% for group in currentView.getModals() %}
+    {{ group.modal(currentView.model, currentView.getViewName()) | raw }}
+{% endfor %}

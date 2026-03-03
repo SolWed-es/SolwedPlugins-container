@@ -1,0 +1,49 @@
+{#
+ * SolwedShadcn — EditViewReadOnly: formulario de solo lectura con estilo shadcn
+ #}
+{% set currentView = fsc.getCurrentView() %}
+
+{# -- Row header -- #}
+<div class="row">
+    {% set row = currentView.getRow('header') %}
+    {{ row.render(currentView.getViewName(), '', fsc) | raw }}
+</div>
+
+<form id="form{{ currentView.getViewName() }}" method="post" enctype="multipart/form-data"
+      onsubmit="animateSpinner('add')">
+    <input type="hidden" name="action" value="edit"/>
+    <input type="hidden" name="activetab" value="{{ currentView.getViewName() }}"/>
+    <input type="hidden" name="code" value="{{ currentView.model.primaryColumnValue() }}"/>
+    <div class="{{ currentView.settings.card ? 'card-shadcn' : '' }}">
+        <div class="{{ currentView.settings.card ? 'p-4' : 'container-fluid' }}">
+            <div class="flex items-center justify-end mb-2">
+                {% set row = currentView.getRow('statistics') %}
+                {{ row.render(fsc) | raw }}
+            </div>
+            <div class="row">
+                {% for group in currentView.getColumns() %}
+                    {{ group.edit(currentView.model, true) | raw }}
+                {% endfor %}
+            </div>
+            <div class="row">
+                <div class="col">
+                    {% set row = currentView.getRow('actions') %}
+                    {{ row.render(false, currentView.getViewName()) | raw }}
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<br/>
+
+{# -- Row footer -- #}
+<div class="row">
+    {% set row = currentView.getRow('footer') %}
+    {{ row.render(currentView.getViewName(), '', fsc) | raw }}
+</div>
+
+{# -- Modals -- #}
+{% for group in currentView.getModals() %}
+    {{ group.modal(currentView.model, currentView.getViewName()) | raw }}
+{% endfor %}

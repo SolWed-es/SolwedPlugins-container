@@ -1,0 +1,47 @@
+{# SolwedShadcn — MenuBghTemplate: header con fondo muted #}
+{% import 'Macro/GoogleTagManager.html.twig' as GoogleTagManager %}
+{% extends "Master/MenuTemplate.html.twig" %}
+
+{% block fullBody %}
+    <body class="bg-background text-foreground font-sans antialiased">
+    {{ GoogleTagManager.body() }}
+    {% for includeView in getIncludeViews('MenuTemplate', 'BodyFirst') %}
+        {% include includeView['path'] %}
+    {% endfor %}
+    <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+    <div class="solwed-layout">
+        {% block navbar %}
+            {{ parent() }}
+        {% endblock %}
+        <div class="solwed-main">
+            {% include 'Master/AppHeader.html.twig' %}
+            <div class="flex-1 overflow-auto">
+                <div class="bg-muted/30">
+                    {% block messages %}
+                        {{ parent() }}
+                    {% endblock %}
+                    {% block bodyHeaderOptions %}
+                        {{ parent() }}
+                    {% endblock %}
+                </div>
+                {% block body %}
+                    {{ parent() }}
+                {% endblock %}
+            </div>
+        </div>
+    </div>
+    <script src="{{ asset('Plugins/SolwedShadcn/Assets/JS/sidebar.js') }}?v={{ 'now' | date('ymd') }}"></script>
+    <script src="{{ asset('Plugins/SolwedShadcn/Assets/JS/theme.js') }}?v={{ 'now' | date('ymd') }}"></script>
+    {% for includeView in getIncludeViews('MenuTemplate', 'JsFooter') %}
+        {% include includeView['path'] %}
+    {% endfor %}
+    {% for includeView in getIncludeViews('MenuTemplate', 'BodyEnd') %}
+        {% include includeView['path'] %}
+    {% endfor %}
+    {% if debugBarRender %}
+        {{ debugBarRender.render() | raw }}
+    {% endif %}
+    <script>lucide.createIcons();</script>
+    <!-- execution time: {{ executionTime() }} s -->
+    </body>
+{% endblock %}

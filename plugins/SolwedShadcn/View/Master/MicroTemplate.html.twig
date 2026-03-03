@@ -1,0 +1,71 @@
+{# SolwedShadcn — MicroTemplate: layout mínimo para login/errores #}
+{% import 'Macro/GoogleTagManager.html.twig' as GoogleTagManager %}
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="{{ constant('FS_LANG') | slice(0, 2) }}"
+      xml:lang="{{ constant('FS_LANG') | slice(0, 2) }}">
+    <head>
+        {{ GoogleTagManager.head() }}
+        {% block meta %}
+            <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+            <title>{{ fsc.title }}</title>
+            <meta name="description" content="{{ trans('meta-description') }}"/>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+            <meta name="generator" content="FacturaScripts"/>
+            <meta name="robots" content="noindex"/>
+        {% endblock %}
+        {% block icons %}
+            <link rel="shortcut icon" href="{{ asset('Dinamic/Assets/Images/favicon.ico') }}"/>
+            <link rel="apple-touch-icon" sizes="180x180"
+                  href="{{ asset('Dinamic/Assets/Images/apple-icon-180x180.png') }}"/>
+        {% endblock %}
+        <link rel="preconnect" href="https://fonts.googleapis.com"/>
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700&display=swap"
+              rel="stylesheet"/>
+        {% block css %}
+            <link rel="stylesheet" href="{{ asset('Plugins/SolwedShadcn/Assets/CSS/tailwind-output.css') }}?v={{ 'now' | date('ymd') }}"/>
+            <link rel="stylesheet" href="{{ asset('Plugins/SolwedShadcn/Assets/CSS/bootstrap-compat.css') }}?v={{ 'now' | date('ymd') }}"/>
+            <link rel="stylesheet" href="{{ asset('node_modules/@fortawesome/fontawesome-free/css/all.min.css') }}?v=6"/>
+            <link rel="stylesheet" href="{{ asset('Plugins/SolwedShadcn/Assets/CSS/custom.css') }}?v={{ 'now' | date('ymd') }}"/>
+        {% endblock %}
+        <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+        {# Adds custom CSS assets #}
+        {% for css in assetManager.get('css') %}
+            <link rel="stylesheet" href="{{ css }}"/>
+        {% endfor %}
+        {% block javascripts %}
+            <script src="{{ asset('node_modules/jquery/dist/jquery.min.js') }}"></script>
+            <script src="{{ asset('node_modules/bootstrap/dist/js/bootstrap.bundle.min.js') }}?v=5"></script>
+            <script src="{{ asset('node_modules/@fortawesome/fontawesome-free/js/all.min.js') }}?v=6"></script>
+        {% endblock %}
+        {# Adds custom JS assets #}
+        {% for js in assetManager.get('js') %}
+            <script src="{{ js }}"></script>
+        {% endfor %}
+        {% if debugBarRender %}
+            {{ debugBarRender.renderHead() | raw }}
+        {% endif %}
+    </head>
+    {% block fullBody %}
+        <body class="bg-background text-foreground font-sans antialiased">
+            {{ GoogleTagManager.body() }}
+            {% block messages %}
+                {% include 'Macro/Toasts.html.twig' %}
+                {% from 'Macro/Utils.html.twig' import message as showMessage %}
+                <div class="px-4 pt-3">
+                    {{ showMessage(log, ['error', 'critical'], 'danger') }}
+                    {{ showMessage(log, ['warning'], 'warning') }}
+                    {{ showMessage(log, ['notice'], 'success') }}
+                    {{ showMessage(log, ['info'], 'info') }}
+                </div>
+            {% endblock %}
+            {% block body %}
+            {% endblock %}
+            {% if debugBarRender %}
+                {{ debugBarRender.render() | raw }}
+            {% endif %}
+            <script>lucide.createIcons();</script>
+            <!-- execution time: {{ executionTime() }} s -->
+        </body>
+    {% endblock %}
+</html>

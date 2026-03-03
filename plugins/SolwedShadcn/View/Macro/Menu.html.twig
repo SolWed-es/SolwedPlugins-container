@@ -1,0 +1,59 @@
+{#
+/**
+ * SolwedShadcn — Macro sidebar menu
+ * Renderiza el menú recursivo en el sidebar con estilo shadcn
+ */
+#}
+
+{% macro showMenu(menuItem, parent) %}
+    {% import _self as macros %}
+    {% set active = menuItem.active ? true : false %}
+    {% set menuId = parent is empty ? 'menu-' ~ menuItem.title|lower|replace({' ': '-'}) : parent ~ '-' ~ menuItem.name|lower %}
+
+    {% if parent is empty %}
+        {# Nivel principal: grupo con subitems #}
+        <div class="mb-1">
+            {% if menuItem.menu is not empty %}
+                <button type="button"
+                        class="w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-colors
+                               {{ active ? 'text-foreground' : 'text-foreground/70 hover:text-foreground hover:bg-muted' }}"
+                        onclick="toggleSubmenu('{{ menuId }}')" data-menu-id="{{ menuId }}">
+                    <span class="flex items-center gap-3">
+                        <i data-lucide="folder" class="w-4 h-4 opacity-60 sidebar-icon"></i>
+                        <span class="sidebar-label">{{ menuItem.title }}</span>
+                    </span>
+                    <i data-lucide="chevron-right" class="w-4 h-4 opacity-40 transition-transform duration-200 sidebar-label" id="chevron-{{ menuId }}"></i>
+                </button>
+                <div id="submenu-{{ menuId }}" class="ml-4 mt-0.5 space-y-0.5 overflow-hidden transition-all duration-200{{ active ? '' : ' hidden' }}">
+                    {% for item in menuItem.menu %}
+                        {% if item.menu is empty %}
+                            <a href="{{ item.url }}"
+                               class="flex items-center gap-3 rounded-lg px-3 py-1.5 text-sm transition-colors
+                                      {{ item.active ? 'bg-accent text-accent-content font-medium shadow-sm' : 'text-foreground/60 hover:text-foreground hover:bg-muted' }}">
+                                <i class="{{ item.icon }} w-4 text-center opacity-60" aria-hidden="true"></i>
+                                <span class="sidebar-label">{{ item.title }}</span>
+                            </a>
+                        {% else %}
+                            {{ macros.showMenu(item, menuId) }}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% else %}
+                <a href="{{ menuItem.url }}"
+                   class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors
+                          {{ active ? 'bg-accent text-accent-content shadow-sm' : 'text-foreground/70 hover:text-foreground hover:bg-muted' }}">
+                    <i data-lucide="file" class="w-4 h-4 opacity-60 sidebar-icon"></i>
+                    <span class="sidebar-label">{{ menuItem.title }}</span>
+                </a>
+            {% endif %}
+        </div>
+    {% else %}
+        {# Subnivel: item anidado #}
+        <a href="{{ menuItem.url }}"
+           class="flex items-center gap-3 rounded-lg px-3 py-1.5 text-sm transition-colors
+                  {{ menuItem.active ? 'bg-accent text-accent-content font-medium shadow-sm' : 'text-foreground/60 hover:text-foreground hover:bg-muted' }}">
+            <i class="{{ menuItem.icon|default('fa-solid fa-circle-dot') }} w-4 text-center opacity-60" aria-hidden="true"></i>
+            <span class="sidebar-label">{{ menuItem.title }}</span>
+        </a>
+    {% endif %}
+{% endmacro %}

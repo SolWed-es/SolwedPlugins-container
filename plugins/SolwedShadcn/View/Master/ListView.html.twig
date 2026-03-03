@@ -1,0 +1,416 @@
+{#
+ * SolwedShadcn — ListView: tabla de datos con estilo shadcn
+ * Mantiene clases Bootstrap para: modals, dropdowns, PHP-generated content
+ * Usa Tailwind/shadcn para: layout, botones propios, iconos Lucide, paginación
+ #}
+{% set currentView = fsc.getCurrentView() %}
+{% set formName = 'form' ~ currentView.getViewName() %}
+
+<script>
+    var listViewDeleteCancel = "{{ trans('cancel') }}";
+    var listViewDeleteConfirm = "{{ trans('confirm') }}";
+    var listViewDeleteMessage = "{{ trans('are-you-sure') }}";
+    var listViewDeleteTitle = "{{ trans('confirm-delete') }}";
+</script>
+
+<form id="{{ formName }}" method="post" onsubmit="animateSpinner('add')">
+    {{ formToken() }}
+    <input type="hidden" name="action"/>
+    <input type="hidden" name="activetab" value="{{ currentView.getViewName() }}"/>
+    <input type="hidden" name="loadfilter" value="{{ currentView.pageFilterKey }}"/>
+    <input type="hidden" name="offset" value="{{ currentView.offset }}"/>
+    <input type="hidden" name="order" value="{{ currentView.orderKey }}"/>
+    <div class="{{ currentView.settings.card ? 'card-shadcn' : '' }}">
+        <div class="{{ currentView.settings.card ? 'p-3' : 'container-fluid' }}">
+            <div class="flex flex-wrap items-center gap-2 mb-2">
+                {# -- Botones izquierda -- #}
+                <div class="flex items-center gap-1 flex-shrink-0">
+                    {% if currentView.settings.btnNew %}
+                        {% if currentView.settings.modalInsert %}
+                            <button type="button" class="btn btn-sm btn-success" title="{{ trans('new') }}"
+                                    data-bs-toggle="modal" data-bs-target="#modal{{ currentView.settings.modalInsert }}">
+                                <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                                {% if currentView.settings.card == false %}
+                                    <span class="d-none d-xl-inline-block ms-1">{{ trans('new') }}</span>
+                                {% endif %}
+                            </button>
+                        {% else %}
+                            <a href="{{ asset(currentView.btnNewUrl()) }}" class="btn btn-sm btn-success"
+                               title="{{ trans('new') }}">
+                                <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                                {% if currentView.settings.card == false %}
+                                    <span class="d-none d-xl-inline-block ms-1">{{ trans('new') }}</span>
+                                {% endif %}
+                            </a>
+                        {% endif %}
+                    {% endif %}
+                    {% if currentView.settings.btnDelete %}
+                        <button type="button" class="btn btn-sm btn-danger"
+                                onclick="listViewDelete('{{ currentView.getViewName() }}');"
+                                title="{{ trans('delete') }}">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                        </button>
+                    {% endif %}
+                    {% if currentView.settings.btnPrint %}
+                        <div class="btn-group">
+                            {{ _self.printButton(fsc, currentView) }}
+                        </div>
+                    {% endif %}
+                    {% if currentView.settings.clickable %}
+                        <button type="button" class="btn btn-sm btn-secondary"
+                                onclick="listViewOpenTab('{{ currentView.getViewName() }}');"
+                                title="{{ trans('open-tab') }}">
+                            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                        </button>
+                    {% endif %}
+                    {# -- Row actions -- #}
+                    {{ currentView.getRow('actions').render(true, currentView.getViewName()) | raw }}
+                    {# -- Row statistics -- #}
+                    {{ currentView.getRow('statistics').render(fsc) | raw }}
+                </div>
+                {# -- Campo de búsqueda -- #}
+                <div class="flex-1 min-w-0">
+                    {{ _self.searchControl(currentView) }}
+                </div>
+                {# -- Botones derecha -- #}
+                <div class="flex items-center gap-1 flex-shrink-0">
+                    {{ _self.filterButton(currentView, fsc) }}
+                    {{ _self.sortButton(currentView) }}
+                    {{ _self.colorsButton(currentView) }}
+                </div>
+            </div>
+            {# -- Filtros -- #}
+            {% set divFiltersStyle = currentView.showFilters ? '' : 'display: none;' %}
+            <div id="form{{ currentView.getViewName() }}Filters"
+                 class="row g-2 align-items-center border-b border-border pb-3 mb-3"
+                 style="{{ divFiltersStyle }}">
+                {% for filterName, filter in currentView.filters %}
+                    {{ filter.render() | raw }}
+                {% endfor %}
+            </div>
+            {# -- Row header -- #}
+            <div class="row">
+                {{ currentView.getRow('header').render(currentView.getViewName(), 'listViewSetAction', fsc) | raw }}
+            </div>
+        </div>
+        {# -- Paginación superior -- #}
+        {% set pages = currentView.getPagination() %}
+        {% if pages | length > 4 %}
+            <div class="text-center pb-2">
+                <div class="inline-flex rounded-md border border-border overflow-hidden">
+                    {% for page in currentView.getPagination() %}
+                        <button type="button"
+                                class="px-3 py-1.5 text-sm font-medium transition-colors border-r border-border last:border-r-0
+                                       {{ page.active ? 'bg-foreground text-background' : 'bg-background text-foreground hover:bg-muted' }}"
+                                onclick="listViewSetOffset('{{ currentView.getViewName() }}', '{{ page.offset }}');">
+                            {{ page.num }}
+                        </button>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+        {# -- Tabla -- #}
+        <div class="table-responsive">
+            {% set tableClass = settings('default', 'tablesize') == 'small' ? 'table-sm' : '' %}
+            <table class="table table-hover mb-0 {{ tableClass }}">
+                <thead>
+                <tr>
+                    {% if (currentView.cursor | length > 0) and (currentView.settings.checkBoxes or currentView.settings.clickable) %}
+                        <th width="50" class="text-center">
+                            {% if currentView.settings.checkBoxes %}
+                                <div class="form-check form-check-inline m-0 toggle-ext-link">
+                                    <input class="form-check-input listActionCB" type="checkbox"
+                                           onclick="listViewCheckboxes('{{ currentView.getViewName() }}');"/>
+                                </div>
+                            {% endif %}
+                            {% if currentView.settings.clickable %}
+                                <i class="fa-solid fa-external-link-alt toggle-ext-link d-none"
+                                   title="{{ trans('open-tab') }}"></i>
+                            {% endif %}
+                        </th>
+                    {% endif %}
+                    {% for column in currentView.getColumns() %}
+                        {{ column.tableHeader(currentView) | raw }}
+                    {% endfor %}
+                </tr>
+                </thead>
+                <tbody>
+                {% set rowStatus = currentView.getRow('status') %}
+                {% for model in currentView.cursor %}
+                    {% set trClass = currentView.settings.clickable ? 'clickableListRow ' ~ rowStatus.trClass(model) : rowStatus.trClass(model) %}
+                    {% set trTitle = rowStatus.trTitle(model) %}
+                    <tr class="{{ trClass }}" title="{{ trTitle }}" data-href="{{ asset(model.url()) }}">
+                        {% if currentView.settings.checkBoxes or currentView.settings.clickable %}
+                            <td class="cancelClickable p-0 text-center align-middle">
+                                {% if currentView.settings.checkBoxes %}
+                                    <div class="form-check form-check-inline m-0 toggle-ext-link">
+                                        <input class="form-check-input listAction" type="checkbox" name="codes[]"
+                                               value="{{ model.primaryColumnValue() }}"/>
+                                    </div>
+                                {% endif %}
+                                {% if currentView.settings.clickable %}
+                                    <a href="{{ asset(model.url()) }}" target="_blank" class="toggle-ext-link d-none"
+                                       onauxclick="$(this).addClass('text-dark');" title="{{ trans('open-tab') }}">
+                                        <i class="fa-solid fa-external-link-alt"></i>
+                                    </a>
+                                {% endif %}
+                            </td>
+                        {% endif %}
+                        {% for column in currentView.getColumns() %}
+                            {{ column.tableCell(model) | raw }}
+                        {% endfor %}
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="{{ 1 + currentView.getColumns() | length }}"
+                            class="text-center text-muted-foreground py-6">
+                            <i data-lucide="inbox" class="w-5 h-5 inline opacity-40 me-1"></i>
+                            {{ trans('no-data') }}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {# -- Totales -- #}
+        {% if currentView.totalAmounts is not empty %}
+            <div class="table-responsive border-t border-border">
+                <table class="table table-sm table-hover mt-0 mb-0">
+                    <thead>
+                    <tr>
+                        <th></th>
+                        {% for item in currentView.totalAmounts %}
+                            <th class="text-end text-capitalize">{{ trans(item.title) }}</th>
+                        {% endfor %}
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td class="text-end text-muted-foreground text-sm">{{ trans('page-total-amount') }}</td>
+                        {% for item in currentView.totalAmounts %}
+                            <td class="text-end font-medium">{{ number(item.page) }}</td>
+                        {% endfor %}
+                    </tr>
+                    <tr class="font-semibold">
+                        <td class="text-end text-sm">{{ trans('total-amount') }}</td>
+                        {% for item in currentView.totalAmounts %}
+                            <td class="text-end">{{ number(item.total) }}</td>
+                        {% endfor %}
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+        {# -- Paginación inferior -- #}
+        {% if pages | length > 0 %}
+            <div class="{{ currentView.settings.card ? 'border-t border-border p-3 text-center' : 'pt-3 text-center' }}">
+                <div class="inline-flex rounded-md border border-border overflow-hidden">
+                    {% for page in currentView.getPagination() %}
+                        <button type="button"
+                                class="px-3 py-1.5 text-sm font-medium transition-colors border-r border-border last:border-r-0
+                                       {{ page.active ? 'bg-foreground text-background' : 'bg-background text-foreground hover:bg-muted' }}"
+                                onclick="listViewSetOffset('{{ currentView.getViewName() }}', '{{ page.offset }}');">
+                            {{ page.num }}
+                        </button>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    <br/>
+    {# -- Row footer -- #}
+    <div class="container-fluid">
+        <div class="row">
+            {{ currentView.getRow('footer').render(currentView.getViewName(), 'listViewSetAction', fsc) | raw }}
+        </div>
+    </div>
+    {# -- Modal guardar filtro -- #}
+    {% if currentView.showFilters %}
+        {{ _self.filterSaveModal(currentView) }}
+    {% endif %}
+</form>
+
+{# -- Modals -- #}
+{% for group in currentView.getModals() %}
+    {{ group.modal(currentView.model, currentView.getViewName()) | raw }}
+{% endfor %}
+
+{# ==========================================
+   Macros
+   ========================================== #}
+
+{% macro searchControl(currentView) %}
+    {% if currentView.searchFields is not empty %}
+        <div class="input-group">
+            <span class="input-group-text bg-transparent border-border">
+                <i data-lucide="search" class="w-4 h-4 text-muted-foreground"></i>
+            </span>
+            <input class="form-control" type="text" name="query" value="{{ currentView.query }}"
+                   autocomplete="off" placeholder="{{ trans('search') }}"/>
+            <button type="submit" class="btn btn-sm btn-secondary">
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </button>
+        </div>
+    {% endif %}
+{% endmacro %}
+
+{% macro filterButton(currentView, fsc) %}
+    {% if currentView.filters is not empty %}
+        {% set viewName = currentView.getViewName() %}
+        {% if currentView.pageFilterKey %}
+            <a href="{{ fsc.url() }}?activetab={{ viewName }}" class="btn btn-sm btn-secondary"
+               title="{{ trans('all') }}">
+                <i data-lucide="filter-x" class="w-3.5 h-3.5 me-1"></i>
+                {{ trans('all') }}
+            </a>
+        {% else %}
+            <button type="button" class="btn btn-sm btn-secondary"
+                    onclick="listViewShowFilters('{{ viewName }}');">
+                <i data-lucide="filter" class="w-3.5 h-3.5"></i>
+                <span class="d-none d-lg-inline ms-1">{{ trans('filters') }}</span>
+            </button>
+            {% if currentView.showFilters and currentView.settings.saveFilters %}
+                <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal"
+                        data-bs-target="#savefilter{{ viewName }}" title="{{ trans('save-filter') }}">
+                    <i data-lucide="save" class="w-3.5 h-3.5"></i>
+                    <span class="d-none d-lg-inline ms-1">{{ trans('save') }}</span>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger" title="{{ trans('clear-filters') }}"
+                        onclick="listViewSetAction('{{ viewName }}', 'clear-filters');">
+                    <i data-lucide="filter-x" class="w-3.5 h-3.5"></i>
+                </button>
+            {% endif %}
+        {% endif %}
+        {% set saveFilters = currentView.pageFilters %}
+        {% if saveFilters is not empty %}
+            {% for pageFilter in saveFilters %}
+                {% set icon = (pageFilter.nick is empty) ? 'users' : 'user' %}
+                {% set filterDesc = pageFilter.description|length > 10 ? pageFilter.description|slice(0,10) ~ '...' : pageFilter.description %}
+                {% if pageFilter.id == currentView.pageFilterKey %}
+                    <div class="btn-group">
+                        <button title="{{ pageFilter.description }}" class="btn btn-sm btn-secondary active"
+                                onclick="listViewSetLoadFilter('{{ viewName }}', '{{ pageFilter.id }}');">
+                            <i data-lucide="filter" class="w-3.5 h-3.5 me-1"></i> {{ filterDesc }}
+                        </button>
+                        <button type="button" class="btn btn-sm btn-danger"
+                                title="{{ trans('remove-filter') }}"
+                                onclick="listViewSetAction('{{ viewName }}', 'delete-filter');">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                {% else %}
+                    <button title="{{ pageFilter.description }}" class="btn btn-sm btn-secondary"
+                            onclick="listViewSetLoadFilter('{{ viewName }}', '{{ pageFilter.id }}');">
+                        <i data-lucide="filter" class="w-3.5 h-3.5 me-1"></i> {{ filterDesc }}
+                    </button>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    {% endif %}
+{% endmacro %}
+
+{% macro filterSaveModal(currentView) %}
+    {% set viewName = currentView.getViewName() %}
+    <div class="modal" id="savefilter{{ viewName }}" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title flex items-center gap-2">
+                        <i data-lucide="filter" class="w-5 h-5"></i> {{ trans('save-filter') }}
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="text-sm font-medium text-foreground mb-1">{{ trans('description') }}</label>
+                        <input type="text" name="filter-description" class="form-control noEnterKey" autofocus/>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        {{ trans('cancel') }}
+                    </button>
+                    <button type="button" class="btn btn-primary"
+                            onclick="listViewSetAction('{{ viewName }}', 'save-filter');">
+                        {{ trans('accept') }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endmacro %}
+
+{% macro sortButton(currentView) %}
+    {% if currentView.orderOptions is not empty %}
+        <div class="btn-group">
+            <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                    aria-haspopup="true" aria-expanded="true">
+                {% if currentView.orderOptions[currentView.orderKey]['type'] == 'ASC' %}
+                    <i data-lucide="arrow-up-narrow-wide" class="w-3.5 h-3.5"></i>
+                {% else %}
+                    <i data-lucide="arrow-down-wide-narrow" class="w-3.5 h-3.5"></i>
+                {% endif %}
+                <span class="d-none d-lg-inline ms-1">{{ currentView.orderOptions[currentView.orderKey]['label'] }}</span>
+            </button>
+            <div class="dropdown-menu dropdown-menu-end">
+                {% for key, orderby in currentView.orderOptions %}
+                    {% set activeClass = (currentView.orderKey == key) ? ' active' : '' %}
+                    <a class="dropdown-item{{ activeClass }}" href="#"
+                       onclick="listViewSetOrder('{{ currentView.getViewName() }}', '{{ key }}');">
+                        {% if orderby.type == 'ASC' %}
+                            <i data-lucide="arrow-up-narrow-wide" class="w-3.5 h-3.5 me-1 inline"></i>
+                        {% else %}
+                            <i data-lucide="arrow-down-wide-narrow" class="w-3.5 h-3.5 me-1 inline"></i>
+                        {% endif %}
+                        {{ orderby.label }}
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+{% endmacro %}
+
+{% macro colorsButton(currentView) %}
+    {% set legend = currentView.getRow('status').legend() %}
+    {% if legend %}
+        <div class="btn-group">
+            <div class="dropdown">
+                <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false">
+                    <i data-lucide="palette" class="w-3.5 h-3.5"></i>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end pb-0">
+                    <h6 class="dropdown-header">{{ trans('colors') }}</h6>
+                    {{ legend | raw }}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endmacro %}
+
+{% macro printButton(fsc, currentView) %}
+    <div class="dropdown">
+        <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                aria-haspopup="true" aria-expanded="false">
+            <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+        </button>
+        <div class="dropdown-menu">
+            {% for key, option in fsc.exportManager.options() %}
+                <a href="#" class="dropdown-item"
+                   onclick="listViewPrintAction('{{ currentView.getViewName() }}', '{{ key }}');">
+                    <i class="{{ option.icon }} fa-fw me-1" aria-hidden="true"></i>
+                    {{ trans(option.description) }}
+                </a>
+            {% endfor %}
+            {% if fsc.exportManager.tools is not empty %}
+                <div class="dropdown-divider"></div>
+                {% for key, tool in fsc.exportManager.tools() %}
+                    <a href="{{ asset(tool.link) }}" class="dropdown-item">
+                        <i class="{{ tool.icon }} fa-fw me-1" aria-hidden="true"></i>
+                        {{ trans(tool.description) }}
+                    </a>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+{% endmacro %}

@@ -1,0 +1,130 @@
+{#
+ * SolwedShadcn — EditView: formulario de edición con estilo shadcn
+ * Mantiene clases Bootstrap para: modals, contenido PHP-generated (group.edit)
+ * Usa Tailwind/shadcn para: layout, botones propios, iconos Lucide, card
+ #}
+{% set currentView = fsc.getCurrentView() %}
+{% set action = currentView.model.exists() ? 'edit' : 'insert' %}
+{% set fieldCount = 0 %}
+{% for group in currentView.getColumns() %}
+    {% set fieldCount = fieldCount + group.columns | length %}
+{% endfor %}
+
+<script>
+    function editViewDelete(viewName) {
+        const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal' + viewName));
+
+        document.getElementById('confirmDeleteBtn' + viewName).onclick = function () {
+            document.querySelector("#form" + viewName + " input[name='action']").value = "delete";
+            document.getElementById("form" + viewName).submit();
+        };
+
+        deleteModal.show();
+        return false;
+    }
+</script>
+
+{# -- Row header -- #}
+<div class="row">
+    {% set row = currentView.getRow('header') %}
+    {{ row.render(currentView.getViewName(), '', fsc) | raw }}
+</div>
+
+<form id="form{{ currentView.getViewName() }}" method="post" enctype="multipart/form-data"
+      onsubmit="animateSpinner('add')">
+    {{ formToken() }}
+    <input type="hidden" name="action" value="{{ action }}"/>
+    <input type="hidden" name="activetab" value="{{ currentView.getViewName() }}"/>
+    <input type="hidden" name="code" value="{{ currentView.model.primaryColumnValue() }}"/>
+    <div class="{{ currentView.settings.card ? 'card-shadcn' : '' }}">
+        <div class="{{ currentView.settings.card ? 'p-4' : 'container-fluid' }}">
+            {# -- Botón guardar superior (para formularios largos) + estadísticas -- #}
+            <div class="flex items-center justify-end mb-2">
+                {% set row = currentView.getRow('statistics') %}
+                {{ row.render(fsc) | raw }}
+                {% if fieldCount > 30 and currentView.settings.btnSave %}
+                    <button class="btn btn-sm btn-primary" type="submit">
+                        <i data-lucide="save" class="w-3.5 h-3.5 me-1"></i>
+                        <span class="d-none d-sm-inline-block">{{ trans('save') }}</span>
+                    </button>
+                {% endif %}
+            </div>
+            {# -- Campos del formulario (generados por PHP) -- #}
+            <div class="row">
+                {% for group in currentView.getColumns() %}
+                    {{ group.edit(currentView.model) | raw }}
+                {% endfor %}
+            </div>
+        </div>
+        {# -- Barra de acciones inferior -- #}
+        <div class="{{ currentView.settings.card ? 'border-t border-border p-2' : 'container-fluid' }}">
+            <div class="flex items-center gap-2 flex-wrap">
+                {% if fsc.hasData and currentView.settings.btnDelete %}
+                    <button type="button" class="btn btn-sm btn-danger"
+                            onclick="editViewDelete('{{ currentView.getViewName() }}');">
+                        <i data-lucide="trash-2" class="w-3.5 h-3.5 me-1"></i>
+                        <span class="d-none d-sm-inline-block">{{ trans('delete') }}</span>
+                    </button>
+                {% endif %}
+                <div class="flex-1 text-center">
+                    {# -- Row actions -- #}
+                    {% set row = currentView.getRow('actions') %}
+                    {{ row.render(false, currentView.getViewName()) | raw }}
+                </div>
+                {% if currentView.settings.btnUndo %}
+                    <button class="btn btn-sm btn-secondary" type="reset">
+                        <i data-lucide="undo-2" class="w-3.5 h-3.5 me-1"></i>
+                        <span class="d-none d-sm-inline-block">{{ trans('undo') }}</span>
+                    </button>
+                {% endif %}
+                {% if currentView.settings.btnSave %}
+                    <button class="btn btn-sm btn-primary" type="submit">
+                        <i data-lucide="save" class="w-3.5 h-3.5 me-1"></i>
+                        <span class="d-none d-sm-inline-block">{{ trans('save') }}</span>
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</form>
+
+<br/>
+
+{# -- Row footer -- #}
+<div class="row">
+    {% set row = currentView.getRow('footer') %}
+    {{ row.render(currentView.getViewName(), '', fsc) | raw }}
+</div>
+
+{# -- Modals -- #}
+{% for group in currentView.getModals() %}
+    {{ group.modal(currentView.model, currentView.getViewName()) | raw }}
+{% endfor %}
+
+{# -- Modal confirmar eliminación -- #}
+<div class="modal fade" id="deleteConfirmModal{{ currentView.getViewName() }}" tabindex="-1"
+     aria-labelledby="deleteConfirmModalLabel{{ currentView.getViewName() }}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title flex items-center gap-2"
+                    id="deleteConfirmModalLabel{{ currentView.getViewName() }}">
+                    <i data-lucide="alert-triangle" class="w-5 h-5 text-destructive"></i>
+                    {{ trans('confirm-delete') }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                {{ trans('are-you-sure') }}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i data-lucide="x" class="w-3.5 h-3.5 me-1"></i> {{ trans('cancel') }}
+                </button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn{{ currentView.getViewName() }}">
+                    <i data-lucide="check" class="w-3.5 h-3.5 me-1"></i> {{ trans('confirm') }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

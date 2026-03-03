@@ -1,0 +1,206 @@
+/**
+ * custom.css — Estilos SOLWED adicionales para el tema SolwedShadcn
+ */
+
+/* ============================================
+   Sidebar
+   ============================================ */
+.solwed-sidebar {
+  width: 16rem;
+  min-height: 100vh;
+  background-color: oklch(98% 0 0);
+  border-right: 1px solid oklch(90% 0.005 207);
+  transition: width 0.2s ease;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.solwed-sidebar.collapsed {
+  width: 4rem;
+}
+
+.solwed-sidebar .sidebar-brand {
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid oklch(90% 0.005 207);
+}
+
+.solwed-sidebar .sidebar-brand img {
+  transition: all 0.2s ease;
+}
+
+.solwed-sidebar.collapsed .sidebar-brand img {
+  width: 2rem;
+  height: 2rem;
+}
+
+.solwed-sidebar .sidebar-nav {
+  padding: 0.5rem;
+  overflow-y: auto;
+  height: calc(100vh - 5rem);
+}
+
+/* Ocultar texto del sidebar en modo collapsed */
+.solwed-sidebar.collapsed .sidebar-label,
+.solwed-sidebar.collapsed .sidebar-submenu {
+  display: none;
+}
+
+/* ============================================
+   Main layout
+   ============================================ */
+.solwed-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.solwed-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============================================
+   Header top bar
+   ============================================ */
+.solwed-header {
+  height: 3.5rem;
+  border-bottom: 1px solid oklch(90% 0.005 207);
+  background-color: oklch(98% 0 0);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  flex-shrink: 0;
+}
+
+/* ============================================
+   Logo ajustes
+   ============================================ */
+.solwed-logo {
+  max-height: 3rem;
+  width: auto;
+}
+
+.solwed-logo-sm {
+  max-height: 2rem;
+  width: auto;
+}
+
+/* ============================================
+   Scroll de pestañas en móvil
+   ============================================ */
+@media (max-width: 767px) {
+  .nav-tabs-wrapper {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: -1px;
+  }
+
+  .nav-tabs-scroll {
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    border-bottom: 1px solid oklch(90% 0.005 207);
+    min-width: min-content;
+  }
+
+  .nav-tabs-scroll .nav-item {
+    flex-shrink: 0;
+  }
+
+  .nav-tabs-scroll .nav-link {
+    white-space: nowrap;
+  }
+
+  /* Scrollbar sutil */
+  .nav-tabs-wrapper::-webkit-scrollbar {
+    height: 3px;
+  }
+
+  .nav-tabs-wrapper::-webkit-scrollbar-track {
+    background: oklch(94% 0.003 207);
+  }
+
+  .nav-tabs-wrapper::-webkit-scrollbar-thumb {
+    background: oklch(70% 0.005 207);
+    border-radius: 2px;
+  }
+
+  /* Sidebar responsive */
+  .solwed-sidebar {
+    position: fixed;
+    left: -16rem;
+    top: 0;
+    z-index: 1040;
+    transition: left 0.2s ease;
+  }
+
+  .solwed-sidebar.mobile-open {
+    left: 0;
+  }
+
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: oklch(0% 0 0 / 0.3);
+    z-index: 1035;
+  }
+
+  .sidebar-overlay.active {
+    display: block;
+  }
+}
+
+@media (min-width: 768px) {
+  .nav-tabs-wrapper {
+    overflow: visible;
+  }
+
+  .nav-tabs-scroll {
+    flex-wrap: wrap;
+  }
+}
+
+/* ============================================
+   Scrollbar global
+   ============================================ */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: oklch(96% 0.003 207);
+}
+
+::-webkit-scrollbar-thumb {
+  background: oklch(80% 0.005 207);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(65% 0.005 207);
+}
+
+/* ============================================
+   Pace.js loader
+   ============================================ */
+.pace .pace-progress {
+  background: oklch(90.9% 0.1944 106.8) !important;
+  height: 3px !important;
+}
+
+/* ============================================
+   Transiciones suaves para clickableRow
+   ============================================ */
+.clickableRow:hover {
+  background-color: oklch(90% 0.005 207 / 0.5) !important;
+}

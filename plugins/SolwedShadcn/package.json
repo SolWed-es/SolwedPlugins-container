@@ -1,0 +1,11 @@
+{
+  "name": "solwed-shadcn",
+  "private": true,
+  "scripts": {
+    "build:css": "npx tailwindcss -i ./Assets/CSS/input.css -o ./Assets/CSS/tailwind-output.css --minify",
+    "watch:css": "npx tailwindcss -i ./Assets/CSS/input.css -o ./Assets/CSS/tailwind-output.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4"
+  }
+}

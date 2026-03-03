@@ -1,0 +1,257 @@
+{# SolwedShadcn — Dashboard con estilo shadcn (inspirado en StatCard.tsx de solwed-app) #}
+{% extends "Master/MenuBghTemplate.html.twig" %}
+{% import 'Macro/Utils.html.twig' as Utils %}
+
+{% block body %}
+    <div class="px-4 pt-4 pb-8">
+        {# Header del dashboard #}
+        <div class="flex items-center justify-between mb-6">
+            <h1 class="text-lg font-heading font-semibold flex items-center gap-2">
+                {% if fsc.getPageData().name == fsc.user.homepage %}
+                    <a class="btn btn-sm btn-secondary active"
+                       href="{{ fsc.url() }}?defaultPage=FALSE" title="{{ trans('marked-as-homepage') }}">
+                        <i data-lucide="bookmark" class="w-4 h-4 fill-current"></i>
+                    </a>
+                {% else %}
+                    <a class="btn btn-sm btn-secondary"
+                       href="{{ fsc.url() }}?defaultPage=TRUE" title="{{ trans('mark-as-homepage') }}">
+                        <i data-lucide="bookmark" class="w-4 h-4"></i>
+                    </a>
+                {% endif %}
+                <span>{{ fsc.title }}</span>
+            </h1>
+        </div>
+
+        {# Links rápidos #}
+        {% block sectionLinks %}
+            {{ _self.sectionLinks(fsc) }}
+        {% endblock %}
+
+        {# Avisos #}
+        {% if fsc.showBackupWarning() %}
+            <div class="card-shadcn border-l-4 border-l-warning mb-4">
+                <div class="p-4">
+                    <div class="flex items-start gap-3">
+                        <i data-lucide="hard-drive" class="w-6 h-6 text-warning flex-shrink-0 mt-0.5"></i>
+                        <div>
+                            <h3 class="font-semibold mb-1">{{ trans('dashboard-backup') }}</h3>
+                            <p class="text-sm text-muted-foreground mb-2">{{ trans('dashboard-backup-p') }}</p>
+                            <ul class="text-sm text-muted-foreground list-disc ml-4 mb-3">
+                                <li>{{ trans('dasboard-backup-li1') }}</li>
+                                <li>{{ trans('dasboard-backup-li2') }}</li>
+                                <li>{{ trans('dasboard-backup-li3') }}</li>
+                            </ul>
+                            <a href="https://facturascripts.com/plugins/backup" target="_blank" rel="nofollow"
+                               class="btn btn-sm btn-warning">Backup</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% elseif fsc.updated == false %}
+            <div class="mb-4">
+                {{ Utils.updateInstall() }}
+            </div>
+        {% elseif fsc.registered == false %}
+            <div class="mb-4">
+                {{ Utils.registerInstall() }}
+            </div>
+        {% endif %}
+
+        {# Stats #}
+        {% block sectionStats %}
+            {{ _self.sectionStats(fsc) }}
+        {% endblock %}
+
+        {# Secciones #}
+        {% block sections %}
+            {% if 'receipts' in fsc.sections %}
+                {{ _self.sectionReceipts(fsc) }}
+            {% endif %}
+            {% if 'low-stock' in fsc.sections %}
+                {{ _self.sectionLowStock(fsc) }}
+            {% endif %}
+            {{ _self.sectionNews(fsc) }}
+        {% endblock %}
+    </div>
+{% endblock %}
+
+{% macro drawStatsBox(fsc, group, iconName, colorClass) %}
+    <div class="card-shadcn">
+        <div class="p-4">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-sm font-medium text-muted-foreground">{{ trans(group) }}</h3>
+                <div class="inline-flex items-center justify-center w-8 h-8 rounded-md {{ colorClass }}">
+                    <i data-lucide="{{ iconName }}" class="w-4 h-4"></i>
+                </div>
+            </div>
+            <div class="space-y-1">
+                {% for key, value in fsc.stats[group] %}
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="text-muted-foreground">{{ trans(key) }}</span>
+                        {% set textColor = value < 0 ? 'text-destructive' : '' %}
+                        <span class="font-medium {{ textColor }}">{{ money(value) }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endmacro %}
+
+{% macro drawStatsBoxCount(fsc, group, iconName, colorClass) %}
+    <div class="card-shadcn">
+        <div class="p-4">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-sm font-medium text-muted-foreground">{{ trans(group) }}</h3>
+                <div class="inline-flex items-center justify-center w-8 h-8 rounded-md {{ colorClass }}">
+                    <i data-lucide="{{ iconName }}" class="w-4 h-4"></i>
+                </div>
+            </div>
+            <div class="space-y-1">
+                {% for key, value in fsc.stats[group] %}
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="text-muted-foreground">{{ trans(key) }}</span>
+                        <span class="font-medium">{{ value }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endmacro %}
+
+{% macro sectionLinks(fsc) %}
+    <div class="card-shadcn mb-6">
+        <div class="p-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <h3 class="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i> {{ trans('create') }}
+                    </h3>
+                    <ul class="space-y-1">
+                        {% for link, label in fsc.createLinks %}
+                            <li>
+                                <a href="{{ link }}" class="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                                    {{ trans(label) }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% if fsc.openLinks %}
+                    <div>
+                        <h3 class="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
+                            <i data-lucide="folder-open" class="w-4 h-4"></i> {{ trans('open') }}
+                        </h3>
+                        <ul class="space-y-1">
+                            {% for link in fsc.openLinks %}
+                                <li class="text-sm">
+                                    <span class="text-muted-foreground">{{ trans(link.type) }}</span>
+                                    <a href="{{ link.url }}" class="text-foreground hover:underline">{{ link.name }}</a>
+                                    <span class="text-muted-foreground text-xs">{{ link.date }}</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+                <div>
+                    <h3 class="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
+                        <i data-lucide="circle-help" class="w-4 h-4"></i> {{ trans('help') }}
+                    </h3>
+                    <ul class="space-y-1">
+                        <li><a href="https://facturascripts.com/publicaciones/configuracion-15" rel="nofollow" target="_blank" class="text-sm text-muted-foreground hover:text-foreground transition-colors">Configuración</a></li>
+                        <li><a href="https://facturascripts.com/publicaciones/primeros-pasos-303" rel="nofollow" target="_blank" class="text-sm text-muted-foreground hover:text-foreground transition-colors">Primeros pasos</a></li>
+                        <li><a href="https://facturascripts.com/publicaciones/problemas-frecuentes-469" rel="nofollow" target="_blank" class="text-sm text-muted-foreground hover:text-foreground transition-colors">Problemas frecuentes</a></li>
+                        <li><a href="https://facturascripts.com/contacto" rel="nofollow" target="_blank" class="text-sm text-muted-foreground hover:text-foreground transition-colors">Soporte</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endmacro %}
+
+{% macro sectionStats(fsc) %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {{ _self.drawStatsBox(fsc, 'purchases', 'shopping-cart', 'bg-destructive/10 text-destructive') }}
+        {{ _self.drawStatsBox(fsc, 'sales', 'trending-up', 'bg-success/10 text-success') }}
+        {{ _self.drawStatsBox(fsc, 'taxes', 'receipt', 'bg-warning/10 text-warning') }}
+        {{ _self.drawStatsBoxCount(fsc, 'new-customers', 'users', 'bg-info/10 text-info') }}
+    </div>
+{% endmacro %}
+
+{% macro sectionReceipts(fsc) %}
+    <div class="card-shadcn mb-4">
+        <div class="p-4 flex items-center justify-between">
+            <h3 class="font-semibold flex items-center gap-2">
+                <i data-lucide="banknote" class="w-5 h-5"></i> {{ trans('receipts') }}
+            </h3>
+            <span class="badge-shadcn bg-destructive/10 text-destructive border-destructive/20">{{ trans('unpaid') }}</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-sm table-hover mb-0">
+                <thead>
+                <tr>
+                    <th>{{ trans('customer') }}</th>
+                    <th>{{ trans('observations') }}</th>
+                    <th class="text-end">{{ trans('amount') }}</th>
+                    <th class="text-end">{{ trans('expiration') }}</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for receipt in fsc.receipts %}
+                    <tr class="clickableRow" data-href="{{ receipt.url() }}">
+                        <td>{{ receipt.getSubject().nombre | raw }}</td>
+                        <td>{{ receipt.observaciones | raw }}</td>
+                        <td class="text-end text-nowrap">{{ money(receipt.importe) }}</td>
+                        <td class="text-end text-nowrap">{{ receipt.vencimiento }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endmacro %}
+
+{% macro sectionLowStock(fsc) %}
+    <div class="card-shadcn mb-4">
+        <div class="p-4">
+            <h3 class="font-semibold flex items-center gap-2">
+                <i data-lucide="package" class="w-5 h-5"></i> {{ trans('minimum-stock') }}
+            </h3>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-sm table-hover mb-0">
+                <thead>
+                <tr>
+                    <th>{{ trans('reference') }}</th>
+                    <th>{{ trans('warehouse') }}</th>
+                    <th class="text-end">{{ trans('minimum-stock') }}</th>
+                    <th class="text-end">{{ trans('available') }}</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for stock in fsc.lowStock %}
+                    <tr class="clickableRow table-danger" data-href="{{ stock.url() }}">
+                        <td>{{ stock.referencia }}</td>
+                        <td>{{ stock.codalmacen }}</td>
+                        <td class="text-end">{{ number(stock.stockmin) }}</td>
+                        <td class="text-end">{{ number(stock.disponible) }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endmacro %}
+
+{% macro sectionNews(fsc) %}
+    {% for news in fsc.news %}
+        <div class="card-shadcn mb-4">
+            <div class="card-header flex items-center justify-between">
+                <a href="{{ news.url }}" target="_blank" class="text-sm font-medium hover:underline">{{ news.title | raw }}</a>
+                <span class="text-xs text-muted-foreground">{{ news.fecha }}</span>
+            </div>
+            <div class="p-4">
+                <div class="text-sm text-muted-foreground">{{ news.body | raw }}</div>
+            </div>
+        </div>
+    {% endfor %}
+{% endmacro %}

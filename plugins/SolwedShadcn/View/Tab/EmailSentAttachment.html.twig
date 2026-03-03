@@ -1,0 +1,19 @@
+{# SolwedShadcn — Adjuntos de email enviado #}
+{% set currentView = fsc.getCurrentView() %}
+
+{% for attachment in currentView.cursor %}
+    <div class="card-shadcn mb-3">
+        <div class="p-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2 min-w-0">
+                    <i data-lucide="paperclip" class="w-4 h-4 text-muted-foreground flex-shrink-0"></i>
+                    <span class="truncate">{{ attachment.name }}</span>
+                </div>
+                <a href="{{ attachment.path }}" class="btn btn-sm btn-outline-primary ms-2 flex-shrink-0" target="_blank" download>
+                    {{ bytes(attachment.size) }}
+                    <i data-lucide="download" class="w-3.5 h-3.5 ms-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+{% endfor %}
