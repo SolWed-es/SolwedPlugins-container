@@ -38,10 +38,10 @@
     {% for includeView in getIncludeViews('MenuTemplate', 'BodyEnd') %}
         {% include includeView['path'] %}
     {% endfor %}
+    <script>lucide.createIcons();</script>
     {% if debugBarRender %}
         {{ debugBarRender.render() | raw }}
     {% endif %}
-    <script>lucide.createIcons();</script>
     <!-- execution time: {{ executionTime() }} s -->
     </body>
 {% endblock %}

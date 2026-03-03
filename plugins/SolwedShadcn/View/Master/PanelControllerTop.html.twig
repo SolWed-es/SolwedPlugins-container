@@ -73,13 +73,13 @@
                 {% if image is empty %}
                     <i class="{{ pageData.icon }} fa-3x ps-3 float-end opacity-30" aria-hidden="true"></i>
                 {% else %}
-                    <img src="{{ image }}" alt="{{ fsc.title }}" class="img-thumbnail ms-3 mb-2 float-end" style="max-height: 80px;"/>
+                    <img src="{{ image }}" alt="{{ fsc.title }}" class="img-thumbnail ms-3 mb-2 float-end max-h-20"/>
                 {% endif %}
                 <h1 class="h5 mb-0">{{ trans(pageData.title) }}</h1>
                 {% if fsc.hasData %}
                     <p class="text-muted-foreground text-sm mb-3">{{ firstView.model.primaryDescription() | raw }}</p>
                 {% else %}
-                    <p class="text-info text-sm mb-3">{{ trans('new') }}</p>
+                    <p class="text-muted-foreground text-sm mb-3">{{ trans('new') }}</p>
                 {% endif %}
             </div>
         </div>
@@ -190,7 +190,7 @@
                                href="EditPageOption?code={{ viewName }}&url={{ firstView.model.url() | url_encode }}">
                                 <i class="{{ view.icon }} fa-fw me-1" aria-hidden="true"></i> {{ view.title }}
                                 {% if view.settings.customized %}
-                                    <i class="fa-solid fa-user-pen ms-2" title="{{ trans('personalized') }}"></i>
+                                    <i data-lucide="user-pen" class="w-3.5 h-3.5 ms-2 inline" title="{{ trans('personalized') }}"></i>
                                 {% endif %}
                             </a>
                         {% endif %}
@@ -210,7 +210,7 @@
         </a>
         <button type="button" class="btn btn-sm btn-secondary dropdown-toggle dropdown-toggle-split"
                 data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            <span class="sr-only">{{ trans('more') }}</span>
+            <span class="visually-hidden">{{ trans('more') }}</span>
         </button>
         <div class="dropdown-menu dropdown-menu-end">
             {% for key, option in fsc.exportManager.options() %}
@@ -223,7 +223,7 @@
             {% endfor %}
             <div class="dropdown-divider"></div>
             <a href="#" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#advancedExportModal">
-                <i class="fa-solid fa-tools fa-fw me-1" aria-hidden="true"></i>
+                <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5 me-1 inline"></i>
                 {{ trans('advanced') }}
             </a>
             {% set tools = fsc.exportManager.tools() %}
@@ -244,8 +244,8 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">
-                            <i class="fa-solid fa-tools fa-fw" aria-hidden="true"></i>
+                        <h5 class="modal-title flex items-center gap-2">
+                            <i data-lucide="sliders-horizontal" class="w-5 h-5"></i>
                             {{ trans('advanced') }}
                         </h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>

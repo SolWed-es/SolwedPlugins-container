@@ -28,7 +28,7 @@
             <link rel="stylesheet" href="{{ asset('node_modules/@fortawesome/fontawesome-free/css/all.min.css') }}?v=6"/>
             <link rel="stylesheet" href="{{ asset('Plugins/SolwedShadcn/Assets/CSS/custom.css') }}?v={{ 'now' | date('ymd') }}"/>
         {% endblock %}
-        <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+        <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
         {# Adds custom CSS assets #}
         {% for css in assetManager.get('css') %}
             <link rel="stylesheet" href="{{ css }}"/>
@@ -36,7 +36,7 @@
         {% block javascripts %}
             <script src="{{ asset('node_modules/jquery/dist/jquery.min.js') }}"></script>
             <script src="{{ asset('node_modules/bootstrap/dist/js/bootstrap.bundle.min.js') }}?v=5"></script>
-            <script src="{{ asset('node_modules/@fortawesome/fontawesome-free/js/all.min.js') }}?v=6"></script>
+            {# FA JS no necesario — ya se carga FA CSS para iconos de widgets Core #}
         {% endblock %}
         {# Adds custom JS assets #}
         {% for js in assetManager.get('js') %}

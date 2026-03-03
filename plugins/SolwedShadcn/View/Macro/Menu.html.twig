@@ -5,10 +5,10 @@
  */
 #}
 
-{% macro showMenu(menuItem, parent) %}
+{% macro showMenu(menuItem, parent = '') %}
     {% import _self as macros %}
     {% set active = menuItem.active ? true : false %}
-    {% set menuId = parent is empty ? 'menu-' ~ menuItem.title|lower|replace({' ': '-'}) : parent ~ '-' ~ menuItem.name|lower %}
+    {% set menuId = parent is empty ? 'menu_' ~ menuItem.name : parent ~ '_' ~ menuItem.name %}
 
     {% if parent is empty %}
         {# Nivel principal: grupo con subitems #}

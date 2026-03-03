@@ -111,7 +111,7 @@
     {% if extFile in ['gif','jpg', 'jpeg','png', 'svg', 'webp'] %}
         <img src="{{ asset(url) }}" class="preview-fit rounded border border-border" alt="{{ filename }}">
     {% elseif extFile in ['mp4', 'ogg', 'webm'] %}
-        <div class="embed-responsive embed-responsive-16by9">
+        <div class="ratio ratio-16x9">
             <video class="preview-fit" controls><source src="{{ asset(url) }}" type="video/{{ extFile }}" /></video>
         </div>
     {% elseif extFile == 'pdf' %}

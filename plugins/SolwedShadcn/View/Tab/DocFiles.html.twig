@@ -53,7 +53,7 @@
                             <input type="hidden" name="activetab" value="{{ currentView.getViewName() }}"/>
                             <input type="hidden" name="id" value="{{ docfile.id }}"/>
                             <input type="hidden" name="action" value=""/>
-                            <div class="card-shadcn h-100">
+                            <div class="card-shadcn h-full">
                                 {% if file.isImage() %}
                                     <a href="{{ file.url('download-permanent') }}" target="_blank">
                                         <img src="{{ file.url('download') }}" class="w-full rounded-t-lg"

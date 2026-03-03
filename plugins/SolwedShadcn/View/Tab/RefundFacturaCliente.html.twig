@@ -88,7 +88,7 @@
                             <div class="col-sm-6 col-md-4 col-lg">
                                 <div class="mb-3">
                                     <span class="text-sm font-medium">{{ trans('date') }}</span>
-                                    <input type="date" name="fecha" value="{{ task.end | date('Y-m-d') }}"
+                                    <input type="date" name="fecha" value="{{ "now" | date('Y-m-d') }}"
                                            class="form-control" required>
                                 </div>
                             </div>
@@ -119,10 +119,10 @@
                                         </button>
                                         <div class="dropdown-menu dropdown-menu-end">
                                             <a class="dropdown-item" href="#" onClick="return refundNone();">
-                                                <i class="fa-regular fa-square fa-fw me-1"></i> {{ trans('select-none') }}
+                                                <i data-lucide="square" class="w-3.5 h-3.5 me-1 inline"></i> {{ trans('select-none') }}
                                             </a>
                                             <a class="dropdown-item" href="#" onClick="return refundAll();">
-                                                <i class="fa-solid fa-square fa-fw me-1"></i> {{ trans('select-all') }}
+                                                <i data-lucide="square-check" class="w-3.5 h-3.5 me-1 inline"></i> {{ trans('select-all') }}
                                             </a>
                                         </div>
                                     </div>
