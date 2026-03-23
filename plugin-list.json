@@ -1,9 +1,9 @@
 {
     "metadata": {
-        "generated": "22-03-2026 02:13:36",
+        "generated": "23-03-2026 13:47:51",
         "repo": "https://github.com/SolWed-es/SolwedPlugins-container",
-        "plugin_count": 19,
-        "workflow_run": "23393700684"
+        "plugin_count": 20,
+        "workflow_run": "23440577997"
     },
     "plugins": [
         {
@@ -97,6 +97,17 @@
             "require_php": [],
             "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/Facturae.zip",
             "last_updated": "2026-03-01"
+        },
+        {
+            "name": "FirmaAlbaran",
+            "description": "Firma digital de albaranes. A\u00f1ade los campos firma (base64) y firmante al albar\u00e1n de cliente, permitiendo registrar la conformidad de entrega desde el portal cliente.",
+            "version": 1,
+            "min_version": 2025.2,
+            "min_php": 8,
+            "require": [],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/FirmaAlbaran.zip",
+            "last_updated": "2026-03-23"
         },
         {
             "name": "HumanResourcesSolwed",
