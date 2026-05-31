@@ -1,255 +1,244 @@
 {
-  "metadata": {
-    "generated": "24-05-2026 03:36:24",
-    "repo": "https://github.com/SolWed-es/SolwedPlugins-container",
-    "plugin_count": 20,
-    "workflow_run": "26350934899"
-  },
-  "plugins": [
-    {
-      "name": "AcercaFacturaScripts",
-      "description": "Plugins que despliega una hoja de las  especificaciones técnicas de Facturascript y accede a datos del servidor.",
-      "version": 1,
-      "min_version": 2024.9,
-      "min_php": 7.4,
-      "require": [],
-      "require_php": [],
-      "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/AcercaFacturaScripts.zip",
-      "last_updated": "2026-03-01"
+    "metadata": {
+        "generated": "31-05-2026 03:52:24",
+        "repo": "https://github.com/SolWed-es/SolwedPlugins-container",
+        "plugin_count": 20,
+        "workflow_run": "26702569267"
     },
-    {
-      "name": "BackupSettings",
-      "description": "Plugin para configurar el backup.",
-      "version": 0.1,
-      "min_version": 2024.9,
-      "min_php": 7.3,
-      "require": [
-        "Backup"
-      ],
-      "require_php": [],
-      "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/BackupSettings.zip",
-      "last_updated": "2026-03-01"
-    },
-    {
-      "name": "CRM",
-      "description": "Permite gestionar contactos, listas, notas y oportunidades de negocio. Incluye calendario CRM para crear notas como eventos con fecha y hora. Perfecto para llevar la adquisición de clientes junto al resto de gestiones de la empresa con FacturaScripts.",
-      "version": 3.5,
-      "min_version": 2025.4,
-      "min_php": 7.3,
-      "require": [],
-      "require_php": [],
-      "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/CRM.zip",
-      "last_updated": "2026-03-01"
-    },
-    {
-      "name": "DescargarFacturasZIP",
-      "description": "Descargar PDF de facturas en archivo comprimido",
-      "version": 1,
-      "min_version": 2023,
-      "min_php": 7.3,
-      "require": [],
-      "require_php": [],
-      "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/DescargarFacturasZIP.zip",
-      "last_updated": "2026-03-01"
-    },
-    {
-      "name": "DescuentoProducto",
-      "description": "Permite configurar descuentos por producto que se aplican automáticamente en documentos de venta",
-      "version": 1.2,
-      "min_version": 2025.43,
-      "min_php": 7.3,
-      "require": [],
-      "require_php": [],
-      "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/DescuentoProducto.zip",
-      "last_updated": "2026-03-01"
-    },
-    {
-      "name": "DocumentosProyectos",
-      "description": "Permite añadir archivos a proyectos.",
-      "version": 1.2,
-      "min_version": 2025.43,
-      "min_php": 7.3,
-      "require": [
-        "Proyectos"
-      ],
-      "require_php": [],
-      "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/DocumentosProyectos.zip",
-      "last_updated": "2026-03-01"
-    },
-    {
-      "name": "Dominios",
-      "description": "Gestión avanzada de dominios con integración de API y validación de contactos",
-      "version": 2,
-      "min_version": 2025.43,
-      "min_php": 8.1,
-      "require": [],
-      "require_php": [],
-      "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/Dominios.zip",
-      "last_updated": "2026-03-01"
-    },
-    {
-      "name": "Facturae",
-      "description": "Añade soporte para la factura electrónica española. Formato Facturae 3.2",
-      "version": 1.6,
-      "min_version": 2021.81,
-      "min_php": 7.3,
-      "require": [],
-      "require_php": [],
-      "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/Facturae.zip",
-      "last_updated": "2026-03-01"
-    },
-    {
-      "name": "FirmaAlbaran",
-      "description": "Firma digital de albaranes. Añade los campos firma (base64) y firmante al albarán de cliente, permitiendo registrar la conformidad de entrega desde el portal cliente.",
-      "version": 1,
-      "min_version": 2025.2,
-      "min_php": 8,
-      "require": [],
-      "require_php": [],
-      "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/FirmaAlbaran.zip",
-      "last_updated": "2026-03-23"
-    },
-    {
-      "name": "HumanResourcesSolwed",
-      "description": "Ampliación completa de HumanResources: geolocalización, gestión de turnos, planificación semanal, destinos y rutas para trabajadores. Con el plugin Proyectos activo, permite vincular fichajes a proyectos e informes de horas por proyecto.",
-      "version": 2.1,
-      "min_version": 2025.43,
-      "min_php": 7.4,
-      "require": [
-        "HumanResources"
-      ],
-      "require_php": [],
-      "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/HumanResourcesSolwed.zip",
-      "last_updated": "2026-03-01"
-    },
-    {
-      "name": "IeCRMFormularioElementor",
-      "description": "IeCRMFormularioElementor",
-      "version": 1,
-      "min_version": 2025.43,
-      "min_php": 7.3,
-      "require": [
-        "CRM"
-      ],
-      "require_php": [],
-      "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/IeCRMFormularioElementor.zip",
-      "last_updated": "2026-03-01"
-    },
-    {
-      "name": "IeWhatsapp",
-      "description": "Botón envío Whatsapp en paginas de ventas",
-      "version": 2.5,
-      "min_version": 2025.43,
-      "min_php": 7.3,
-      "require": [],
-      "require_php": [],
-      "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/IeWhatsapp.zip",
-      "last_updated": "2026-03-01"
-    },
-    {
-      "name": "InfoCostePresupuesto",
-      "description": "Agrega los campos Proveedor y coste al documento Presupuesto de ventas",
-      "version": 1.1,
-      "min_version": 2024,
-      "min_php": 7.3,
-      "require": [],
-      "require_php": [],
-      "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/InfoCostePresupuesto.zip",
-      "last_updated": "2026-03-01"
-    },
-    {
-      "name": "MerakiPlugin",
-      "description": "Añadir columna de detalles a productos",
-      "version": 1.1,
-      "min_version": 2025,
-      "min_php": 7.3,
-      "require": [],
-      "require_php": [],
-      "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/MerakiPlugin.zip",
-      "last_updated": "2026-03-01"
-    },
-    {
-      "name": "PleskServers",
-      "description": "Gestión de servidores Plesk con integración completa en FacturaScript",
-      "version": 1,
-      "min_version": 2025.43,
-      "min_php": 8.1,
-      "require": [
-        ""
-      ],
-      "require_php": [
-        ""
-      ],
-      "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/PleskServers.zip",
-      "last_updated": "2026-03-01"
-    },
-    {
-      "name": "Rdgarantia",
-      "description": "Rdgarantia",
-      "version": 2,
-      "min_version": 2025,
-      "min_php": 7.3,
-      "require": [],
-      "require_php": [],
-      "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/Rdgarantia.zip",
-      "last_updated": "2026-03-01"
-    },
-    {
-      "name": "SolwedConnect",
-      "description": "Conecta FacturaScripts con el ecosistema Solwed: tema, tienda de plugins y actualizaciones.",
-      "version": 0.13,
-      "min_version": 2026,
-      "min_php": 8.1,
-      "require": [],
-      "require_php": [],
-      "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/SolwedConnect.zip",
-      "last_updated": "2026-05-25"
-    },
-    {
-      "name": "SolwedShadcn",
-      "description": "Tema Tailwind CSS + shadcn/ui para FacturaScripts — identidad visual SOLWED",
-      "version": 0.1,
-      "min_version": 2025.42,
-      "min_php": 7.3,
-      "require": [],
-      "require_php": [],
-      "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/SolwedShadcn.zip",
-      "last_updated": "2026-03-03"
-    },
-    {
-      "name": "SolwedTheme",
-      "description": "Tema personalizado basado en Bootstrap 5 para FacturaScripts",
-      "version": 1.72,
-      "min_version": 2025.42,
-      "min_php": 7.3,
-      "require": [],
-      "require_php": [],
-      "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/SolwedTheme.zip",
-      "last_updated": "2026-03-01"
-    },
-    {
-      "name": "SolwedTiendaWeb",
-      "description": "Sincroniza productos variables y sus variaciones entre FacturaScripts y WooCommerce. Gestiona precios, stock, imágenes y categorías directamente desde tu ERP.",
-      "version": 1.2,
-      "min_version": 2025.43,
-      "min_php": 7.3,
-      "require": [],
-      "require_php": [],
-      "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/SolwedTiendaWeb.zip",
-      "last_updated": "2026-03-01"
-    },
-    {
-      "name": "Vehiculos",
-      "description": "Gestión integral de vehículos: ficha completa (matrícula, bastidor, kilómetros, combustible, color, fabricante), asociación automática a facturas y exportación profesional a PDF.",
-      "version": 1.4,
-      "min_version": 2025.43,
-      "min_php": 7.3,
-      "require": [
-        "PlantillasPDF"
-      ],
-      "require_php": [],
-      "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/Vehiculos.zip",
-      "last_updated": "2026-03-01"
-    }
-  ]
+    "plugins": [
+        {
+            "name": "AcercaFacturaScripts",
+            "description": "Plugins que despliega una hoja de las  especificaciones t\u00e9cnicas de Facturascript y accede a datos del servidor.",
+            "version": 1,
+            "min_version": 2024.9,
+            "min_php": 7.4,
+            "require": [],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/AcercaFacturaScripts.zip",
+            "last_updated": "2026-03-01"
+        },
+        {
+            "name": "BackupSettings",
+            "description": "Plugin para configurar el backup.",
+            "version": 0.1,
+            "min_version": 2024.9,
+            "min_php": 7.3,
+            "require": [
+                "Backup"
+            ],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/BackupSettings.zip",
+            "last_updated": "2026-03-01"
+        },
+        {
+            "name": "CRM",
+            "description": "Permite gestionar contactos, listas, notas y oportunidades de negocio. Incluye calendario CRM para crear notas como eventos con fecha y hora. Perfecto para llevar la adquisici\u00f3n de clientes junto al resto de gestiones de la empresa con FacturaScripts.",
+            "version": 3.5,
+            "min_version": 2025.4,
+            "min_php": 7.3,
+            "require": [],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/CRM.zip",
+            "last_updated": "2026-03-01"
+        },
+        {
+            "name": "DescargarFacturasZIP",
+            "description": "Descargar PDF de facturas en archivo comprimido",
+            "version": 1,
+            "min_version": 2023,
+            "min_php": 7.3,
+            "require": [],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/DescargarFacturasZIP.zip",
+            "last_updated": "2026-03-01"
+        },
+        {
+            "name": "DescuentoProducto",
+            "description": "Permite configurar descuentos por producto que se aplican autom\u00e1ticamente en documentos de venta",
+            "version": 1.2,
+            "min_version": 2025.43,
+            "min_php": 7.3,
+            "require": [],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/DescuentoProducto.zip",
+            "last_updated": "2026-03-01"
+        },
+        {
+            "name": "DocumentosProyectos",
+            "description": "Permite a\u00f1adir archivos a proyectos.",
+            "version": 1.2,
+            "min_version": 2025.43,
+            "min_php": 7.3,
+            "require": [
+                "Proyectos"
+            ],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/DocumentosProyectos.zip",
+            "last_updated": "2026-03-01"
+        },
+        {
+            "name": "Dominios",
+            "description": "Gesti\u00f3n avanzada de dominios con integraci\u00f3n de API y validaci\u00f3n de contactos",
+            "version": 2,
+            "min_version": 2025.43,
+            "min_php": 8.1,
+            "require": [],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/Dominios.zip",
+            "last_updated": "2026-03-01"
+        },
+        {
+            "name": "Facturae",
+            "description": "A\u00f1ade soporte para la factura electr\u00f3nica espa\u00f1ola. Formato Facturae 3.2",
+            "version": 1.6,
+            "min_version": 2021.81,
+            "min_php": 7.3,
+            "require": [],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/Facturae.zip",
+            "last_updated": "2026-03-01"
+        },
+        {
+            "name": "FirmaAlbaran",
+            "description": "Firma digital de albaranes. A\u00f1ade los campos firma (base64) y firmante al albar\u00e1n de cliente, permitiendo registrar la conformidad de entrega desde el portal cliente.",
+            "version": 1,
+            "min_version": 2025.2,
+            "min_php": 8,
+            "require": [],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/FirmaAlbaran.zip",
+            "last_updated": "2026-03-23"
+        },
+        {
+            "name": "HumanResourcesSolwed",
+            "description": "Ampliaci\u00f3n completa de HumanResources: geolocalizaci\u00f3n, gesti\u00f3n de turnos, planificaci\u00f3n semanal, destinos y rutas para trabajadores. Con el plugin Proyectos activo, permite vincular fichajes a proyectos e informes de horas por proyecto.",
+            "version": 2.1,
+            "min_version": 2025.43,
+            "min_php": 7.4,
+            "require": [
+                "HumanResources"
+            ],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/HumanResourcesSolwed.zip",
+            "last_updated": "2026-03-01"
+        },
+        {
+            "name": "IeCRMFormularioElementor",
+            "description": "IeCRMFormularioElementor",
+            "version": 1,
+            "min_version": 2025.43,
+            "min_php": 7.3,
+            "require": [
+                "CRM"
+            ],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/IeCRMFormularioElementor.zip",
+            "last_updated": "2026-03-01"
+        },
+        {
+            "name": "IeWhatsapp",
+            "description": "Bot\u00f3n env\u00edo Whatsapp en paginas de ventas",
+            "version": 2.5,
+            "min_version": 2025.43,
+            "min_php": 7.3,
+            "require": [],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/IeWhatsapp.zip",
+            "last_updated": "2026-03-01"
+        },
+        {
+            "name": "InfoCostePresupuesto",
+            "description": "Agrega los campos Proveedor y coste al documento Presupuesto de ventas",
+            "version": 1.1,
+            "min_version": 2024,
+            "min_php": 7.3,
+            "require": [],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/InfoCostePresupuesto.zip",
+            "last_updated": "2026-03-01"
+        },
+        {
+            "name": "MerakiPlugin",
+            "description": "A\u00f1adir columna de detalles a productos",
+            "version": 1.1,
+            "min_version": 2025,
+            "min_php": 7.3,
+            "require": [],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/MerakiPlugin.zip",
+            "last_updated": "2026-03-01"
+        },
+        {
+            "name": "PleskServers",
+            "description": "Gesti\u00f3n de servidores Plesk con integraci\u00f3n completa en FacturaScript",
+            "version": 1,
+            "min_version": 2025.43,
+            "min_php": 8.1,
+            "require": [
+                ""
+            ],
+            "require_php": [
+                ""
+            ],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/PleskServers.zip",
+            "last_updated": "2026-03-01"
+        },
+        {
+            "name": "Rdgarantia",
+            "description": "Rdgarantia",
+            "version": 2,
+            "min_version": 2025,
+            "min_php": 7.3,
+            "require": [],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/Rdgarantia.zip",
+            "last_updated": "2026-03-01"
+        },
+        {
+            "name": "SolwedShadcn",
+            "description": "Tema Tailwind CSS + shadcn/ui para FacturaScripts \u2014 identidad visual SOLWED",
+            "version": 0.1,
+            "min_version": 2025.42,
+            "min_php": 7.3,
+            "require": [],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/SolwedShadcn.zip",
+            "last_updated": "2026-03-03"
+        },
+        {
+            "name": "SolwedTheme",
+            "description": "Tema personalizado basado en Bootstrap 5 para FacturaScripts",
+            "version": 1.72,
+            "min_version": 2025.42,
+            "min_php": 7.3,
+            "require": [],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/SolwedTheme.zip",
+            "last_updated": "2026-03-01"
+        },
+        {
+            "name": "SolwedTiendaWeb",
+            "description": "Sincroniza productos variables y sus variaciones entre FacturaScripts y WooCommerce. Gestiona precios, stock, im\u00e1genes y categor\u00edas directamente desde tu ERP.",
+            "version": 1.2,
+            "min_version": 2025.43,
+            "min_php": 7.3,
+            "require": [],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/SolwedTiendaWeb.zip",
+            "last_updated": "2026-03-01"
+        },
+        {
+            "name": "Vehiculos",
+            "description": "Gesti\u00f3n integral de veh\u00edculos: ficha completa (matr\u00edcula, bastidor, kil\u00f3metros, combustible, color, fabricante), asociaci\u00f3n autom\u00e1tica a facturas y exportaci\u00f3n profesional a PDF.",
+            "version": 1.4,
+            "min_version": 2025.43,
+            "min_php": 7.3,
+            "require": [
+                "PlantillasPDF"
+            ],
+            "require_php": [],
+            "download_url": "https://github.com/SolWed-es/SolwedPlugins-container/raw/main/zip/Vehiculos.zip",
+            "last_updated": "2026-03-01"
+        }
+    ]
 }
